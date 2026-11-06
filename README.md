@@ -94,14 +94,14 @@ Four shooters (`src/shooters.ts`):
 
 | shooter | average | median | 10th–90th percentile | fewest | most |
 | --- | --- | --- | --- | --- | --- |
-| random | 95.4 | 97 | 89–100 | 56 | 100 |
-| hunt | 66.2 | 66 | 49–84 | 26 | 100 |
-| parity | 61.1 | 62 | 49–72 | 23 | 81 |
-| density | 44.8 | 44 | 33–58 | 17 | 73 |
+| random | 95.4 | 97 | 89–100 | 57 | 100 |
+| hunt | 66.0 | 66 | 49–83 | 24 | 100 |
+| parity | 61.0 | 62 | 49–72 | 27 | 82 |
+| density | 44.8 | 44 | 33–58 | 20 | 73 |
 
 **Random fire nearly always clears the board:** the last ship cell is, on average, the 95th of
 100. **Hunting halves that,** and parity saves another 5 shots by cutting off the long games.
-Hunting only half the board can't run long, so parity's 90th percentile is 72 against hunt's 84.
+Hunting only half the board can't run long, so parity's 90th percentile is 72 against hunt's 83.
 **Density saves 16 more.**
 
 Each shot's chance of hitting, among games still going, as a 5-shot moving average:
@@ -177,7 +177,7 @@ density against uniform:
 ![Every shooter against every hider](charts/matrix.svg)
 
 **Against a density shooter that doesn't know your habit, hug the edges:** 51.4 shots, 6.6 more
-than a uniform fleet. Cold gets 4.7 more. Both hide where density looks last. Its first hit takes
+than a uniform fleet. Cold gets 4.8 more. Both hide where density looks last. Its first hit takes
 15.8 shots against an edge fleet and 10.1 against a cold one, against 4.2 for uniform.
 
 **If they know, edges is the worst choice there is:** 23.8 shots, not far above the 17 cells of
@@ -189,35 +189,68 @@ learns to exploit.
 spread fleets (73.9). Density assumes neither, so both are within half a shot of uniform against
 it.
 
-**A uniform fleet can't be exploited much.** Its worst case is 44.6 shots, against the shooter
-tuned for it, only 0.2 fewer than plain density. That's what being uniform buys: no habit to
+**A uniform fleet can't be exploited much.** Its worst case is 44.7 shots, against the shooter
+tuned for it, only 0.1 fewer than plain density. That's what being uniform buys: no habit to
 learn.
 
 ### Working out the opponent's habit
 
-`adaptive` keeps 20,000 sampled fleets of each habit and, after every shot, drops the ones the
+`adaptive` keeps 100,000 sampled fleets of each habit and, after every shot, drops the ones the
 shot rules out. The share of each habit's fleets still standing is how likely that habit is. It
 fires as density tuned to a blend of the habits, each weighted by that likelihood. Once fewer
 than 20 fleets of every habit fit, those shares are noise, so it stops updating them.
 
 | hider | density | tuned to the true habit | adaptive |
 | --- | --- | --- | --- |
-| uniform | 44.8 | 44.6 | 45.8 |
-| edges | 51.4 | 23.8 | 24.8 |
-| spread | 45.2 | 44.2 | 45.6 |
-| clustered | 44.9 | 42.7 | 44.7 |
-| cold | 49.5 | 39.3 | 41.8 |
+| uniform | 44.8 | 44.7 | 45.7 |
+| edges | 51.4 | 23.8 | 24.4 |
+| spread | 45.2 | 44.2 | 45.4 |
+| clustered | 44.9 | 42.7 | 44.2 |
+| cold | 49.6 | 39.3 | 41.7 |
 
-**Adaptive gets nearly all of a tuned shooter's gain without being told the habit:** 24.8 shots
-against an edge fleet where tuned edges takes 23.8, and 41.8 against cold where tuned cold takes
-39.3. **Not knowing costs about a shot** against fleets with no habit to find: 45.8 against a
+**Adaptive gets nearly all of a tuned shooter's gain without being told the habit:** 24.4 shots
+against an edge fleet where tuned edges takes 23.8, and 41.7 against cold where tuned cold takes
+39.3. **Not knowing costs about a shot** against fleets with no habit to find: 45.7 against a
 uniform fleet, where density takes 44.8.
 
-*From `node scripts/probing.ts`, 2,000 fleets per hider.* A version that deliberately probes,
-firing where the habits disagree most until one is 95% likely, does worse against every hider.
-It costs 7.4 shots against edges, 3.7 against spread, 2.8 against uniform and 2.0 against
-clustered, and nothing measurable against cold. **The habit gives itself away without probing:**
-a few misses in the middle betray an edge fleet, and probe shots are mostly misses.
+#### Making it better
+
+*From `node scripts/adaptive.ts`, 2,000 fleets per hider, about a minute.* Variants of adaptive
+on the same fleets, as shots more or fewer than adaptive. Two hiders it has never seen are added:
+**naive** placement, and **half edges**, with the carrier and battleship on the rim and the rest
+anywhere.
+
+| hider | adaptive | density | 20,000 fleets | mostly-uniform prior | probing |
+| --- | --- | --- | --- | --- | --- |
+| uniform | 45.6 | −1.0 | +0.3 | −0.5 | +4.0 |
+| edges | 24.5 | +26.6 | +0.3 | +0.5 | +9.2 |
+| spread | 45.7 | −0.6 | −0.1 | −0.5 | +4.7 |
+| clustered | 44.2 | +1.1 | +0.6 | +0.3 | +1.9 |
+| cold | 41.6 | +8.2 | +0.4 | +1.7 | +0.8 |
+| naive | 45.7 | −1.0 | +0.1 | −0.4 | +4.1 |
+| half edges | 47.3 | −1.5 | +0.1 | −0.5 | +1.5 |
+
+Differences are good to about ±0.5 shots.
+
+**More sample fleets help a little.** With 20,000 fleets per habit rather than 100,000, the
+shares run out sooner and adaptive stops learning earlier. That costs up to 0.6 shots.
+
+**A prior is a trade, not a gain.** Starting 60% sure the fleet is uniform wins back half a shot
+against fleets with no habit, and loses as much or more against the habits it's meant to catch:
+1.7 shots against cold. Adaptive starts with the habits equally likely.
+
+**Probing costs shots everywhere.** A version that fires where the habits disagree most, until one
+is 95% likely, gives up 1 to 9 shots. The habit gives itself away without probing: a few misses
+in the middle betray an edge fleet, and probe shots are mostly misses.
+
+**Which ship sank doesn't help.** Also dropping sample fleets whose sunk ship doesn't match was
+worse, by 1.4 shots against clustered fleets in an earlier run. So few sample fleets match a sink
+exactly that the shares get noisy. Adaptive goes by hits and misses only.
+
+**A hider it doesn't know costs it about what a uniform one does.** Against half edges it's 1.5
+shots behind density; against uniform, 1.0. A partial habit doesn't fool it into a worse blend,
+it just isn't worth chasing. Habits as dials (how much a player hugs the edges, how much their
+ships touch) could close that gap. They're untried.
 
 ### The best mix
 
@@ -229,13 +262,13 @@ exploit it. Solving it by fictitious play over the matrix above (without random)
 
 ![Best mixes for hider and shooter](charts/equilibrium.svg)
 
-**Hide uniformly most of the time:** 66% uniform, 24% clustered and 10% cold. The shooter mixes
-density tuned for uniform (51%), adaptive (42%) and tuned clustered (7%). That holds the shooter
+**Hide uniformly most of the time:** 72% uniform, 19% clustered and 9% cold. The shooter mixes
+density tuned for uniform (57%), adaptive (39%) and tuned clustered (4%). That holds the shooter
 to **45.1 shots**, only 0.3 more than a uniform fleet manages against plain density.
 
 Without adaptive, the best mix was quite different: cluster 58% of the time and go cold 38%,
 for 46.2 shots. Habits pay only against a shooter that can't learn them mid-game. And adaptive's
-worst case, 45.8, is barely more than the 45.1 the best mix promises.
+worst case, 45.7, is barely more than the 45.1 the best mix promises.
 
 ## Going first
 
@@ -243,7 +276,7 @@ worst case, 45.8, is barely more than the 45.1 the best mix promises.
 
 Both players shoot in turn, so whoever sinks the other's fleet in fewer shots wins, and the
 player who shoots first wins ties. Two density shooters against uniform fleets tie 3.1% of the
-time, so **going first wins 51.5%**. It's 51.1% for hunt, 51.7% for parity and 54.8% for random,
+time, so **going first wins 51.5%**. It's 51.1% for hunt, 51.6% for parity and 54.8% for random,
 whose games bunch up near 100 shots and tie most.
 
 ## More findings
@@ -254,7 +287,7 @@ one, the ship left afloat no longer fit anywhere, so it fired cell by cell. One 
 cluster took 95 shots: the destroyer sank at B6, and density claimed B6–B7 when B7 was the
 battleship's. 16 of 250,000 games took more than 75 shots. Now it reconsiders its claims after
 every shot, keeping ones that leave every ship afloat somewhere to be and every other hit
-explained. Its longest game is 73 shots, and its averages didn't move.
+explained. Its longest of 250,000 games is now 75 shots, and its averages didn't move.
 
 ## Cheat sheet
 

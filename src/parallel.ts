@@ -14,7 +14,8 @@ export async function parallel<T>(module: string, task: string, args: unknown[],
   const k = Math.min(CHUNKS, n);
   const sizes = Array.from({ length: k }, (_, i) => Math.floor(n / k) + (i < n % k ? 1 : 0));
   const parts: T[] = [];
-  let next = 0;
+  let next = 0, done = 0;
+  const start = performance.now();
   await Promise.all(
     Array.from({ length: Math.min(availableParallelism(), k) }, () => {
       const worker = new Worker(new URL("./worker.ts", import.meta.url), { workerData: { module, task, args } });
@@ -27,6 +28,8 @@ export async function parallel<T>(module: string, task: string, args: unknown[],
         };
         worker.on("message", (part: T) => {
           parts[i] = part;
+          if (++done % Math.ceil(k / 10) === 0 || done === k)
+            console.error(`${task}: ${Math.round((100 * done) / k)}% after ${((performance.now() - start) / 1000).toFixed(0)}s`);
           take();
         });
         worker.once("error", reject);

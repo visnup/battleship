@@ -56,6 +56,6 @@ export function shots(seed: number, n: number) {
 }
 
 if (import.meta.main) {
-  await write("games", await collect(import.meta.url, "games", [await heat(), await habits(), await library(20_000)], 50_000));
+  await write("games", await collect(import.meta.url, "games", [await heat(), await habits(), await library(100_000)], 50_000));
   await write("shots", await collect(import.meta.url, "shots", [], 10_000));
 }
