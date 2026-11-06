@@ -1,3 +1,5 @@
 node_modules
 results/*.parquet
 cheat/dist
+.vercel
+.env*
