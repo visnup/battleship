@@ -294,7 +294,8 @@ explained. Its longest of 250,000 games is now 75 shots, and its averages didn't
 [battleship.visnup.com](https://battleship.visnup.com) (`cheat/`) is a page to play a real game
 with. Tap the cell you fired at and say miss, hit, or which ship sank; answers no fleet could give
 are greyed out. It shades the board by the algorithm you pick and lists every algorithm's next
-shot, with adaptive's odds on each habit beside the shooter tuned for it. `pnpm cheat` serves it
+shot, with adaptive's odds on each habit beside the shooter tuned for it. To keep the download
+small, its adaptive uses 20,000 sample fleets per habit, which costs up to 0.6 shots. `pnpm cheat` serves it
 with Vite, and `pnpm build` builds it into `cheat/dist/`.
 
 ## Next

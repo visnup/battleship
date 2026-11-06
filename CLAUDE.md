@@ -15,7 +15,7 @@ scripts need `pnpm install` (DuckDB, hyparquet-writer, Observable Plot and jsdom
   is how the "tuned" shooters know a placer's habits. `posterior` samples the exact posterior;
   `adaptive` infers the placer from `model`s of sampled fleets.
 - `cheat/`: the cheat sheet page, served and built by Vite (`pnpm cheat`, `pnpm build`), which
-  is what lets it import `src/`'s TypeScript. `public/library.bin` is 100,000 fleets per placer
+  is what lets it import `src/`'s TypeScript. `public/library.bin` is 20,000 fleets per placer
   from `scripts/library.ts`, a byte per ship in `PLACERS` order.
 - `src/parallel.ts` and `worker.ts` are magical-athlete's: seeded chunks over a worker per core.
 - `scripts/`: `count.ts` → `results/arrangements.parquet`, `placements.ts` → `placements.parquet`,
