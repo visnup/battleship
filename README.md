@@ -223,7 +223,7 @@ harder; that's untested.
 
 ## Cheat sheet
 
-`cheat/` is a page to play a real game with: tap the cell you fired at and say miss, hit, or which
+[battleship.visnup.com](https://battleship.visnup.com) (`cheat/`) is a page to play a real game with: tap the cell you fired at and say miss, hit, or which
 ship sank. It shades the board by the algorithm you pick and lists every algorithm's next shot.
 It also shows adaptive's current guess of which habit your opponent uses. `pnpm cheat` serves it
 with Vite, and `pnpm build` builds it into `cheat/dist/`.
