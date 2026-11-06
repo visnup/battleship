@@ -48,6 +48,10 @@ function save(name: string, options: Plot.PlotOptions, legend?: { label: string;
     svg.append(key, plot);
   }
   svg.setAttribute("xmlns", ns);
+  // Dark mode flips lightness and keeps hue: paper goes dark, the sea light, pegs stay red.
+  const dark = document.createElementNS(ns, "style");
+  dark.textContent = "@media (prefers-color-scheme: dark) { :root { filter: invert(1) hue-rotate(180deg); background: none !important } }";
+  svg.prepend(dark);
   writeFileSync(new URL(`${name}.svg`, dir), svg.outerHTML + "\n");
 }
 
@@ -142,10 +146,10 @@ save("shots", {
     Plot.ruleX([17], dashed),
     Plot.text([17], { x: (d) => d, frameAnchor: "top", text: () => "17 ship cells", textAnchor: "start", dx: 4, fontSize: 8 }),
     Plot.lineY(counted, { x: "shots", y: "p", z: "shooter", stroke: (r) => (r.shooter === "density" ? art.peg : art.ink), strokeWidth: 1.5 }),
-    Plot.text(peaks, {
-      x: "shots", y: "p", dy: -8, ...halo, textAnchor: (r: Row) => (r.shooter === "random" ? "end" : "middle"),
+    ...(["middle", "end"] as const).map((textAnchor) => Plot.text(peaks.filter((r) => (r.shooter === "random") === (textAnchor === "end")), {
+      x: "shots", y: "p", dy: -8, ...halo, textAnchor,
       text: (r) => `${r.shooter}, ${means.find((m) => m.shooter === r.shooter).mean.toFixed(1)} on average`,
-    }),
+    })),
   ],
 });
 

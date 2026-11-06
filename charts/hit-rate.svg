@@ -1,4 +1,4 @@
-<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="640" height="400" viewBox="0 0 640 400" style="background: rgb(255, 255, 255); color: rgb(20, 32, 43);" xmlns="http://www.w3.org/2000/svg"><style>:where(.plot-d6a7b5) {
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="640" height="400" viewBox="0 0 640 400" style="background: rgb(255, 255, 255); color: rgb(20, 32, 43);" xmlns="http://www.w3.org/2000/svg"><style>@media (prefers-color-scheme: dark) { :root { filter: invert(1) hue-rotate(180deg); background: none !important } }</style><style>:where(.plot-d6a7b5) {
   --plot-background: white;
   display: block;
   height: auto;

@@ -1,4 +1,4 @@
-<svg width="750" height="240" viewBox="0 0 750 240" style="background: #ffffff; color: #14202b" xmlns="http://www.w3.org/2000/svg"><svg class="plot-d6a7b5-ramp" font-family="system-ui, sans-serif" font-size="10" width="320" height="50" viewBox="0 0 320 50" x="20"><style>:where(.plot-d6a7b5-ramp) {
+<svg width="750" height="240" viewBox="0 0 750 240" style="background: #ffffff; color: #14202b" xmlns="http://www.w3.org/2000/svg"><style>@media (prefers-color-scheme: dark) { :root { filter: invert(1) hue-rotate(180deg); background: none !important } }</style><svg class="plot-d6a7b5-ramp" font-family="system-ui, sans-serif" font-size="10" width="320" height="50" viewBox="0 0 320 50" x="20"><style>:where(.plot-d6a7b5-ramp) {
   display: block;
   height: auto;
   height: intrinsic;
