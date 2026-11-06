@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Battleship Cheat Sheet</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="cheat.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Battleship cheat sheet</h1>
+      <p class="help">Fire where it says, or anywhere: tap a cell, then say what happened.</p>
+      <label class="algo">
+        Shade the board by
+        <select id="algo"></select>
+      </label>
+      <div id="board" role="grid" aria-label="Opponent's board"></div>
+      <div id="answer" hidden>
+        <span id="target"></span>
+        <button data-result="miss">Miss</button>
+        <button data-result="hit">Hit</button>
+        <span id="sinks"></span>
+      </div>
+      <p class="actions"><button id="undo">Undo</button> <button id="reset">New game</button> <span id="count"></span></p>
+      <h2>Next shot by each algorithm</h2>
+      <table id="picks"></table>
+      <h2>Which habit is it?</h2>
+      <p class="help">How likely each way of hiding ships is, from which of 20,000 sample fleets of each still fit your shots.</p>
+      <table id="belief"></table>
+    </main>
+  </body>
+</html>

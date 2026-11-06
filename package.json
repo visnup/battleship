@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "cheat": "vite cheat",
+    "build": "vite build cheat"
+  },
+  "devDependencies": {
+    "@duckdb/node-api": "2.0.0-r.1",
+    "@observablehq/plot": "^0.6.18",
+    "hyparquet-writer": "^0.18.0",
+    "jsdom": "^30.1.3",
+    "vite": "^8.3.5"
+  }
+}

@@ -1,0 +1,83 @@
+:root {
+  --sea: #0d3b66;
+  --peg: #d1242f;
+  --paper: #fff;
+  --ink: #14202b;
+  --muted: #5b6875;
+  --line: #d5dbe1;
+  --shade: 13 59 102;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sea: #8cb8e6;
+    --paper: #10161c;
+    --ink: #e6ecf1;
+    --muted: #93a1ae;
+    --line: #2b3640;
+    --shade: 140 184 230;
+    color-scheme: dark;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 15px/1.4 system-ui, sans-serif;
+}
+main {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 16px;
+}
+h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
+h2 { font-size: 1rem; margin: 1.5rem 0 0.25rem; }
+.help { color: var(--muted); margin: 0 0 0.75rem; }
+.algo { display: block; margin-bottom: 0.75rem; }
+
+#board {
+  display: grid;
+  grid-template-columns: 1.5rem repeat(10, 1fr);
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+#board .head { display: grid; place-items: center; color: var(--muted); font-size: 0.8rem; }
+#board button {
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0;
+  background: rgb(var(--shade) / var(--heat, 0));
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.7rem;
+  position: relative;
+}
+#board button:disabled { cursor: default; }
+#board .pick { outline: 3px solid var(--peg); outline-offset: -3px; }
+#board .selected { outline: 3px solid var(--ink); outline-offset: -3px; }
+#board .miss::after,
+#board .hit::after {
+  content: "";
+  position: absolute;
+  inset: 32%;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1px solid var(--muted);
+}
+#board .hit::after { background: var(--peg); border-color: var(--peg); }
+#board .sunk { background: color-mix(in srgb, var(--peg) 35%, var(--paper)); }
+
+#answer { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.75rem; }
+#target { font-weight: 600; min-width: 2.5rem; }
+#sinks { display: contents; }
+button { font: inherit; padding: 0.3rem 0.6rem; border-radius: 4px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.actions { margin-top: 0.75rem; }
+#count { color: var(--muted); margin-left: 0.5rem; }
+
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+td { padding: 0.2rem 0.4rem; border-bottom: 1px solid var(--line); }
+td:last-child { text-align: right; }
+tr.current td { font-weight: 600; }
+.bar { display: inline-block; height: 0.6rem; background: var(--sea); border-radius: 0 2px 2px 0; vertical-align: middle; margin-right: 0.4rem; }
