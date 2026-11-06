@@ -68,6 +68,15 @@ h2 { font-size: 1rem; margin: 1.5rem 0 0.25rem; }
 }
 #board .hit::after { background: var(--peg); border-color: var(--peg); }
 #board .sunk { background: color-mix(in srgb, var(--peg) 35%, var(--paper)); }
+#board .ship { background: color-mix(in srgb, var(--sea) 35%, var(--paper)); }
+#board .miss:not(:empty)::after,
+#board .hit:not(:empty)::after { display: none; }
+#board .hit:not(:empty) { background: color-mix(in srgb, var(--peg) 45%, var(--paper)); font-weight: 700; }
+#board .miss:not(:empty) { color: var(--muted); }
+#ships button.current { border-color: var(--ink); font-weight: 600; }
+#ships button.placed { color: var(--muted); }
+#results tr { cursor: pointer; }
+a { color: var(--sea); }
 
 #answer { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.75rem; }
 #target { font-weight: 600; min-width: 2.5rem; }
