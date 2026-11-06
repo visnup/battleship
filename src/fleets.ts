@@ -77,7 +77,32 @@ export const cold = (heat: number[], tries = 100): Placer => (rng) => {
   return best;
 };
 
-export const PLACERS = ["uniform", "edges", "spread", "clustered", "cold"] as const;
+/**
+ * A habit as two dials: each ship goes on the outer ring with chance `edge`, and each one after the
+ * carrier is placed so it touches one already placed (`clustered`), touches none even diagonally
+ * (`spread`), or either (`any`). Ships go down biggest first; a dead end starts over.
+ */
+export const dialed = (edge: number, touch: "spread" | "any" | "clustered"): Placer => (rng) => {
+  for (;;) {
+    const taken = new Int8Array(CELLS).fill(-1);
+    const fleet: Fleet = [];
+    for (const ship of SHIPS.keys()) {
+      const rim = rng() < edge;
+      const options = all(ship).filter((p) => {
+        const cs = shipPlacements(ship)[p];
+        if (cs.some((c) => taken[c] >= 0) || (rim && !cs.every(onEdge))) return false;
+        if (touch === "any" || ship === 0) return true;
+        return touch === "clustered" ? cs.some((c) => neighbors(c).some((n) => taken[n] >= 0)) : !cs.some((c) => around(c).some((n) => taken[n] >= 0));
+      });
+      if (!options.length) break;
+      fleet.push(pick(options, rng));
+      for (const c of shipPlacements(ship)[fleet[ship]]) taken[c] = ship;
+    }
+    if (fleet.length === SHIPS.length) return fleet;
+  }
+};
+
+export const PLACERS =["uniform", "edges", "spread", "clustered", "cold"] as const;
 export type PlacerName = (typeof PLACERS)[number] | "naive";
 
 export const placer = (name: PlacerName, heat: number[]): Placer =>

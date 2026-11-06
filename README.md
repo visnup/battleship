@@ -215,29 +215,31 @@ uniform fleet, where density takes 44.8.
 
 #### Making it better
 
-*From `node scripts/adaptive.ts`, 2,000 fleets per hider, about a minute.* Variants of adaptive
-on the same fleets, as shots more or fewer than adaptive. Two hiders it has never seen are added:
-**naive** placement, and **half edges**, with the carrier and battleship on the rim and the rest
-anywhere.
+*From `node scripts/adaptive.ts`, 2,000 fleets per hider, about 2 minutes.* Variants of adaptive
+on the same fleets, as shots more or fewer than adaptive. Four hiders it has never seen are added:
+**naive** placement; **half edges**, with the carrier and battleship on the rim and the rest
+anywhere; and two dial settings (see below) that fall between the grid's.
 
-| hider | adaptive | density | 20,000 fleets | mostly-uniform prior | probing |
-| --- | --- | --- | --- | --- | --- |
-| uniform | 45.6 | −1.0 | +0.3 | −0.5 | +4.0 |
-| edges | 24.5 | +26.6 | +0.3 | +0.5 | +9.2 |
-| spread | 45.7 | −0.6 | −0.1 | −0.5 | +4.7 |
-| clustered | 44.2 | +1.1 | +0.6 | +0.3 | +1.9 |
-| cold | 41.6 | +8.2 | +0.4 | +1.7 | +0.8 |
-| naive | 45.7 | −1.0 | +0.1 | −0.4 | +4.1 |
-| half edges | 47.3 | −1.5 | +0.1 | −0.5 | +1.5 |
+| hider | adaptive | density | 20,000 fleets | mostly-uniform prior | probing | dials |
+| --- | --- | --- | --- | --- | --- | --- |
+| uniform | 45.7 | −0.8 | +0.2 | −0.8 | +4.1 | +0.5 |
+| edges | 24.6 | +26.9 | +0.4 | +0.2 | +9.1 | −0.7 |
+| spread | 45.4 | −0.2 | +0.3 | −0.4 | +5.1 | −0.4 |
+| clustered | 44.5 | +0.7 | +0.4 | +0.1 | +2.0 | +1.8 |
+| cold | 41.9 | +7.7 | −0.1 | +1.4 | +1.0 | +0.3 |
+| naive | 45.5 | −0.6 | +0.2 | −0.2 | +4.1 | +0.8 |
+| half edges | 47.3 | −1.7 | +0.4 | −0.5 | +1.5 | −0.2 |
+| rim 0.4, clustered | 46.2 | +1.6 | −0.8 | 0.0 | +1.0 | −2.2 |
+| rim 0.6, spread | 40.8 | +8.3 | −0.2 | +0.4 | +2.9 | −2.7 |
 
 Differences are good to about ±0.5 shots.
 
 **More sample fleets help a little.** With 20,000 fleets per habit rather than 100,000, the
-shares run out sooner and adaptive stops learning earlier. That costs up to 0.6 shots.
+shares run out sooner and adaptive stops learning earlier. That costs a few tenths of a shot.
 
-**A prior is a trade, not a gain.** Starting 60% sure the fleet is uniform wins back half a shot
-against fleets with no habit, and loses as much or more against the habits it's meant to catch:
-1.7 shots against cold. Adaptive starts with the habits equally likely.
+**A prior is a trade, not a gain.** Starting 60% sure the fleet is uniform wins back up to 0.8
+shots against fleets with no habit, and loses more against the habits it's meant to catch: 1.4
+shots against cold. Adaptive starts with the habits equally likely.
 
 **Probing costs shots everywhere.** A version that fires where the habits disagree most, until one
 is 95% likely, gives up 1 to 9 shots. The habit gives itself away without probing: a few misses
@@ -247,10 +249,19 @@ in the middle betray an edge fleet, and probe shots are mostly misses.
 worse, by 1.4 shots against clustered fleets in an earlier run. So few sample fleets match a sink
 exactly that the shares get noisy. Adaptive goes by hits and misses only.
 
-**A hider it doesn't know costs it about what a uniform one does.** Against half edges it's 1.5
-shots behind density; against uniform, 1.0. A partial habit doesn't fool it into a worse blend,
-it just isn't worth chasing. Habits as dials (how much a player hugs the edges, how much their
-ships touch) could close that gap. They're untried.
+**A hider it doesn't know costs it about what a uniform one does.** Against half edges it's 1.7
+shots behind density; against uniform, 0.8. A partial habit doesn't fool it into a worse blend,
+it just isn't worth chasing.
+
+**Habits as dials fit more hiders, but blur the ones it knew.** Instead of five habits, the
+**dials** variant knows a grid of them. One dial is the chance each ship goes on the rim (0, ¼, ½,
+¾ or 1). The other is whether each ship after the carrier must touch one already placed, must not
+touch any, or either. That's 15 settings, plus cold, with 100,000 sample fleets each
+(`dialed` in `src/fleets.ts`). Against settings between the grid's it saves 2.2 to 2.7 shots,
+and against edges 0.7. But it gives back 1.8 against clustered fleets and up to 0.8 against
+fleets with no habit, since its belief spreads over neighbors of the right habit. Against half
+edges, a habit outside both families, it doesn't help. Adaptive keeps the five habits; the grid
+is the better bet only if real players turn out to sit between them.
 
 ### The best mix
 
@@ -295,8 +306,8 @@ explained. Its longest of 250,000 games is now 75 shots, and its averages didn't
 with. Tap the cell you fired at and say miss, hit, or which ship sank; answers no fleet could give
 are greyed out. It shades the board by the algorithm you pick and lists every algorithm's next
 shot, with adaptive's odds on each habit beside the shooter tuned for it. To keep the download
-small, its adaptive uses 20,000 sample fleets per habit, which costs up to 0.6 shots. `pnpm cheat` serves it
-with Vite, and `pnpm build` builds it into `cheat/dist/`.
+small, its adaptive uses 20,000 sample fleets per habit, which costs a few tenths of a shot.
+`pnpm cheat` serves it with Vite, and `pnpm build` builds it into `cheat/dist/`.
 
 ## Next
 

@@ -1,11 +1,10 @@
 # TODO
 
 - A Hugging Face dataset of `results/`, like magical-athlete's.
-- Adaptive with habits as dials (edge-hugging, touching) to fit, rather than five fixed habits.
-  Against half edges, a habit it doesn't know, it's 1.5 shots behind density. A prior from real
-  players' habits, once there are logged games.
+- Adaptive: a prior from real players' habits, once there are logged games, which would also say
+  whether the five habits or the grid of dials fits them better.
 - Cheaper probing: score cells by hit chance plus a little information about the habit, rather
-  than information alone, which cost 0–7 shots.
+  than information alone, which cost 1–9 shots.
 - A shooter that also fires around each sunk ship, against clustering.
 - Tuned posterior: give `posterior` a placer's habits as its prior. Is it better than tuned
   density against edges and cold?
