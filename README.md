@@ -97,7 +97,7 @@ Four shooters (`src/shooters.ts`):
 | random | 95.4 | 97 | 89–100 | 56 | 100 |
 | hunt | 66.2 | 66 | 49–84 | 26 | 100 |
 | parity | 61.1 | 62 | 49–72 | 23 | 81 |
-| density | 44.8 | 44 | 33–58 | 17 | 96 |
+| density | 44.8 | 44 | 33–58 | 17 | 73 |
 
 **Random fire nearly always clears the board:** the last ship cell is, on average, the 95th of
 100. **Hunting halves that,** and parity saves another 5 shots by cutting off the long games.
@@ -141,7 +141,7 @@ for hits or for information:
 | --- | --- | --- |
 | density | 45.0 | 4.2 |
 | exact | 44.8 | 4.3 |
-| info | 45.2 | 4.1 |
+| info | 45.3 | 4.1 |
 
 **Neither exact odds nor information beats the rule of thumb.** All three are within ±0.55
 shots of each other. Seeking information can't help much in this game:
@@ -202,7 +202,7 @@ than 20 fleets of every habit fit, those shares are noise, so it stops updating 
 
 | hider | density | tuned to the true habit | adaptive |
 | --- | --- | --- | --- |
-| uniform | 44.8 | 44.6 | 45.7 |
+| uniform | 44.8 | 44.6 | 45.8 |
 | edges | 51.4 | 23.8 | 24.8 |
 | spread | 45.2 | 44.2 | 45.6 |
 | clustered | 44.9 | 42.7 | 44.7 |
@@ -210,7 +210,7 @@ than 20 fleets of every habit fit, those shares are noise, so it stops updating 
 
 **Adaptive gets nearly all of a tuned shooter's gain without being told the habit:** 24.8 shots
 against an edge fleet where tuned edges takes 23.8, and 41.8 against cold where tuned cold takes
-39.3. **Not knowing costs about a shot** against fleets with no habit to find: 45.7 against a
+39.3. **Not knowing costs about a shot** against fleets with no habit to find: 45.8 against a
 uniform fleet, where density takes 44.8.
 
 *From `node scripts/probing.ts`, 2,000 fleets per hider.* A version that deliberately probes,
@@ -229,13 +229,13 @@ exploit it. Solving it by fictitious play over the matrix above (without random)
 
 ![Best mixes for hider and shooter](charts/equilibrium.svg)
 
-**Hide uniformly most of the time:** 65% uniform, 25% clustered and 9% cold. The shooter mixes
-density tuned for uniform (50%), adaptive (43%) and tuned clustered (7%). That holds the shooter
+**Hide uniformly most of the time:** 66% uniform, 24% clustered and 10% cold. The shooter mixes
+density tuned for uniform (51%), adaptive (42%) and tuned clustered (7%). That holds the shooter
 to **45.1 shots**, only 0.3 more than a uniform fleet manages against plain density.
 
 Without adaptive, the best mix was quite different: cluster 58% of the time and go cold 38%,
 for 46.2 shots. Habits pay only against a shooter that can't learn them mid-game. And adaptive's
-worst case, 45.7, is barely more than the 45.1 the best mix promises.
+worst case, 45.8, is barely more than the 45.1 the best mix promises.
 
 ## Going first
 
@@ -248,11 +248,13 @@ whose games bunch up near 100 shots and tie most.
 
 ## More findings
 
-**Density occasionally loses the plot.** 16 of its 250,000 games took more than 75 shots, and
-13 of those were against clustered fleets; one uniform game took 96. A likely cause, not yet
-checked: when ships touch, a sink can be explained by more than one line of hits. Density
-claims the line that leaves the fewest hits unexplained. If it claims the wrong one, the ship
-left afloat no longer fits anywhere, and density falls back to firing cell by cell.
+**Touching ships used to send density off the rails.** When ships touch, a sink can be explained
+by more than one line of hits. Density used to commit to one line, and when it picked the wrong
+one, the ship left afloat no longer fit anywhere, so it fired cell by cell. One game against a
+cluster took 95 shots: the destroyer sank at B6, and density claimed B6–B7 when B7 was the
+battleship's. 16 of 250,000 games took more than 75 shots. Now it reconsiders its claims after
+every shot, keeping ones that leave every ship afloat somewhere to be and every other hit
+explained. Its longest game is 73 shots, and its averages didn't move.
 
 ## Cheat sheet
 

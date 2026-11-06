@@ -47,7 +47,11 @@ export function huntTarget(rng: () => number, parity = false): Shooter {
  * on every shot, so changing it in place retunes the shooter.
  */
 export function density(rng: () => number, weights?: number[][]): Shooter & { score: Float64Array } {
-  const state = new Int8Array(CELLS); // 0 unshot, 1 miss, 2 hit, 3 hit on a sunk ship
+  const shot = new Int8Array(CELLS); // 0 unshot, 1 miss, 2 hit
+  const state = new Int8Array(CELLS); // `shot`, with 3 for hits claimed by a sunk ship
+  const order = new Int16Array(CELLS);
+  const sinks: { ship: number; cell: number }[] = [];
+  let shots = 0;
   const afloat = new Set(SHIPS.map((_, i) => i));
   const score = new Float64Array(CELLS);
   const fill = (target: boolean) => {
@@ -81,21 +85,60 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
       return ties.length ? pick(ties, rng) : state.indexOf(0);
     },
     observe(cell, hit, sunk) {
-      state[cell] = hit ? 2 : 1;
-      if (sunk === null) return;
-      afloat.delete(sunk);
-      // Which hits were the sunk ship: a line of unclaimed hits through `cell`. When there's more
-      // than one, claim the one that leaves the fewest hits stranded with nothing to explain them.
-      const lines = shipPlacements(sunk).filter((cs) => cs.includes(cell) && cs.every((c) => state[c] === 2));
-      const line = lines.length > 1 ? lines.toSorted((a, b) => stranded(a) - stranded(b))[0] : lines[0];
-      for (const c of line ?? [cell]) state[c] = 3;
+      state[cell] = shot[cell] = hit ? 2 : 1;
+      order[cell] = shots++;
+      if (sunk !== null) afloat.delete(sunk), sinks.push({ ship: sunk, cell });
+      if (sinks.length) claim();
     },
   };
-  function stranded(claimed: number[]) {
-    const s = state.slice();
-    for (const c of claimed) s[c] = 3;
+
+  /**
+   * Which hits were each sunk ship: a line of hits through the cell that sank it, none shot after
+   * it. When the lines could be chosen more than one way, choose them so every ship afloat still
+   * has somewhere to be and every other hit still has a ship afloat that could explain it. Chosen
+   * again after every shot, since later shots can rule a choice out.
+   */
+  function claim() {
+    const options = sinks.map(({ ship, cell }) =>
+      shipPlacements(ship).filter((cs) => cs.includes(cell) && cs.every((c) => shot[c] === 2 && order[c] <= order[cell])));
+    const taken = new Uint8Array(CELLS);
+    let best = Infinity, lines: number[][] = [];
+    const chosen: number[][] = [];
+    if (options.every((o) => o.length === 1)) lines = options.map((o) => o[0]);
+    else (function choose(i: number) {
+      if (!best) return;
+      if (i === options.length) {
+        const b = unexplained(taken);
+        if (b < best) (best = b), (lines = chosen.slice());
+        return;
+      }
+      for (const cs of options[i]) {
+        if (cs.some((c) => taken[c])) continue;
+        for (const c of cs) taken[c] = 1;
+        chosen.push(cs);
+        choose(i + 1);
+        chosen.pop();
+        for (const c of cs) taken[c] = 0;
+      }
+    })(0);
+    state.set(shot);
+    for (const c of lines.length ? lines.flat() : sinks.map((s) => s.cell)) state[c] = 3;
+  }
+
+  /** How badly claiming `taken` fits: a ship afloat with nowhere to be counts 100, a hit no ship afloat could cross 1. */
+  function unexplained(taken: Uint8Array) {
+    const covered = new Uint8Array(CELLS);
     let n = 0;
-    for (let c = 0; c < CELLS; c++) if (s[c] === 2 && !neighbors(c).some((x) => s[x] === 0 || s[x] === 2)) n++;
+    for (const ship of afloat) {
+      let fits = false;
+      for (const cs of shipPlacements(ship)) {
+        if (cs.some((c) => shot[c] === 1 || taken[c]) || cs.every((c) => shot[c] === 2)) continue;
+        fits = true;
+        for (const c of cs) covered[c] = 1;
+      }
+      if (!fits) n += 100;
+    }
+    for (let c = 0; c < CELLS; c++) if (shot[c] === 2 && !taken[c] && !covered[c]) n++;
     return n;
   }
 }
