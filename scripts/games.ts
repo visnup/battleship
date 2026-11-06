@@ -2,8 +2,8 @@ import { mulberry32, SHIPS, shipPlacements } from "../src/board.ts";
 import { PLACERS, placer } from "../src/fleets.ts";
 import { collect } from "../src/parallel.ts";
 import { parquet, query, write } from "../src/results.ts";
-import { density, play, SHOOTERS, shooter } from "../src/shooters.ts";
-import { heat } from "./placements.ts";
+import { adaptive, density, type Model, model, play, SHOOTERS, shooter } from "../src/shooters.ts";
+import { heat, library } from "./placements.ts";
 
 type Weights = Record<string, number[][]>;
 
@@ -23,14 +23,19 @@ export async function habits(): Promise<Weights> {
   })]));
 }
 
+let models: Model[];
+
 /**
  * A task: `n` games, each a fleet from every placer shot at by every shooter, plus a density
- * shooter tuned to each placer's habits ("tuned edges"). Every shooter faces the same fleets.
+ * shooter tuned to each placer's habits ("tuned edges") and one that works out the habit from
+ * `lib`'s sample fleets ("adaptive"). Every shooter faces the same fleets.
  */
-export function games(heatMap: number[], weights: Weights, seed: number, n: number) {
+export function games(heatMap: number[], weights: Weights, lib: Record<string, Uint8Array>, seed: number, n: number) {
+  models ??= PLACERS.map((name) => model(name, lib[name]));
   const rng = mulberry32(seed);
   const shooters = [...SHOOTERS.map((name) => [name, () => shooter(name, rng)] as const),
-    ...PLACERS.map((name) => [`tuned ${name}`, () => density(rng, weights[name])] as const)];
+    ...PLACERS.map((name) => [`tuned ${name}`, () => density(rng, weights[name])] as const),
+    ["adaptive", () => adaptive(rng, models)] as const];
   return Array.from({ length: n }, () => PLACERS.flatMap((p) => {
     const fleet = placer(p, heatMap)(rng);
     return shooters.map(([name, make]) => {
@@ -51,6 +56,6 @@ export function shots(seed: number, n: number) {
 }
 
 if (import.meta.main) {
-  await write("games", await collect(import.meta.url, "games", [await heat(), await habits()], 50_000));
+  await write("games", await collect(import.meta.url, "games", [await heat(), await habits(), await library(20_000)], 50_000));
   await write("shots", await collect(import.meta.url, "shots", [], 10_000));
 }

@@ -20,9 +20,9 @@ scripts need `pnpm install` (DuckDB, hyparquet-writer, Observable Plot and jsdom
 - `src/parallel.ts` and `worker.ts` are magical-athlete's: seeded chunks over a worker per core.
 - `scripts/`: `count.ts` → `results/arrangements.parquet`, `placements.ts` → `placements.parquet`,
   `games.ts` → `games.parquet` and `shots.parquet`, `equilibrium.ts` prints the mixed strategies,
-  and `charts.ts` draws `charts/`. `posterior.ts` and `adaptive.ts` print the README's tables
-  for those shooters, and take minutes, so `make` skips them. `make` reruns what's stale (about a minute), `node --test` the
-  tests.
+  and `charts.ts` draws `charts/`. `posterior.ts` and `probing.ts` print the README's tables
+  for those shooters, and take minutes, so `make` skips them. `make` reruns what's stale (a few
+  minutes, mostly adaptive in `games.ts`), `node --test` the tests.
 - `README.md` quotes numbers from `results/`; rerun its queries after a change to `src/`.
 
 Charts: the box's sea blue is a sequential amount (occupancy, shots); red pegs to white to blue

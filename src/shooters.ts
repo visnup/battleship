@@ -106,7 +106,7 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
  * where they disagree most, the cell whose answer (miss, hit, or which ship sank) has the most
  * entropy, and so takes a sure hit only once nothing is uncertain.
  */
-export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Shooter & { score: Float64Array } {
+export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Shooter & { score: Float64Array; fits: boolean } {
   const order = new Int16Array(CELLS).fill(-1);
   const hit = new Uint8Array(CELLS);
   const sunkAt = SHIPS.map(() => -1);
@@ -129,9 +129,13 @@ export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Sho
   const sinks = (f: number[], s: number, cell: number) => shipPlacements(s)[f[s]].every((c) => c === cell || order[c] >= 0);
   return {
     score,
+    /** Whether any fleet fits the answers so far; none does after a mistaken one. */
+    fits: true,
     next() {
-      for (let tries = 0; pool.length < n && (tries < 1000 * n || !pool.length); tries++)
+      const possible = allowed.every((a) => a.length);
+      for (let tries = 0; possible && pool.length < n && (tries < 1000 * n || (!pool.length && tries < 2_000_000)); tries++)
         if (draw()) pool.push({ owner: owner.slice(), fleet: fleet.slice() });
+      if (!(this.fits = pool.length > 0)) return order.indexOf(-1);
       let best = -Infinity;
       const ties: number[] = [];
       const counts = new Float64Array(SHIPS.length + 2);

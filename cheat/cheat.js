@@ -79,25 +79,40 @@ function render() {
   const afloat = SHIPS.map((_, i) => i).filter((i) => !history.some((h) => h.sunk === i));
   $("answer").hidden = selected === null || shot.has(selected);
   $("target").textContent = selected === null ? "" : label(selected);
+  const can = selected === null ? null : options(selected, afloat, sunkCells);
+  $("answer").querySelector("[data-result=hit]").disabled = !can?.hit;
   $("sinks").replaceChildren(...afloat.map((i) => {
-    const b = Object.assign(document.createElement("button"), { textContent: `Sank ${SHIPS[i]}` });
+    const b = Object.assign(document.createElement("button"), { textContent: `Sank ${SHIPS[i]}`, disabled: !can?.sinks.has(i) });
     b.onclick = () => record(true, i);
     return b;
   }));
   $("count").textContent = `${history.length} shots, ${history.filter((h) => h.hit).length} hits, ${SHIPS.length - afloat.length} of ${SHIPS.length} sunk`;
+  $("mistake").hidden = picks.find((p) => p.name === "exact").s.fits !== false;
 
+  const { belief } = picks.find((p) => p.name === "adaptive").s;
   $("picks").replaceChildren(...picks.map(({ name, cell }) => {
     const tr = document.createElement("tr");
     tr.className = name === algo ? "current" : "";
-    tr.innerHTML = `<td>${name}</td><td>${cell === null ? "—" : label(cell)}</td>`;
+    const k = models.findIndex((m) => name === `tuned ${m.name}`);
+    const odds = k < 0 ? "" : `<span class="bar" style="width:${belief[k] * 6}rem"></span>${Math.round(belief[k] * 100)}%`;
+    tr.innerHTML = `<td>${name}</td><td>${odds}</td><td>${cell === null ? "—" : label(cell)}</td>`;
     return tr;
   }));
-  const { belief } = picks.find((p) => p.name === "adaptive").s;
-  $("belief").replaceChildren(...models.map((m, k) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${m.name}</td><td><span class="bar" style="width:${belief[k] * 8}rem"></span>${Math.round(belief[k] * 100)}%</td>`;
-    return tr;
-  }));
+}
+
+/**
+ * Which answers `cell` could get. A hit needs a ship afloat that could cross it without crossing a
+ * miss or a sunk ship and still have cells left; sinking a ship needs a line of hits it could
+ * have been that this shot completes. Answers that only fail on the whole fleet get past this,
+ * and set off the warning instead.
+ */
+function options(cell, afloat, claimed) {
+  const shot = new Map(history.map((h) => [h.cell, h.hit]));
+  const lines = (s) => shipPlacements(s).filter((cs) => cs.includes(cell) && cs.every((c) => c === cell || (shot.get(c) !== false && !claimed.has(c))));
+  return {
+    hit: afloat.some((s) => lines(s).some((cs) => cs.some((c) => c !== cell && !shot.has(c)))),
+    sinks: new Set(afloat.filter((s) => lines(s).some((cs) => cs.every((c) => c === cell || shot.get(c))))),
+  };
 }
 
 /** The cells of each sunk ship: the line of hits it must have been, when there's only one. */

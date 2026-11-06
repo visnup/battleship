@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { PLACERS } from "../src/fleets.ts";
-import { library } from "./adaptive.ts";
+import { library } from "./placements.ts";
 
 /** 20,000 sampled fleets per placer, in `PLACERS` order, a byte per ship: the cheat sheet's models. */
 const lib = await library(20_000);

@@ -73,11 +73,14 @@ h2 { font-size: 1rem; margin: 1.5rem 0 0.25rem; }
 #target { font-weight: 600; min-width: 2.5rem; }
 #sinks { display: contents; }
 button { font: inherit; padding: 0.3rem 0.6rem; border-radius: 4px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+#answer button:disabled { opacity: 0.35; }
 .actions { margin-top: 0.75rem; }
+#mistake { color: var(--peg); font-weight: 600; }
 #count { color: var(--muted); margin-left: 0.5rem; }
 
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
 td { padding: 0.2rem 0.4rem; border-bottom: 1px solid var(--line); }
-td:last-child { text-align: right; }
+td:last-child { text-align: right; width: 3rem; }
+td:nth-child(2) { color: var(--muted); }
 tr.current td { font-weight: 600; }
 .bar { display: inline-block; height: 0.6rem; background: var(--sea); border-radius: 0 2px 2px 0; vertical-align: middle; margin-right: 0.4rem; }

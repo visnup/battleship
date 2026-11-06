@@ -181,7 +181,7 @@ save("first-shots", {
 // Every shooter against every placer, as shots more or fewer than the standard game.
 const matrix = await query(`select shooter, placer, avg(shots) shots from ${games} group by all`);
 const base = matrix.find((r) => r.shooter === "density" && r.placer === "uniform").shots;
-const shooterOrder = [...SHOOTERS, ...PLACERS.map((p) => `tuned ${p}`)];
+const shooterOrder = [...SHOOTERS, ...PLACERS.map((p) => `tuned ${p}`), "adaptive"];
 save("matrix", {
   x: { domain: PLACERS, axis: "top", label: null },
   y: { domain: shooterOrder, label: null },

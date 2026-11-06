@@ -11,6 +11,13 @@ export async function heat() {
   return rows.map((r) => r.p);
 }
 
+/** The first `n` sampled fleets of each placer, flat: a placement index per ship. */
+export async function library(n: number) {
+  const rows = await query<Record<string, number>>(`
+    select placer, ${SHIPS.join(", ")} from ${parquet("placements")} where placer != 'naive' and fleet < ${n} order by placer, fleet`);
+  return Object.fromEntries(PLACERS.map((name) => [name, Uint8Array.from(rows.filter((r) => r.placer === name).flatMap((r) => SHIPS.map((s) => r[s])))]));
+}
+
 /** A task: `n` fleets from each placer, a row each. */
 export function sample(heat: number[], seed: number, n: number) {
   const rng = mulberry32(seed);
