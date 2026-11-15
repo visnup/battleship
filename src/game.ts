@@ -2,6 +2,8 @@ import { BIRTHDAY, type Card, type Color, COLORS, DEBT, DECK, HOTEL_RENT, HOUSE_
 
 export const COLOR_NAMES = Object.keys(COLORS) as Color[];
 const size = (color: Color) => COLORS[color].rent.length;
+const INDEX = Object.fromEntries(COLOR_NAMES.map((c, i) => [c, i])) as Record<Color, number>;
+const SIZES = COLOR_NAMES.map(size);
 const buildable = (color: Color) => color !== "railroad" && color !== "utility";
 
 /** A property or wild card on the table, and the color it's being used as. */
@@ -365,33 +367,56 @@ export const assets = (p: Player) =>
 export function arrange(game: Game, p: Player) {
   const wilds = p.props.filter((x) => x.card.kind === "wild");
   if (!wilds.length) return;
-  const options = wilds.map((x) => colorsOf(x.card));
+  const options = wilds.map((x) => colorsOf(x.card).map((c) => INDEX[c]));
+  const combos = options.reduce((n, o) => n * o.length, 1);
+  if (combos > 20000) return;
+  // Cards of each color, and of those, how many aren't multicolored wilds
+  const n = new Array<number>(COLOR_NAMES.length).fill(0);
+  const real = new Array<number>(COLOR_NAMES.length).fill(0);
+  for (const x of p.props) {
+    if (x.card.kind === "wild") continue;
+    n[INDEX[x.color]]++;
+    real[INDEX[x.color]]++;
+  }
+  const built = COLOR_NAMES.map((c) => p.built.some((b) => b.color === c));
+  const any = wilds.map((x) => x.card.kind === "wild" && x.card.colors === "any");
   const score = () => {
     let s = 0;
-    for (const c of COLOR_NAMES) {
-      const full = fullSets(game, p, c);
-      if (p.built.some((b) => b.color === c) && !full) return -Infinity;
-      s += (full ? 100 : 0) + progress(game, p, c) ** 2 * 10 + Math.max(0, count(p, c) - size(c)) * -1;
+    for (let c = 0; c < SIZES.length; c++) {
+      const full = game.rules.wildOnlySets || real[c] ? Math.floor(n[c] / SIZES[c]) : 0;
+      if (built[c] && !full) return -Infinity;
+      s += (full ? 100 : 0) + Math.min(1, n[c] / SIZES[c]) ** 2 * 10 + Math.max(0, n[c] - SIZES[c]) * -1;
     }
     return s;
   };
-  let best = wilds.map((x) => x.color);
+  const choice = wilds.map((x) => INDEX[x.color]);
+  for (let i = 0; i < wilds.length; i++) {
+    n[choice[i]]++;
+    if (!any[i]) real[choice[i]]++;
+  }
+  let best = [...choice];
   let top = score();
-  const combos = options.reduce((n, o) => n * o.length, 1);
-  if (combos > 20000) return;
+  for (let i = 0; i < wilds.length; i++) {
+    n[choice[i]]--;
+    if (!any[i]) real[choice[i]]--;
+  }
   const go = (i: number) => {
     if (i === wilds.length) {
       const s = score();
-      if (s > top) [top, best] = [s, wilds.map((x) => x.color)];
+      if (s > top) [top, best] = [s, [...choice]];
       return;
     }
     for (const c of options[i]) {
-      wilds[i].color = c;
+      choice[i] = c;
+      n[c]++;
+      if (!any[i]) real[c]++;
       go(i + 1);
+      n[c]--;
+      if (!any[i]) real[c]--;
     }
   };
   go(0);
-  wilds.forEach((x, i) => (x.color = best[i]));
+  wilds.forEach((x, i) => (x.color = COLOR_NAMES[best[i]]));
 }
 
 const isAction = (c: Card, action: string) => c.kind === "action" && c.action === action;
