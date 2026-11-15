@@ -43,7 +43,7 @@ with every shooter facing the same fleets. Averages from it are good to about ±
 smaller experiments say how big a difference has to be before it means something.
 
 The raw data is in `results/` as Parquet, a row per arrangement count, sampled fleet, game or
-shot. `make` regenerates it and redraws `charts/` (a few minutes), and each section names
+shot. `make` regenerates it and redraws `charts/` (about 90 seconds on 20 cores), and each section names
 the script behind it. The tables below are from 2026-11-05.
 
 ## Where ships are
