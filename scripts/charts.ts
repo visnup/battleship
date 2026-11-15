@@ -172,7 +172,7 @@ save("hit-rate", {
 
 // Where each shooter looks first: the chance it fires at each cell within its first 20 shots.
 const games10k = (await query(`select count(distinct game) n from ${shots}`))[0].n;
-const early = await query(`select shooter, cell, count(*) / ${games10k} p from ${shots} where shot <= 20 group by all`);
+const early = await query(`select shooter, cell, count(*) / ${games10k} p from ${shots} where shot <= 20 group by all order by all`);
 save("first-shots", {
   ...grid(14),
   width: 4 * 150,
@@ -183,7 +183,7 @@ save("first-shots", {
 }, { label: "Chance the cell is fired at within the first 20 shots", tickFormat: (x: number) => percent(x) });
 
 // Every shooter against every placer, as shots more or fewer than the standard game.
-const matrix = await query(`select shooter, placer, avg(shots) shots from ${games} group by all`);
+const matrix = await query(`select shooter, placer, avg(shots) shots from ${games} group by all order by all`);
 const base = matrix.find((r) => r.shooter === "density" && r.placer === "uniform").shots;
 const shooterOrder = [...SHOOTERS, ...PLACERS.map((p) => `tuned ${p}`), "adaptive"];
 save("matrix", {
@@ -217,7 +217,7 @@ save("equilibrium", {
 // When each ship goes down.
 const sinks = await query(`
   unpivot (select shooter, ${SHIPS.map((s) => `avg(${s}) ${s}`)} from ${games} where placer = 'uniform' and shooter in (${SHOOTERS.map((s) => `'${s}'`)}) group by all)
-  on ${SHIPS.join(", ")} into name ship value shot`);
+  on ${SHIPS.join(", ")} into name ship value shot order by all`);
 save("sinks", {
   x: { domain: SHIPS, axis: "top", label: null },
   y: { domain: SHOOTERS, label: null },

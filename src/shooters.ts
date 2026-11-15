@@ -62,19 +62,20 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
       const placements = shipPlacements(ship), missed = crossesMiss[ship];
       next: for (let p = 0; p < placements.length; p++) {
         if (missed[p]) continue;
-        const cells = placements[p];
+        const cells = placements[p], n = cells.length;
         let hits = 0;
-        for (const c of cells) {
-          if (state[c] === 1) {
+        for (let i = 0; i < n; i++) {
+          const s = state[cells[i]];
+          if (s === 1) {
             missed[p] = 1;
             continue next;
           }
-          if (state[c] === 3) continue next;
-          if (state[c] === 2) hits++;
+          if (s === 3) continue next;
+          if (s === 2) hits++;
         }
-        if (hits === cells.length || (target && !hits)) continue;
-        const w = (weights?.[ship][p] ?? 1) * 100 ** hits;
-        for (const c of cells) if (!state[c]) (score[c] += w), (total += w);
+        if (hits === n || (target && !hits)) continue;
+        const w = (weights ? weights[ship][p] : 1) * 100 ** hits;
+        for (let i = 0; i < n; i++) if (!state[cells[i]]) (score[cells[i]] += w), (total += w);
       }
     }
     return total;
