@@ -1,4 +1,4 @@
-import { around, CELLS, colOf, type Fleet, neighbors, pick, rowOf, SIZE, shipPlacements, SHIPS } from "./board.ts";
+import { around, CELLS, type Fleet, neighbors, onEdge, pick, shipPlacements, SHIPS } from "./board.ts";
 
 /** Ways to hide a fleet. Each returns a placement index per ship. */
 export type Placer = (rng: () => number) => Fleet;
@@ -20,7 +20,6 @@ function rejection(candidates: (ship: number) => number[], ok: (cells: number[][
 }
 
 const all = (ship: number) => shipPlacements(ship).map((_, i) => i);
-const onEdge = (c: number) => rowOf(c) === 0 || rowOf(c) === SIZE - 1 || colOf(c) === 0 || colOf(c) === SIZE - 1;
 
 /** Every arrangement equally likely. */
 export const uniform = rejection(all);
@@ -102,7 +101,7 @@ export const dialed = (edge: number, touch: "spread" | "any" | "clustered"): Pla
   }
 };
 
-export const PLACERS =["uniform", "edges", "spread", "clustered", "cold"] as const;
+export const PLACERS = ["uniform", "edges", "spread", "clustered", "cold"] as const;
 export type PlacerName = (typeof PLACERS)[number] | "naive";
 
 export const placer = (name: PlacerName, heat: number[]): Placer =>

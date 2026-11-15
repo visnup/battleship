@@ -1,13 +1,8 @@
 import { CELLS, label, mulberry32, shipPlacements, SHIPS } from "../src/board.ts";
 import { uniform } from "../src/fleets.ts";
-import { huntTarget, play, random } from "../src/shooters.ts";
-import { ALGORITHMS } from "./algorithms.js";
+import { play } from "../src/shooters.ts";
+import { EVERY } from "./algorithms.js";
 
-const SHOOTERS = {
-  ...Object.fromEntries(Object.entries(ALGORITHMS).map(([name, { make }]) => [name, make])),
-  hunt: (rng) => huntTarget(rng),
-  random: (rng) => random(rng),
-};
 const GAMES = 10;
 
 const $ = (id) => document.getElementById(id);
@@ -67,7 +62,7 @@ function changed() {
 async function simulate(id) {
   if (fleet.includes(null)) return;
   for (let seed = 1; seed <= GAMES; seed++)
-    for (const [name, make] of Object.entries(SHOOTERS)) {
+    for (const [name, { make }] of Object.entries(EVERY)) {
       await new Promise((r) => setTimeout(r));
       if (id !== run) return;
       const game = play(fleet, make(mulberry32(seed)));

@@ -28,25 +28,28 @@ export type Fleet = number[];
 export const fleetCells = (fleet: Fleet) => fleet.map((p, ship) => shipPlacements(ship)[p]);
 
 /** The orthogonal neighbors of `cell`. */
-export function neighbors(cell: number, size = SIZE): number[] {
-  const r = Math.floor(cell / size), c = cell % size;
+export function neighbors(cell: number): number[] {
+  const r = rowOf(cell), c = colOf(cell);
   const out: number[] = [];
-  if (r > 0) out.push(cell - size);
-  if (r < size - 1) out.push(cell + size);
+  if (r > 0) out.push(cell - SIZE);
+  if (r < SIZE - 1) out.push(cell + SIZE);
   if (c > 0) out.push(cell - 1);
-  if (c < size - 1) out.push(cell + 1);
+  if (c < SIZE - 1) out.push(cell + 1);
   return out;
 }
 
 /** The up to eight cells around `cell`, diagonals included. */
-export function around(cell: number, size = SIZE): number[] {
-  const r = Math.floor(cell / size), c = cell % size;
+export function around(cell: number): number[] {
+  const r = rowOf(cell), c = colOf(cell);
   const out: number[] = [];
   for (let dr = -1; dr <= 1; dr++)
     for (let dc = -1; dc <= 1; dc++)
-      if ((dr || dc) && r + dr >= 0 && r + dr < size && c + dc >= 0 && c + dc < size) out.push(cell + dr * size + dc);
+      if ((dr || dc) && r + dr >= 0 && r + dr < SIZE && c + dc >= 0 && c + dc < SIZE) out.push(cell + dr * SIZE + dc);
   return out;
 }
+
+/** Whether `cell` is on the outer ring. */
+export const onEdge = (cell: number) => rowOf(cell) === 0 || rowOf(cell) === SIZE - 1 || colOf(cell) === 0 || colOf(cell) === SIZE - 1;
 
 export function mulberry32(seed: number) {
   return () => {

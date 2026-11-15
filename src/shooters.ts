@@ -54,20 +54,28 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
   let shots = 0;
   const afloat = new Set(SHIPS.map((_, i) => i));
   const score = new Float64Array(CELLS);
+  const crossesMiss = SHIPS.map((_, s) => new Uint8Array(shipPlacements(s).length));
   const fill = (target: boolean) => {
     score.fill(0);
     let total = 0;
     for (const ship of afloat) {
-      shipPlacements(ship).forEach((cells, p) => {
+      const placements = shipPlacements(ship), missed = crossesMiss[ship];
+      next: for (let p = 0; p < placements.length; p++) {
+        if (missed[p]) continue;
+        const cells = placements[p];
         let hits = 0;
         for (const c of cells) {
-          if (state[c] === 1 || state[c] === 3) return;
+          if (state[c] === 1) {
+            missed[p] = 1;
+            continue next;
+          }
+          if (state[c] === 3) continue next;
           if (state[c] === 2) hits++;
         }
-        if (hits === cells.length || (target && !hits)) return;
+        if (hits === cells.length || (target && !hits)) continue;
         const w = (weights?.[ship][p] ?? 1) * 100 ** hits;
         for (const c of cells) if (!state[c]) (score[c] += w), (total += w);
-      });
+      }
     }
     return total;
   };
@@ -301,15 +309,19 @@ export function adaptive(rng: () => number, models: Model[], { probe = false, pr
       shot[cell] = 1;
       unresolved += +hit - (sunk === null ? 0 : LENGTHS[sunk]);
       if (frozen) return;
-      const next = models.map((m, k) => {
-        const a = alive[k].slice(), cover = m.cover.subarray(cell * m.words, (cell + 1) * m.words);
-        for (let w = 0; w < m.words; w++) a[w] &= hit ? cover[w] : ~cover[w];
-        return a;
+      const flip = hit ? 0 : ~0;
+      const counts = models.map((m, k) => {
+        const a = alive[k], cover = m.cover, at = cell * m.words;
+        let n = 0;
+        for (let w = 0; w < m.words; w++) n += popcount(a[w] & (cover[at + w] ^ flip));
+        return n;
       });
-      const counts = next.map((a) => a.reduce((n, w) => n + popcount(w), 0));
       // Once few sample fleets fit, their shares are mostly noise: keep the last belief.
       if (Math.max(...counts) < 20) return void (frozen = true);
-      next.forEach((a, k) => (alive[k] = a));
+      models.forEach((m, k) => {
+        const a = alive[k], cover = m.cover, at = cell * m.words;
+        for (let w = 0; w < m.words; w++) a[w] &= cover[at + w] ^ flip;
+      });
       const shares = models.map((m, k) => (prior[k] * counts[k]) / m.n);
       const total = shares.reduce((a, b) => a + b);
       shares.forEach((s, k) => (belief[k] = s / total));
@@ -318,10 +330,26 @@ export function adaptive(rng: () => number, models: Model[], { probe = false, pr
   };
 }
 
+type Entry = { note: string; make: (rng: () => number) => Shooter };
+
+/**
+ * Every shooter by name, with a line on what it does. `tuned` are the habits the tuned shooters
+ * each assume, and `models` the ones adaptive chooses between.
+ */
+export const lineup = (models: Model[], tuned = models) => ({
+  random: { note: "anywhere it hasn't fired", make: (rng) => random(rng) },
+  hunt: { note: "at random, then neighbors of hits", make: (rng) => huntTarget(rng) },
+  parity: { note: "checkerboard, then neighbors of hits", make: (rng) => huntTarget(rng, true) },
+  density: { note: "the classic probability density", make: (rng) => density(rng) },
+  exact: { note: "likeliest cell, from 1,000 fleets that fit", make: (rng) => posterior(rng, "hit", 1000) },
+  info: { note: "the shot that tells you most", make: (rng) => posterior(rng, "info", 1000) },
+  ...Object.fromEntries(tuned.map((m) => [`tuned ${m.name}`, { note: `if they always hide ${m.name}`, make: (rng) => density(rng, m.weights) } satisfies Entry])),
+  adaptive: { note: "works out their habit as it goes", make: (rng) => adaptive(rng, models) },
+}) satisfies Record<string, Entry>;
+
+/** The shooters that need no habits. */
 export const SHOOTERS = ["random", "hunt", "parity", "density"] as const;
-export type ShooterName = (typeof SHOOTERS)[number];
-export const shooter = (name: ShooterName, rng: () => number): Shooter =>
-  ({ random: () => random(rng), hunt: () => huntTarget(rng), parity: () => huntTarget(rng, true), density: () => density(rng) })[name]();
+export const shooter = (name: (typeof SHOOTERS)[number], rng: () => number) => lineup([])[name].make(rng);
 
 /** The result of one shooter against one fleet: every shot in order, and the shot that sank each ship. */
 export function play(fleet: Fleet, s: Shooter) {

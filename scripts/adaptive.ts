@@ -1,4 +1,4 @@
-import { mulberry32, shipPlacements, SHIPS } from "../src/board.ts";
+import { mulberry32, onEdge, shipPlacements, SHIPS } from "../src/board.ts";
 import { dialed, PLACERS, placer } from "../src/fleets.ts";
 import { collect, parallel } from "../src/parallel.ts";
 import { adaptive, density, type Model, model, play } from "../src/shooters.ts";
@@ -7,7 +7,6 @@ import { heat, library } from "./placements.ts";
 const EDGES = [0, 0.25, 0.5, 0.75, 1];
 const TOUCHES = ["spread", "any", "clustered"] as const;
 const DIALS = EDGES.flatMap((edge) => TOUCHES.map((touch) => ({ name: `rim ${edge} ${touch}`, place: dialed(edge, touch) })));
-const onEdge = (c: number) => c < 10 || c >= 90 || c % 10 === 0 || c % 10 === 9;
 
 /** Hiders outside the five habits: `naive`, a few dial settings off the grid, and `half edges`, the carrier and battleship on the rim. */
 const strangers = {
