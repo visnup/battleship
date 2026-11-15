@@ -1,0 +1,533 @@
+import { BIRTHDAY, type Card, type Color, COLORS, DEBT, DECK, HOTEL_RENT, HOUSE_RENT } from "./cards.ts";
+
+export const COLOR_NAMES = Object.keys(COLORS) as Color[];
+const size = (color: Color) => COLORS[color].rent.length;
+const buildable = (color: Color) => color !== "railroad" && color !== "utility";
+
+/** A property or wild card on the table, and the color it's being used as. */
+export type Placed = { card: Card; color: Color };
+
+export type Player = {
+  seat: number;
+  hand: Card[];
+  bank: Card[];
+  props: Placed[];
+  /** Houses and hotels, on the full set of their color. */
+  built: Placed[];
+};
+
+export type Move =
+  | { type: "bank"; card: Card }
+  | { type: "place"; card: Card; color: Color }
+  | { type: "rent"; card: Card; color: Color; target?: number; doubles: Card[] }
+  | { type: "action"; card: Card; target?: number; take?: Placed; give?: Placed; color?: Color };
+
+/** The rules the sheet leaves open, each read the way `defaultRules` says. */
+export type Rules = {
+  /** A set made only of multicolored wilds counts as full. */
+  wildOnlySets: boolean;
+  /** When the draw pile runs out, the play pile is shuffled into a new one. */
+  reshuffle: boolean;
+};
+
+export const defaultRules: Rules = { wildOnlySets: false, reshuffle: true };
+
+export type Policy = {
+  /** The next card to play, or null to end the turn. `left` is how many plays remain. */
+  move(game: Game, p: Player, left: number): Move | null;
+  /** Cards from the table worth at least `amount`, or everything payable if that falls short. */
+  pay(game: Game, p: Player, amount: number): (Card | Placed)[];
+  /** Whether to play Just Say No against `move`, or against a No played on `move`. */
+  sayNo(game: Game, p: Player, move: Move, from: Player): boolean;
+  /** Which cards to put on the bottom of the draw pile, past 7 in hand. */
+  discard(game: Game, p: Player, n: number): Card[];
+};
+
+export function mulberry32(seed: number) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function shuffle<T>(xs: T[], rng: () => number): T[] {
+  const a = [...xs];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const remove = <T>(xs: T[], x: T) => {
+  const i = xs.indexOf(x);
+  if (i < 0) throw new Error("not there");
+  xs.splice(i, 1);
+};
+
+export type GameOptions = {
+  players: number;
+  rng?: () => number;
+  /** One per seat, or one for everyone. */
+  policies?: Policy | Policy[];
+  rules?: Partial<Rules>;
+  /** Who goes first; random by default. */
+  first?: number;
+  /** A deck to deal from the top of, in place of a shuffled one. */
+  deck?: Card[];
+  log?: boolean;
+};
+
+export type GameResult = { winner: number | null; turns: number; stalled: boolean; reshuffles: number };
+
+// Not an Error, so throwing it doesn't capture a stack trace every game.
+class GameOver {}
+
+export const MAX_TURNS = 1000;
+
+export class Game {
+  players: Player[];
+  draw: Card[];
+  pile: Card[] = [];
+  rng: () => number;
+  rules: Rules;
+  policies: Policy[];
+  current: number;
+  turns = 0;
+  reshuffles = 0;
+  winner: number | null = null;
+  log?: string[];
+
+  constructor(o: GameOptions) {
+    this.rng = o.rng ?? Math.random;
+    this.rules = { ...defaultRules, ...o.rules };
+    this.policies = Array.isArray(o.policies) ? o.policies : Array(o.players).fill(o.policies ?? defaultPolicy);
+    this.draw = o.deck ?? shuffle(DECK.map((c) => ({ ...c })), this.rng);
+    this.players = Array.from({ length: o.players }, (_, seat) => ({ seat, hand: [], bank: [], props: [], built: [] }));
+    for (let i = 0; i < 5; i++) for (const p of this.players) p.hand.push(...this.take(1));
+    this.current = o.first ?? Math.floor(this.rng() * o.players);
+    if (o.log) this.log = [];
+  }
+
+  say(line: string) {
+    this.log?.push(line);
+  }
+
+  take(n: number): Card[] {
+    const cards: Card[] = [];
+    for (let i = 0; i < n; i++) {
+      if (!this.draw.length && this.rules.reshuffle && this.pile.length) {
+        this.draw = shuffle(this.pile, this.rng);
+        this.pile = [];
+        this.reshuffles++;
+      }
+      const card = this.draw.shift();
+      if (card) cards.push(card);
+    }
+    return cards;
+  }
+
+  run(): GameResult {
+    try {
+      while (this.turns < MAX_TURNS) {
+        this.turn(this.players[this.current]);
+        this.current = (this.current + 1) % this.players.length;
+      }
+    } catch (e) {
+      if (!(e instanceof GameOver)) throw e;
+    }
+    return { winner: this.winner, turns: this.turns, stalled: this.winner === null, reshuffles: this.reshuffles };
+  }
+
+  turn(p: Player) {
+    this.turns++;
+    p.hand.push(...this.take(p.hand.length ? 2 : 5));
+    this.say(`turn ${this.turns}: P${p.seat} draws, holds ${p.hand.length}`);
+    arrange(this, p);
+    this.checkWin(p);
+    for (let left = 3; left > 0; ) {
+      const move = this.policies[p.seat].move(this, p, left);
+      if (!move) break;
+      left -= 1 + (move.type === "rent" ? move.doubles.length : 0);
+      this.play(p, move);
+      arrange(this, p);
+      this.checkWin(p);
+    }
+    if (p.hand.length > 7) {
+      const cards = this.policies[p.seat].discard(this, p, p.hand.length - 7);
+      for (const c of cards) remove(p.hand, c);
+      this.draw.push(...cards);
+      this.say(`P${p.seat} discards ${cards.map(name).join(", ")}`);
+    }
+  }
+
+  checkWin(p: Player) {
+    if (fullColors(this, p).length >= 3) {
+      this.winner = p.seat;
+      this.say(`P${p.seat} wins with ${fullColors(this, p).join(", ")}`);
+      throw new GameOver();
+    }
+  }
+
+  play(p: Player, move: Move) {
+    const { card } = move;
+    remove(p.hand, card);
+    if (move.type === "bank") {
+      p.bank.push(card);
+      this.say(`P${p.seat} banks ${name(card)}`);
+      return;
+    }
+    if (move.type === "place") {
+      if (card.kind === "action") p.built.push({ card, color: move.color });
+      else p.props.push({ card, color: move.color });
+      this.say(`P${p.seat} places ${name(card)} as ${move.color}`);
+      return;
+    }
+    this.pile.push(card);
+    for (const d of move.type === "rent" ? move.doubles : []) {
+      remove(p.hand, d);
+      this.pile.push(d);
+    }
+    const detail = [
+      move.type === "rent" && `${move.color} for ${rent(this, p, move.color) * 2 ** move.doubles.length}`,
+      move.type === "action" && move.take && `taking ${name(move.take.card)}`,
+      move.type === "action" && move.give && `for ${name(move.give.card)}`,
+      move.type === "action" && move.color && `taking ${move.color}`,
+      move.target !== undefined && `from P${move.target}`,
+    ].filter(Boolean);
+    this.say(`P${p.seat} plays ${name(card)}${detail.length ? ` (${detail.join(" ")})` : ""}`);
+    const targets = move.target !== undefined ? [this.players[move.target]] : this.players.filter((q) => q !== p);
+    if (move.type === "rent") {
+      const amount = rent(this, p, move.color) * 2 ** move.doubles.length;
+      for (const q of targets) if (!this.refused(p, q, move)) this.collect(q, p, amount);
+      return;
+    }
+    if (card.kind !== "action") throw new Error(`can't play ${name(card)}`);
+    switch (card.action) {
+      case "passGo":
+        p.hand.push(...this.take(2));
+        return;
+      case "birthday":
+        for (const q of targets) if (!this.refused(p, q, move)) this.collect(q, p, BIRTHDAY);
+        return;
+      case "debtCollector":
+        if (!this.refused(p, targets[0], move)) this.collect(targets[0], p, DEBT);
+        return;
+      case "slyDeal": {
+        const q = targets[0];
+        if (this.refused(p, q, move)) return;
+        remove(q.props, move.take!);
+        receive(this, p, move.take!);
+        return;
+      }
+      case "forcedDeal": {
+        const q = targets[0];
+        if (this.refused(p, q, move)) return;
+        remove(q.props, move.take!);
+        remove(p.props, move.give!);
+        receive(this, p, move.take!);
+        receive(this, q, move.give!);
+        return;
+      }
+      case "dealBreaker": {
+        const q = targets[0];
+        if (this.refused(p, q, move)) return;
+        const color = move.color!;
+        const set = setOf(this, q, color);
+        for (const x of set) {
+          remove(q.props, x);
+          p.props.push(x);
+        }
+        for (const x of q.built.filter((b) => b.color === color).slice(0, 2)) {
+          remove(q.built, x);
+          p.built.push(x);
+        }
+        return;
+      }
+      default:
+        throw new Error(`can't play ${card.action}`);
+    }
+  }
+
+  /** Plays out a chain of Just Say Nos from `q` against `p`'s `move`; true if it's cancelled. */
+  refused(p: Player, q: Player, move: Move): boolean {
+    let [from, to] = [q, p];
+    let cancelled = false;
+    for (;;) {
+      const no = from.hand.find((c) => c.kind === "action" && c.action === "justSayNo");
+      if (!no || !this.policies[from.seat].sayNo(this, from, move, to)) return cancelled;
+      remove(from.hand, no);
+      this.pile.push(no);
+      cancelled = !cancelled;
+      this.say(`P${from.seat} says no`);
+      [from, to] = [to, from];
+    }
+  }
+
+  /** `q` pays `p` at least `amount`, or all it can. */
+  collect(q: Player, p: Player, amount: number) {
+    const paid = this.policies[q.seat].pay(this, q, amount);
+    for (const x of paid) {
+      if ("kind" in x) {
+        remove(q.bank, x);
+        p.bank.push(x);
+      } else if (q.built.includes(x)) {
+        remove(q.built, x);
+        p.bank.push(x.card);
+      } else {
+        remove(q.props, x);
+        receive(this, p, x);
+      }
+    }
+    this.say(`P${q.seat} pays P${p.seat} ${paid.map((x) => name("kind" in x ? x : x.card)).join(", ") || "nothing"} for ${amount}`);
+  }
+}
+
+/** Puts a property `p` gained on its table, as the color that helps most. */
+function receive(game: Game, p: Player, x: Placed) {
+  const colors = colorsOf(x.card);
+  x.color = colors.reduce((a, b) => (progress(game, p, b, 1) > progress(game, p, a, 1) ? b : a), colors.includes(x.color) ? x.color : colors[0]);
+  p.props.push(x);
+}
+
+export function name(c: Card): string {
+  switch (c.kind) {
+    case "money":
+      return `$${c.value}M`;
+    case "property":
+      return c.color;
+    case "wild":
+    case "rent":
+      return `${c.kind}(${c.colors === "any" ? "any" : c.colors.join("/")})`;
+    case "action":
+      return c.action;
+  }
+}
+
+export function colorsOf(c: Card): Color[] {
+  if (c.kind === "property") return [c.color];
+  if (c.kind === "wild" || c.kind === "rent") return c.colors === "any" ? COLOR_NAMES : [...c.colors];
+  return [];
+}
+
+export const count = (p: Player, color: Color) => p.props.filter((x) => x.color === color).length;
+
+/** How many full sets of `color` `p` has. */
+export function fullSets(game: Game, p: Player, color: Color): number {
+  const cards = p.props.filter((x) => x.color === color);
+  const sets = Math.floor(cards.length / size(color));
+  if (game.rules.wildOnlySets || cards.some((x) => x.card.kind === "property" || x.card.colors !== "any")) return sets;
+  return 0;
+}
+
+export const fullColors = (game: Game, p: Player) => COLOR_NAMES.filter((c) => fullSets(game, p, c) > 0);
+
+/** The cards of one full set of `color`, real properties first. */
+export function setOf(game: Game, p: Player, color: Color): Placed[] {
+  const cards = p.props.filter((x) => x.color === color);
+  return cards.sort((a, b) => +(a.card.kind === "wild") - +(b.card.kind === "wild")).slice(0, size(color));
+}
+
+/** Whether `x` can be taken by Sly Deal or Forced Deal: not part of a full set. */
+export function loose(game: Game, p: Player, x: Placed): boolean {
+  const n = count(p, x.color);
+  return n % size(x.color) !== 0 || fullSets(game, p, x.color) === 0;
+}
+
+/** The rent `p` charges for `color`, from its best set of that color. */
+export function rent(game: Game, p: Player, color: Color): number {
+  const n = Math.min(count(p, color), size(color));
+  if (!n) return 0;
+  let r = COLORS[color].rent[n - 1];
+  if (fullSets(game, p, color)) {
+    const built = p.built.filter((b) => b.color === color);
+    if (built.some((b) => b.card.kind === "action" && b.card.action === "house")) r += HOUSE_RENT;
+    if (built.some((b) => b.card.kind === "action" && b.card.action === "hotel")) r += HOTEL_RENT;
+  }
+  return r;
+}
+
+/** How far `p` is toward a full set of `color` with `extra` more cards, from 0 to 1. */
+export function progress(game: Game, p: Player, color: Color, extra = 0): number {
+  return Math.min(1, (count(p, color) + extra) / size(color));
+}
+
+/** What everything `p` could pay with is worth. */
+export const assets = (p: Player) =>
+  p.bank.reduce((s, c) => s + c.value, 0) + p.props.reduce((s, x) => s + x.card.value, 0) + p.built.reduce((s, x) => s + x.card.value, 0);
+
+/**
+ * Moves wilds between colors on `p`'s turn to make the most full sets, then the most progress,
+ * keeping every house and hotel on a full set.
+ */
+export function arrange(game: Game, p: Player) {
+  const wilds = p.props.filter((x) => x.card.kind === "wild");
+  if (!wilds.length) return;
+  const options = wilds.map((x) => colorsOf(x.card));
+  const score = () => {
+    let s = 0;
+    for (const c of COLOR_NAMES) {
+      const full = fullSets(game, p, c);
+      if (p.built.some((b) => b.color === c) && !full) return -Infinity;
+      s += (full ? 100 : 0) + progress(game, p, c) ** 2 * 10 + Math.max(0, count(p, c) - size(c)) * -1;
+    }
+    return s;
+  };
+  let best = wilds.map((x) => x.color);
+  let top = score();
+  const combos = options.reduce((n, o) => n * o.length, 1);
+  if (combos > 20000) return;
+  const go = (i: number) => {
+    if (i === wilds.length) {
+      const s = score();
+      if (s > top) [top, best] = [s, wilds.map((x) => x.color)];
+      return;
+    }
+    for (const c of options[i]) {
+      wilds[i].color = c;
+      go(i + 1);
+    }
+  };
+  go(0);
+  wilds.forEach((x, i) => (x.color = best[i]));
+}
+
+const isAction = (c: Card, action: string) => c.kind === "action" && c.action === action;
+
+/** A hand-written player: complete sets, steal, charge, then bank. */
+export const defaultPolicy: Policy = {
+  move(game, p, left) {
+    const others = game.players.filter((q) => q !== p);
+    const hand = p.hand;
+    const placeable = hand.filter((c) => c.kind === "property" || (c.kind === "wild" && (c.colors !== "any" || p.props.length)));
+    const bestColor = (c: Card) => colorsOf(c).reduce((a, b) => (gain(game, p, b) > gain(game, p, a) ? b : a));
+
+    const passGo = hand.find((c) => isAction(c, "passGo"));
+    if (passGo && left >= 2) return { type: "action", card: passGo };
+
+    for (const c of placeable) {
+      const color = bestColor(c);
+      if (count(p, color) + 1 === size(color)) return { type: "place", card: c, color };
+    }
+
+    const breaker = hand.find((c) => isAction(c, "dealBreaker"));
+    if (breaker) {
+      const sets = others.flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
+      const pick = sets.sort((a, b) => +!fullSets(game, p, a.color) - +!fullSets(game, p, b.color) || rent(game, b.q, b.color) - rent(game, a.q, a.color))[0];
+      if (pick && !fullSets(game, p, pick.color)) return { type: "action", card: breaker, target: pick.q.seat, color: pick.color };
+    }
+
+    const sly = hand.find((c) => isAction(c, "slyDeal"));
+    if (sly) {
+      const take = stealable(game, p, others)[0];
+      if (take) return { type: "action", card: sly, target: take.q.seat, take: take.x };
+    }
+
+    if (placeable.length) return { type: "place", card: placeable[0], color: bestColor(placeable[0]) };
+
+    for (const c of hand.filter((c) => isAction(c, "house") || isAction(c, "hotel"))) {
+      const color = fullColors(game, p).find(
+        (color) =>
+          buildable(color) &&
+          !p.built.some((b) => b.color === color && b.card.kind === "action" && b.card.action === (c.kind === "action" && c.action)) &&
+          (isAction(c, "house") || p.built.some((b) => b.color === color && isAction(b.card, "house"))),
+      );
+      if (color) return { type: "place", card: c, color };
+    }
+
+    const doubles = hand.filter((c) => isAction(c, "doubleRent"));
+    let charge: Move | null = null;
+    let most = 0;
+    for (const c of hand.filter((c) => c.kind === "rent")) {
+      if (c.kind !== "rent") continue;
+      const wild = c.colors === "any";
+      for (const color of colorsOf(c)) {
+        const r = rent(game, p, color);
+        const target = wild ? others.reduce((a, b) => (assets(b) > assets(a) ? b : a)) : undefined;
+        const payers = wild ? [target!] : others;
+        const d = doubles.slice(0, Math.min(left - 1, r >= 3 ? 2 : 0));
+        const value = payers.reduce((s, q) => s + Math.min(assets(q), r * 2 ** d.length), 0);
+        if (value > most && r >= (wild ? 3 : 1)) [most, charge] = [value, { type: "rent", card: c, color, target: target?.seat, doubles: d }];
+      }
+    }
+    if (charge && most >= 2) return charge;
+
+    const debt = hand.find((c) => isAction(c, "debtCollector"));
+    const richest = others.reduce((a, b) => (assets(b) > assets(a) ? b : a));
+    if (debt && assets(richest) > 0) return { type: "action", card: debt, target: richest.seat };
+    const birthday = hand.find((c) => isAction(c, "birthday"));
+    if (birthday && others.some((q) => assets(q) > 0)) return { type: "action", card: birthday };
+
+    const forced = hand.find((c) => isAction(c, "forcedDeal"));
+    if (forced) {
+      const take = stealable(game, p, others)[0];
+      const give = p.props
+        .filter((x) => loose(game, p, x) && x.color !== take?.x.color && x.card.kind !== "wild")
+        .sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
+      if (take && give && gain(game, p, take.x.color) > progress(game, p, give.color))
+        return { type: "action", card: forced, target: take.q.seat, take: take.x, give };
+    }
+
+    const money = hand.find((c) => c.kind === "money");
+    if (money) return { type: "bank", card: money };
+    if (passGo) return { type: "action", card: passGo };
+    return null;
+  },
+
+  pay(game, p, amount) {
+    const bank = [...p.bank].sort((a, b) => a.value - b.value);
+    const total = bank.reduce((s, c) => s + c.value, 0);
+    if (total >= amount) {
+      // The fewest cards with the least change, over sums of subsets
+      const best: (Card[] | undefined)[] = [[]];
+      for (const c of bank)
+        for (let s = best.length - 1; s >= 0; s--) {
+          const prev = best[s];
+          if (prev && (!best[s + c.value] || best[s + c.value]!.length > prev.length + 1)) best[s + c.value] = [...prev, c];
+        }
+      for (let s = amount; ; s++) if (best[s]) return best[s]!;
+    }
+    const paid: (Card | Placed)[] = [...bank];
+    let owed = amount - total;
+    const table = [...p.built, ...p.props.filter((x) => x.card.value > 0)].sort(
+      (a, b) => +!loose(game, p, a) - +!loose(game, p, b) || a.card.value - b.card.value,
+    );
+    for (const x of table) {
+      if (owed <= 0) break;
+      paid.push(x);
+      owed -= x.card.value;
+    }
+    return paid;
+  },
+
+  sayNo(game, p, move, from) {
+    if (move.card.kind === "action" && move.card.action === "dealBreaker") return true;
+    if (move.type === "rent") return rent(game, game.players[game.current], move.color) * 2 ** move.doubles.length >= 5;
+    if (move.card.kind === "action" && (move.card.action === "slyDeal" || move.card.action === "forcedDeal")) {
+      const victim = game.players[game.current] === p ? from : p;
+      return progress(game, victim, move.take!.color) >= 0.5;
+    }
+    return move.card.kind === "action" && move.card.action === "debtCollector";
+  },
+
+  discard(game, p, n) {
+    const keep = (c: Card) =>
+      c.kind === "property" || c.kind === "wild" ? 3 : isAction(c, "justSayNo") || isAction(c, "dealBreaker") ? 2 : c.kind === "money" ? 1 : 0;
+    return [...p.hand].sort((a, b) => keep(a) - keep(b) || a.value - b.value).slice(0, n);
+  },
+};
+
+/** How much one more card of `color` would help `p`: toward a set, or none past a full one. */
+function gain(game: Game, p: Player, color: Color): number {
+  return count(p, color) % size(color) === 0 && count(p, color) ? 0 : progress(game, p, color, 1);
+}
+
+/** Loose properties of others, the most useful to `p` first. */
+function stealable(game: Game, p: Player, others: Player[]) {
+  return others
+    .flatMap((q) => q.props.filter((x) => loose(game, q, x)).map((x) => ({ q, x })))
+    .filter(({ x }) => colorsOf(x.card).some((c) => gain(game, p, c) > 0))
+    .sort((a, b) => Math.max(...colorsOf(b.x.card).map((c) => gain(game, p, c))) - Math.max(...colorsOf(a.x.card).map((c) => gain(game, p, c))) || b.x.card.value - a.x.card.value);
+}

@@ -1,0 +1,3 @@
+rules/*.jpg
+node_modules
+.DS_Store
