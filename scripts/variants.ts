@@ -137,6 +137,28 @@ const deadRent: Step = (game, p) => {
   return card ? { type: "bank", card } : null;
 };
 
+/** Pays with the cheapest loose property that covers `amount` alone, if there is one. */
+const payOneLoose: Policy["pay"] = (game, p, amount) => {
+  const x = p.props.filter((x) => x.card.value >= amount && loose(game, p, x)).sort((a, b) => a.card.value - b.card.value)[0];
+  return x ? [x] : defaultPolicy.pay(game, p, amount);
+};
+
+/** Pays with loose properties, cheapest first, then like the default for what's left. */
+const payLooseFirst: Policy["pay"] = (game, p, amount) => {
+  const paid: Placed[] = [];
+  let owed = amount;
+  for (const x of p.props.filter((x) => x.card.value > 0 && loose(game, p, x)).sort((a, b) => a.card.value - b.card.value)) {
+    if (owed <= 0) break;
+    paid.push(x);
+    owed -= x.card.value;
+  }
+  return owed > 0 ? [...paid, ...defaultPolicy.pay(game, { ...p, props: p.props.filter((x) => !paid.includes(x)) }, owed)] : paid;
+};
+
+/** When the bank can't cover it, pays from loose properties before the bank. */
+const payTableFirst: Policy["pay"] = (game, p, amount) =>
+  p.bank.reduce((s, c) => s + c.value, 0) >= amount ? defaultPolicy.pay(game, p, amount) : payLooseFirst(game, p, amount);
+
 /** Deal Breaker like the default, but on the leader's sets before anyone else's. */
 const breakLeader: Step = (game, p) => {
   const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
@@ -202,6 +224,9 @@ export const VARIANTS: Record<string, () => Policy> = {
   "hold Double the Rent (previous)": () => heuristic(...without(STEPS.bankDoubleRent)),
   "bank Rent cards for colors we have none of": beforeBank(deadRent),
   "Deal Breaker on the leader first": withStep(STEPS.dealBreaker, breakLeader),
+  "pay with one loose property when it covers the charge": () => ({ ...defaultPolicy, pay: payOneLoose }),
+  "pay with loose properties before money": () => ({ ...defaultPolicy, pay: payLooseFirst }),
+  "pay with loose properties before money when the bank can't cover it": () => ({ ...defaultPolicy, pay: payTableFirst }),
   "Forced Deal for the best chance":withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
   "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),

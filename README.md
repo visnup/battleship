@@ -278,8 +278,14 @@ playouts that play each deal to the end:
 - **The any-color Rent.** Aiming it at whoever has to pay in property closed most of its gap. The
   best move by playouts now gains at most 2.5 points where they differ, and that's an overstated
   estimate.
+- **What to pay with.** `scripts/pay.ts` replays each game to every payment the default makes and
+  plays out each way to pay. At 5 players it pays with a loose property instead of money in a
+  quarter of payments. Head to head that loses 10 to 26 points: paying with one loose property
+  whenever it covers the charge wins 36.0% at 2 players and 10.0% at 5. The two-round score
+  probably overvalues money kept in the bank. Paying from loose properties first, only when the
+  bank can't cover the charge, is even.
 
-Untouched so far: when to hold Just Say No, and what to pay with.
+Untouched so far: when to hold Just Say No.
 
 ## What each card is worth
 

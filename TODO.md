@@ -94,8 +94,12 @@
 - [ ] Remember what's been played. No player tracks it, so none knows when the Just Say Nos
       and Deal Breakers are gone and a full set is safe. Try it as a variant, and in playouts'
       guesses at the hidden cards.
-- [ ] What to pay with, by playouts. `decisions.ts` only watches moves, so payment choices
-      have never been searched.
+- [x] What to pay with, by playouts (`pay.ts`, 2026-11-16). At 5 players it paid with a loose
+      property where the default paid money in 904 of 3,251 payments, +0.8 points each by its
+      two-round score. Head to head that loses 10 to 26 points; paying from loose properties
+      before the bank only when the bank can't cover it is even. Likely the two-round `chance`
+      overvalues money kept in the bank (fits the data, not reproduced). The default's rule
+      stands.
 - [ ] When to Just Say No, by playouts at each decision to say it.
 - [x] Tests for `STEPS`: a small board per rule (`game.test.ts`), so a refactor can't
       quietly change the default player.
