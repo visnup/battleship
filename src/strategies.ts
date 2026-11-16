@@ -238,6 +238,10 @@ export function features(game: Game, q: Player): number[] {
     held("dealBreaker"),
     held("justSayNo"),
     held("slyDeal", "forcedDeal"),
+    COLOR_NAMES.filter((c) => progressOf(game, q, c) >= 0.5 && progressOf(game, q, c) < 1).length / 3,
+    q.hand.filter((c) => c.kind === "rent" && colorsOf(c).some((color) => rent(game, q, color) >= 3)).length / 2,
+    q.hand.reduce((s, c) => s + (c.kind === "money" ? c.value : 0), 0) / 10,
+    q.hand.filter((c) => c.kind === "property" || c.kind === "wild").length / 7,
   ];
 }
 
@@ -246,10 +250,10 @@ export function features(game: Game, q: Player): number[] {
  * Refit them when the default player changes.
  */
 const WEIGHTS: Record<number, number[]> = {
-  2: [0.97, 2.26, 0.28, 0.7, 0.17, 0.17, 0.63, -0.72, 1.38, 0.43, 0.1],
-  3: [1.12, 2.69, 0.63, 0.39, 0.3, -0.05, 0.74, -0.87, 1.07, 0.41, 0.04],
-  4: [1.02, 2.6, 0.51, 0.57, 0.43, 0.01, 0.7, -0.98, 0.94, 0.28, 0.01],
-  5: [0.96, 2.46, 0.53, 0.42, 0.47, -0.01, 0.6, -1.04, 0.81, 0.35, 0.04],
+  2: [0.96, 2.26, 0.2, 0.66, 0.23, 0.17, 0, -0.75, 1.49, 0.51, 0.2, 0.26, 0.37, -0.03, 1.11],
+  3: [1.12, 2.71, 0.59, 0.31, 0.34, -0.05, 0.51, -0.9, 1.11, 0.44, 0.08, 0.15, 0.54, -0.14, 0.42],
+  4: [1.03, 2.64, 0.51, 0.46, 0.46, 0.01, 0.82, -1.01, 0.93, 0.26, -0.01, 0.07, 0.79, -0.36, -0.04],
+  5: [0.98, 2.5, 0.5, 0.31, 0.49, 0.01, 1.18, -1.06, 0.74, 0.28, -0.04, 0.15, 0.53, -0.57, -0.62],
 };
 
 /** `seat`'s chance to win from the board: a softmax over players of their weighted `features`. */
