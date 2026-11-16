@@ -256,6 +256,32 @@ laying a property down before charging rent, Debt Collector or Birthday in some 
 default's choice of rent first or ending the turn winning in others. No rule that splits them
 beat the default.
 
+### Against strong opponents
+
+Every table so far plays against default players. *`node scripts/strong.ts`* plays the same
+findings against quick playouts in every other seat instead, 8,000 games each (±1.1 points at 2
+players, ±0.7 at 5):
+
+| player | 2 players (fair 50.0%) | 5 players (fair 20.0%) |
+| --- | --- | --- |
+| default | 43.7% | 11.9% |
+| builder | 32.8% | 8.4% |
+| build houses and hotels, never bank them (previous) | 39.5% | 10.2% |
+| bank all money before laying down properties (previous) | 42.0% | 12.2% |
+| lay down properties before banking (previous) | 36.4% | 9.0% |
+| keep one Just Say No for a Deal Breaker | 43.0% | 11.7% |
+| hold the card that completes a set unless it wins | 29.5% | 10.9% |
+
+**The lessons hold.** Against strong players, building still costs 4.2 points at 2 players and
+1.7 at 5, laying properties down before banking costs 7.3 and 2.9, and holding the card that
+completes a set costs 14 at 2 players. Keeping a Just Say No for a Deal Breaker is still no
+better. Banking all your money first is even at 5 players, as it nearly was before. Gaps shrink
+at 5 players, where every player is losing more of their games to the strong ones.
+
+**Going first is worth more among strong players at big tables.** With quick playouts in every
+seat, the first player wins 55.6% at 2 players, a little less than the default's 57.0%, but 24.6%
+at 5, against 21.7%. The last two seats win 17.7% each.
+
 ### How good could the choices be?
 
 Playouts still beat the default by 10 to 22 points. What's left at 5 players, found with

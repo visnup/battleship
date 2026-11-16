@@ -88,9 +88,10 @@
       try: more of that, and a better rollout player. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
-- [ ] Recheck the findings against strong opponents: every analysis plays against default
-      players. With quick playouts in every seat, does never building still win, does banking
-      $10M first, and how big is going first?
+- [x] Recheck the findings against strong opponents (`strong.ts`, quick playouts in every other
+      seat, 8,000 games): never building, banking before laying down, and playing the card
+      that completes a set all hold. Going first is worth more among strong players at 5
+      (24.6% against 21.7%).
 - [ ] Remember what's been played. No player tracks it, so none knows when the Just Say Nos
       and Deal Breakers are gone and a full set is safe. Try it as a variant, and in playouts'
       guesses at the hidden cards.
