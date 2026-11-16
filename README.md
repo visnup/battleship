@@ -262,6 +262,8 @@ Every table so far plays against default players. *`node scripts/strong.ts`* pla
 findings against quick playouts in every other seat instead, 8,000 games each (±1.1 points at 2
 players, ±0.7 at 5):
 
+![What each finding costs against default players and against strong ones, at 2 and 5 players](charts/strong.svg)
+
 | player | 2 players (fair 50.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- |
 | default | 43.7% | 11.9% |

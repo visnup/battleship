@@ -204,7 +204,42 @@ save("worth", {
   ],
 });
 
-// Played or banked:each action card's value banked on the first play, and played.
+// Against strong opponents: what each finding costs against default players and against quick playouts.
+const strongRows = table("player");
+const cell = (r: Row, k: number) => num(r[`${k} players (fair ${fair(k).toFixed(1)}%)`]);
+const baseline = table("strategy").find((r) => r.strategy === "default")!;
+const strongBase = strongRows.find((r) => r.player === "default")!;
+const findings = strongRows.filter((r) => r.player !== "default");
+const costs = findings.flatMap((r) => {
+  const weak = variantRows.find((v) => v.variant === (r.player === "builder" ? "the builder" : r.player))!;
+  return [2, 5].flatMap((k) => [
+    { player: r.player, players: `${k} players`, field: "default players", cost: cell(weak, k) - cell(baseline, k) },
+    { player: r.player, players: `${k} players`, field: "strong players", cost: cell(r, k) - cell(strongBase, k) },
+  ]);
+});
+save("strong", {
+  width: 760,
+  height: 60 + findings.length * 30,
+  marginLeft: 330,
+  x: { label: "Wins against the default player's (points)", grid: true, tickFormat: signed, insetLeft: 30, insetRight: 30 },
+  y: { label: null, domain: findings.map((r) => r.player) },
+  fx: { label: null },
+  color: { domain: ["default players", "strong players"], range: [art.gray, art["dark blue"]] },
+  marks: [
+    Plot.ruleX([0], dashed),
+    Plot.ruleY(
+      findings.flatMap((r) => [2, 5].map((k) => ({ player: r.player, players: `${k} players`, x: costs.filter((c) => c.player === r.player && c.players === `${k} players`).map((c) => c.cost) }))),
+      { fx: "players", y: "player", x1: (d) => d.x[0], x2: (d) => d.x[1], stroke: art.gray, strokeOpacity: 0.5 },
+    ),
+    Plot.dot(costs, { fx: "players", y: "player", x: "cost", fill: "field", stroke: art.paper, r: 4 }),
+    Plot.text(costs.filter((d) => d.field === "strong players"), { fx: "players", y: "player", x: "cost", text: (d) => plus(d.cost), dy: -10, fontSize: 9, fill: art["dark blue"], stroke: art.paper }),
+    ...["default players", "strong players"].map((field, i) =>
+      Plot.text([field], { frameAnchor: "bottom-left", fx: ["5 players"], ...halo, text: [`● ${field}`], fill: i ? art["dark blue"] : art.gray, dx: 4, dy: -4 - 14 * (1 - i), fontSize: 10, fontWeight: "bold" }),
+    ),
+  ],
+});
+
+// Played or banked: each action card's value banked on the first play, and played.
 const usedRows = table("card", "### Played or banked");
 const used = usedRows.flatMap((r) =>
   [2, 5].flatMap((k) => {
