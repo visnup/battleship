@@ -199,8 +199,10 @@ export class Game {
       if (!move) break;
       this.left -= 1 + (move.type === "rent" ? move.doubles.length : 0);
       this.play(p, move);
-      arrange(this, p);
-      this.checkWin(p);
+      if (move.type !== "bank" && !isAction(move.card, "passGo")) {
+        arrange(this, p);
+        this.checkWin(p);
+      }
     }
     if (p.hand.length > 7) {
       const cards = this.policies[p.seat].discard(this, p, p.hand.length - 7);
@@ -367,14 +369,22 @@ export function colorsOf(c: Card): Color[] {
   return [];
 }
 
-export const count = (p: Player, color: Color) => p.props.filter((x) => x.color === color).length;
+export const count = (p: Player, color: Color) => {
+  let n = 0;
+  for (const x of p.props) if (x.color === color) n++;
+  return n;
+};
 
 /** How many full sets of `color` `p` has. */
 export function fullSets(game: Game, p: Player, color: Color): number {
-  const cards = p.props.filter((x) => x.color === color);
-  const sets = Math.floor(cards.length / size(color));
-  if (game.rules.wildOnlySets || cards.some((x) => x.card.kind === "property" || x.card.colors !== "any")) return sets;
-  return 0;
+  let n = 0;
+  let real = game.rules.wildOnlySets;
+  for (const x of p.props)
+    if (x.color === color) {
+      n++;
+      real ||= x.card.kind === "property" || x.card.colors !== "any";
+    }
+  return real ? Math.floor(n / size(color)) : 0;
 }
 
 export const fullColors = (game: Game, p: Player) => COLOR_NAMES.filter((c) => fullSets(game, p, c) > 0);
@@ -423,8 +433,10 @@ export function arrange(game: Game, p: Player) {
   // The answer depends only on this key, and the same tables come up again and again in playouts
   const n = new Array<number>(COLOR_NAMES.length).fill(0);
   for (const x of p.props) if (x.card.kind !== "wild") n[INDEX[x.color]]++;
-  const built = COLOR_NAMES.map((c) => +p.built.some((b) => b.color === c));
-  const key = `${+game.rules.wildOnlySets}${built.join("")}${n.join("")}${wilds.map((x) => `${x.card.kind === "wild" && x.card.colors}${INDEX[x.color]}`).join("")}`;
+  let key = `${+game.rules.wildOnlySets}`;
+  for (const c of COLOR_NAMES) key += +p.built.some((b) => b.color === c);
+  for (const k of n) key += k;
+  for (const x of wilds) key += `${x.card.kind === "wild" && x.card.colors}${INDEX[x.color]}`;
   let best = arranged.get(key);
   if (!best) {
     if (arranged.size > 100_000) arranged.clear();
@@ -665,13 +677,19 @@ export const defaultPolicy: Policy = {
     const total = bank.reduce((s, c) => s + c.value, 0);
     if (total >= amount) {
       // The fewest cards with the least change, over sums of subsets
-      const best: (Card[] | undefined)[] = [[]];
+      type Picked = { card?: Card; length: number; rest?: Picked };
+      const best: (Picked | undefined)[] = [{ length: 0 }];
       for (const c of bank)
         for (let s = best.length - 1; s >= 0; s--) {
           const prev = best[s];
-          if (prev && (!best[s + c.value] || best[s + c.value]!.length > prev.length + 1)) best[s + c.value] = [...prev, c];
+          if (prev && (!best[s + c.value] || best[s + c.value]!.length > prev.length + 1)) best[s + c.value] = { card: c, length: prev.length + 1, rest: prev };
         }
-      for (let s = amount; ; s++) if (best[s]) return best[s]!;
+      for (let s = amount; ; s++)
+        if (best[s]) {
+          const cards: Card[] = [];
+          for (let x = best[s]; x?.card; x = x.rest) cards.unshift(x.card);
+          return cards;
+        }
     }
     const paid: (Card | Placed)[] = [...bank];
     let owed = amount - total;

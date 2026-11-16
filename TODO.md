@@ -29,6 +29,10 @@
             at 5 players, against 1.26 on 985 for 80 deals each; 0.94 on 545 against 0.84 on
             683 at 2. z = 1.5 is 1.9× cheaper at 5 players at the same regret, but worse at 2.
             Successive halving only matched 80 deals each at equal cost.
+      - [x] Count without `filter`, pay without copying arrays, build `arrange`'s key without
+            joins, and skip `arrange` after banking or Pass Go: 1.2× with every result
+            unchanged. Garbage collection went from 16% of the time to 2%. Scoring `arrange`'s
+            search incrementally was slower and broke ties differently.
       - [ ] Cheaper rollouts: `arrange`'s key and search, then `fullSets` and `pay`, lead the
             profile. Memoize `fullSets` and `progress` per player, keyed on a counter bumped
             whenever their table changes, or make `props` copy-on-write (replaced, never
