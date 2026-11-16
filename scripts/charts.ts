@@ -94,7 +94,7 @@ save("strategies", {
   width: 640,
   height: 360,
   marginRight: 80,
-  x: { label: "Players", ticks: counts, tickFormat: "d" },
+  x: { label: "Players", type: "point", domain: counts, padding: 0.4 },
   y: { label: "Wins, in fair shares", grid: true },
   marks: [
     Plot.ruleY([1], dashed),
