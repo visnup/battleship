@@ -46,6 +46,13 @@
       - Comparing playouts and the default on the same deals doesn't help: it cut variance
         2.3× for banker at 2 players, but made it worse for builder, which, like playouts,
         plays very differently from the default.
+- [ ] Learn a player from playouts. Tried 2026-11-16, not committed: a linear scorer over
+      each move's kind and how it changes `features` for us and for opponents, fitted to
+      two-round playout values (40 deals a move) at every decision of 4,000 default games.
+      It lost to the default, 48.1% at 2 players and 17.4% at 5 (10,000 games). With a
+      feature for "the default's move", so it only learns corrections, 47.5% and 18.4%
+      (4,000 games). Four times the data didn't help, so the model is the limit; next would
+      be a nonlinear one (trees or a small network) or per-move noise far below 40 deals'.
 - [ ] Close more of the gap to playouts, now 12 to 23 points. `decisions.ts` and the rule
       screens still play each deal to the end; cut them off like playouts, which would make
       them faster and their picks better, then look for patterns again. Found, not adopted
