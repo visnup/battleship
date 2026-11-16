@@ -6,9 +6,12 @@ tags:
   - card-games
   - reinforcement-learning
   - imperfect-information
+size_categories:
+  - 1M<n<10M
 configs:
-  - config_name: default
+  - config_name: all
     data_files: data/*.parquet
+    default: true
   - config_name: 2p
     data_files: data/2p.parquet
   - config_name: 3p
@@ -28,6 +31,17 @@ the player to move went on to win.
 
 The games, rules and estimates come from [a simulator](https://github.com/visnup/monopoly-deal)
 of the 2014 US edition (B0965). `scripts/dataset.ts` there regenerates this dataset, and `game_seed` replays any game.
+
+The simulator, its analysis and this card were written with Claude Opus 5.5, working in Claude
+Code throughout.
+
+For example, how often the default player's pick is the best-valued move, with DuckDB:
+
+```sql
+select players, avg((moves[pick + 1].value = list_max(list_transform(moves, lambda m: m.value)))::int) agrees
+from 'hf://datasets/visnup/monopoly-deal/data/*.parquet'
+group by players order by players;
+```
 
 ## How the values were made
 
@@ -78,7 +92,7 @@ default player's style of play from outside it.
 | `moves[].take`, `give` | {card, color} | for Sly Deal and Forced Deal |
 | `moves[].value` | float | estimated chance of winning after this move |
 | `moves[].se` | float | standard error of `value` |
-| `default` | int | index into `moves` of the default player's pick |
+| `pick` | int | index into `moves` of the default player's pick |
 | `won` | bool | whether the mover won; null if the game stalled (no winner after 200 turns) |
 
 Properties are listed by color, so the duplicate copies of a card are interchangeable. Identical
