@@ -155,7 +155,7 @@ save("cards", {
   y: { label: null, domain: cardRows.map((r) => r.card) },
   color: { ...diverging, type: "diverging-sqrt" },
   marks: [
-    Plot.cell(cards, { x: "players", y: "card", fill: "value", inset: 1 }),
+    Plot.cell(cards, { x: "players", y: "card", fill: "value", inset: 0.5 }),
     Plot.text(cards, { x: "players", y: "card", text: (d) => plus(d.value), fill: (d) => (Math.abs(d.value) > 15 ? art.paper : art.ink), fontSize: 10 }),
   ],
 });
