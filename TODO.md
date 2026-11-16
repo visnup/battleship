@@ -76,8 +76,8 @@
 - [x] Which colors to chase (`colors.ts`): the 2-card sets, especially dark blue.
 - [x] How long games last, and how often the draw pile runs out.
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
-- [ ] How much is luck: how often the stronger player (playouts) wins against the default, by
-      player count. Does skill matter more at 2 players or at 5?
+- [x] How much is luck: playouts win 1.24 fair shares against the default at 2 players and
+      2.16 at 5, so skill counts for more at big tables.
 - [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 72% at 2
       players and 48% at 5. Comebacks last at 2 players and run out at 5.
 - [ ] Each card's value split by use: played, banked or held. Is a Rent card worth more as

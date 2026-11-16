@@ -126,6 +126,10 @@ win from full sets, progress toward more, money and cards in hand (`scripts/chan
 faster than playing to the end, and better: playing to the end, it won 50.3%, 39.5%, 36.4% and
 33.7%. It wins 12 to 23 points more than the default, so there is still a lot to find.
 
+**Skill counts for more at big tables.** Against the default, playouts win 1.24 fair shares at
+2 players and 2.16 at 5. At 2 players the weaker player still wins nearly 4 games in 10; at 5,
+the four default players together win only 57%.
+
 ## Playing well
 
 *From `node scripts/variants.ts`.* `scripts/decisions.ts` plays out every legal move at each of
