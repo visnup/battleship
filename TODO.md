@@ -96,8 +96,8 @@
 - [ ] What to pay with, by playouts. `decisions.ts` only watches moves, so payment choices
       have never been searched.
 - [ ] When to Just Say No, by playouts at each decision to say it.
-- [ ] Tests for `STEPS`: a small board per rule, so a refactor can't quietly change the
-      default player. Only the sheet's rules are tested now.
+- [x] Tests for `STEPS`: a small board per rule (`game.test.ts`), so a refactor can't
+      quietly change the default player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
 - [ ] Idea: a page to play against quick playouts in the browser.
 

@@ -157,3 +157,90 @@ test("breakerTakesBuildings off: Deal Breaker leaves the house in the victim's b
   assert.deepEqual(p.built, []);
   assert.equal(q.bank[0].kind, "action");
 });
+
+// The default player's rules, one board each.
+const twoColor = (a: Color, b: Color): Card => ({ kind: "rent", colors: [a, b], value: 1 });
+const anyColor: Card = { kind: "rent", colors: "any", value: 3 };
+const choose = (game: Game, left = 3) => defaultPolicy.move(game, game.players[0], left);
+
+test("default: banks Forced Deal in the first round at 3+ players, not at 2", () => {
+  for (const players of [2, 3]) {
+    const game = setup(players);
+    const forced = action("forcedDeal", 3);
+    game.players[0].hand.push(forced, money(1));
+    assert.equal(choose(game)?.card, players === 2 ? game.players[0].hand[1] : forced);
+  }
+});
+
+test("default: Pass Go with a play left after it, otherwise money first", () => {
+  const game = setup();
+  const [p] = game.players;
+  p.hand.push(money(1), action("passGo"));
+  assert.equal(choose(game, 2)?.card, p.hand[1]);
+  assert.equal(choose(game, 1)?.card, p.hand[0]);
+});
+
+test("default: completes a set before anything else", () => {
+  const game = setup();
+  const [p, q] = game.players;
+  place(p, property("brown"));
+  place(q, property("red"));
+  p.hand.push(action("slyDeal", 3), property("brown"));
+  assert.deepEqual(choose(game), { type: "place", card: p.hand[1], color: "brown" });
+});
+
+test("default: Deal Breaker takes the highest-rent set of a color it doesn't have", () => {
+  const game = setup();
+  const [p, q] = game.players;
+  place(q, property("brown"), property("brown"), property("darkBlue", 4), property("darkBlue", 4));
+  p.hand.push(action("dealBreaker", 5));
+  assert.equal(choose(game)?.type === "action" && choose(game)?.color, "darkBlue");
+  place(p, property("darkBlue", 4), property("darkBlue", 4));
+  assert.equal(choose(game)?.type === "action" && choose(game)?.color, "brown");
+});
+
+test("default: charges a $1M rent at 2 players, but not $1M in all at 3", () => {
+  for (const players of [2, 3]) {
+    const game = setup(players);
+    const [p, q] = game.players;
+    place(p, property("brown"));
+    q.bank.push(money(5));
+    p.hand.push(twoColor("brown", "lightBlue"));
+    assert.equal(choose(game)?.type, players === 2 ? "rent" : undefined);
+  }
+});
+
+test("default: aims the any-color Rent at whoever has to pay in property", () => {
+  const game = setup(3);
+  const [p, q, r] = game.players;
+  place(p, property("darkBlue", 4));
+  q.bank.push(money(10));
+  place(r, property("green", 4));
+  p.hand.push(anyColor);
+  const move = choose(game);
+  assert.equal(move?.type === "rent" && move.target, r.seat);
+});
+
+test("default: banks Double the Rent ahead of money when there's no rent to double", () => {
+  const game = setup();
+  const [p] = game.players;
+  p.hand.push(money(5), action("doubleRent"));
+  assert.deepEqual(choose(game), { type: "bank", card: p.hand[1] });
+});
+
+test("default: never builds; banks houses and hotels", () => {
+  const game = setup();
+  const [p] = game.players;
+  place(p, property("brown"), property("brown"));
+  p.hand.push(action("house", 3));
+  assert.deepEqual(choose(game), { type: "bank", card: p.hand[0] });
+});
+
+test("default: banks money until $10M, then lays properties down first", () => {
+  const game = setup();
+  const [p] = game.players;
+  p.hand.push(property("red", 3), money(5));
+  assert.equal(choose(game)?.type, "bank");
+  p.bank.push(money(10));
+  assert.equal(choose(game)?.type, "place");
+});

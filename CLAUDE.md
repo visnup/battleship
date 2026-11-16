@@ -47,7 +47,8 @@ from photos of one card of each property color and each wild (`rules/properties.
   with `if (import.meta.main)`.
 - `scripts/charts.ts` draws `charts/*.svg` from the tables in `README.md`, with Observable Plot
   and jsdom, the repo's only (dev) dependencies. Rerun it after updating a table.
-- `node --test` runs `cards.test.ts`, the contents list, and `game.test.ts`, the sheet's rules.
+- `node --test` runs `cards.test.ts`, the contents list, and `game.test.ts`, the sheet's rules
+  and the default player's.
 - `TODO.md` is the plan: checking the model first, then the analysis.
 - `README.md` is what the simulator has shown so far.
 
