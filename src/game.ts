@@ -481,8 +481,8 @@ const others = (game: Game, p: Player) => game.players.filter((q) => q !== p);
 const placeable = (p: Player) => p.hand.filter((c) => c.kind === "property" || (c.kind === "wild" && (c.colors !== "any" || p.props.length)));
 const bestColor = (game: Game, p: Player, c: Card) => colorsOf(c).reduce((a, b) => (gain(game, p, b) > gain(game, p, a) ? b : a));
 
-/** Who pays a charge aimed at one player: Debt Collector, or the any-color Rent. */
-export type Target = (game: Game, p: Player) => Player;
+/** Who pays a charge of `amount` aimed at one player: Debt Collector, or the any-color Rent. */
+export type Target = (game: Game, p: Player, amount: number) => Player;
 export const richest: Target = (game, p) => others(game, p).reduce((a, b) => (assets(b) > assets(a) ? b : a));
 /** The opponent closest to winning: the most full sets, then the most progress toward more. */
 export const leader: Target = (game, p) => {
@@ -490,6 +490,15 @@ export const leader: Target = (game, p) => {
   return others(game, p).reduce((a, b) => (lead(b) > lead(a) ? b : a));
 };
 const banked = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0);
+/**
+ * Someone whose bank can't cover the charge, so they pay in property, which comes to us. Then
+ * whoever pays the most, then the leader.
+ */
+export const inProperty: Target = (game, p, amount) => {
+  const top = leader(game, p, amount);
+  const score = (q: Player) => +(banked(q) < amount && assets(q) > banked(q)) * 100 + Math.min(assets(q), amount) + +(q === top) / 2;
+  return others(game, p).reduce((a, b) => (score(b) > score(a) ? b : a));
+};
 
 /** Any property, as the color it helps most. */
 const layDown: Step = (game, p) => {
@@ -509,9 +518,9 @@ export const charge =
       const wild = c.colors === "any";
       for (const color of colorsOf(c)) {
         const r = rent(game, p, color);
-        const q = wild ? target(game, p) : undefined;
-        const payers = q ? [q] : others(game, p);
         const d = doubles.slice(0, Math.min(left - 1, r >= 3 ? game.rules.doubles : 0));
+        const q = wild ? target(game, p, r * 2 ** d.length) : undefined;
+        const payers = q ? [q] : others(game, p);
         const value = payers.reduce((s, q) => s + Math.min(assets(q), r * 2 ** d.length), 0);
         if (value > most && r >= (wild ? 3 : 1)) [most, move] = [value, { type: "rent", card: c, color, target: q?.seat, doubles: d }];
       }
@@ -524,7 +533,7 @@ export const collect =
   (target: Target): Step =>
   (game, p) => {
     const debt = p.hand.find((c) => isAction(c, "debtCollector"));
-    const q = target(game, p);
+    const q = target(game, p, DEBT);
     return debt && assets(q) > 0 ? { type: "action", card: debt, target: q.seat } : null;
   };
 
@@ -557,10 +566,13 @@ export const STEPS = {
     const take = sly && stealable(game, p, others(game, p))[0];
     return take ? { type: "action", card: sly, target: take.q.seat, take: take.x } : null;
   },
-  /** The best rent, the any-color one on the leader: +1.8 points at 5 players over the richest. */
-  rent: charge(leader),
-  /** Debt Collector on the leader: +1.1 points at 5 players over the richest. */
-  debtCollector: collect(leader),
+  /**
+   * The best rent, the any-color one on someone who has to pay in property: +2.8 points at 5
+   * players, with Debt Collector, over aiming both at the leader (`variants.ts`).
+   */
+  rent: charge(inProperty),
+  /** Debt Collector on someone who has to pay in property. */
+  debtCollector: collect(inProperty),
   birthday(game, p) {
     const birthday = p.hand.find((c) => isAction(c, "birthday"));
     return birthday && others(game, p).some((q) => assets(q) > 0) ? { type: "action", card: birthday } : null;

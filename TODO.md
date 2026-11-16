@@ -9,7 +9,7 @@
 - [x] An engine: deal, turns, payments, Just Say No chains, and a heuristic player (`game.ts`).
 - [x] Whole-game strategies head to head (`strategies.ts`).
 - [x] A better `defaultPolicy`, from playouts (`decisions.ts`, `variants.ts`, `order.ts`):
-      charge, then bank, then lay properties down; never build; aim at the leader. Against it,
+      charge, then bank, then lay properties down; never build; aim one-player charges at whoever has to pay in property. Against it,
       the first one wins 10 points less at 2 players and a third fewer games at 5.
 - [ ] Speed up playouts. A 5-player game with one playouts player takes about 10s: it makes
       ~17 decisions of ~14 legal moves, each played out on 80 deals, so ~19,000 rollouts a game
@@ -25,12 +25,19 @@
         table changes. Or make `props` copy-on-write (replaced, never edited; `arrange` and
         moved wilds would make new `Placed`s) and key a `WeakMap` on the array. Plays stay
         mutable: copying state on every play would cost more in garbage than it saves.
-- [ ] Close more of the gap to playouts, still 8 to 18 points at 3–5 players. `decisions.ts`
-      points at the any-color Rent's color and target, and Forced Deal's target. Also
-      untouched: when to hold Just Say No, and what to pay with. Placement is done: which card
-      to lay down and when showed no pattern that beat the default (`variants.ts`).
+- [ ] Close more of the gap to playouts, still 8 to 18 points at 3–5 players. Done: placement
+      (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
+      whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
+      players and mostly in what to take, but 15 rules for it didn't beat the default. Also
+      untouched: when to hold Just Say No, and what to pay with.
+- [ ] Test the table advice the default doesn't follow yet (web search, 2026-11-15):
+      - Don't complete a set right away, so a Deal Breaker can't take it: hold the card that
+        completes a set unless it wins the game.
+      - Keep a Just Say No for a Deal Breaker instead of spending it on rent or Debt Collector.
 - [ ] Playouts tie the default at 2 players (±4). Find out whether more deals per move or a
-      better rollout player would help.
+      better rollout player would help. A counterfactual-regret agent on a cut-down 2-player
+      game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
+      reportedly wins about 75% against a heuristic player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
 
 ## Analysis

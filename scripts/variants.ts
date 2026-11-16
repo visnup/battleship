@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { charge, colorsOf, collect, count, fullColors, fullSets, type Game, heuristic, isAction, type Player, type Policy, progress, rent, richest, STEPS, type Step, type Target } from "../src/game.ts";
+import { assets, charge, colorsOf, collect, count, fullColors, fullSets, type Game, heuristic, isAction, leader, type Player, type Policy, progress, rent, richest, STEPS, type Step, type Target } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { build, headToHead, STRATEGIES } from "../src/strategies.ts";
 
@@ -70,6 +70,14 @@ const placeForRent: Step = (game, p, left) => {
   return move && charged.has((move as { color: Color }).color) ? move : null;
 };
 
+const mostProperty: Target = (game, p, amount) => {
+  const top = leader(game, p, amount);
+  const score = (q: Player) => Math.min(assets(q), amount) - Math.min(sum(q.bank), amount) + +(q === top) / 2;
+  return game.players.filter((q) => q !== p).reduce((a, b) => (score(b) > score(a) ? b : a));
+};
+const leastBanked: Target = (game, p) => game.players.filter((q) => q !== p).reduce((a, b) => (sum(b.bank) < sum(a.bank) ? b : a));
+const both = (target: Target) => () => heuristic(...swap(STEPS.rent, charge(target)).map((s) => (s === STEPS.debtCollector ? collect(target) : s)));
+
 const steps = Object.values(STEPS) as Step[];
 const without = (...drop: Step[]) => steps.filter((s) => !drop.includes(s));
 const swap = (from: Step, to: Step) => steps.map((s) => (s === from ? to : s));
@@ -102,6 +110,9 @@ const VARIANTS: Record<string, () => Policy> = {
   "lay down properties before Debt Collector and Birthday": () =>
     heuristic(...without(STEPS.debtCollector, STEPS.birthday).toSpliced(-1, 0, STEPS.debtCollector, STEPS.birthday)),
   "lay down the smallest sets first": placeVariant((game, p, card, color) => -size(color) + toward(game, p, color) / 10),
+  "any-color Rent and Debt Collector on the leader (previous)": both(leader),
+  "any-color Rent and Debt Collector on the most paid in property": both(mostProperty),
+  "any-color Rent on the least banked": () => heuristic(...swap(STEPS.rent, charge(leastBanked))),
   ...Object.fromEntries(
     [5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))]),
   ),
