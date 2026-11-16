@@ -420,9 +420,24 @@ export const assets = (p: Player) =>
 export function arrange(game: Game, p: Player) {
   const wilds = p.props.filter((x) => x.card.kind === "wild");
   if (!wilds.length) return;
+  // The answer depends only on this key, and the same tables come up again and again in playouts
+  const n = new Array<number>(COLOR_NAMES.length).fill(0);
+  for (const x of p.props) if (x.card.kind !== "wild") n[INDEX[x.color]]++;
+  const built = COLOR_NAMES.map((c) => +p.built.some((b) => b.color === c));
+  const key = `${+game.rules.wildOnlySets}${built.join("")}${n.join("")}${wilds.map((x) => `${x.card.kind === "wild" && x.card.colors}${INDEX[x.color]}`).join("")}`;
+  let best = arranged.get(key);
+  if (!best) {
+    if (arranged.size > 100_000) arranged.clear();
+    arranged.set(key, (best = arrangement(game, p, wilds)));
+  }
+  wilds.forEach((x, i) => (x.color = COLOR_NAMES[best[i]]));
+}
+const arranged = new Map<string, number[]>();
+
+function arrangement(game: Game, p: Player, wilds: Placed[]): number[] {
   const options = wilds.map((x) => colorsOf(x.card).map((c) => INDEX[c]));
   const combos = options.reduce((n, o) => n * o.length, 1);
-  if (combos > 20000) return;
+  if (combos > 20000) return wilds.map((x) => INDEX[x.color]);
   // Cards of each color, and of those, how many aren't multicolored wilds
   const n = new Array<number>(COLOR_NAMES.length).fill(0);
   const real = new Array<number>(COLOR_NAMES.length).fill(0);
@@ -469,7 +484,7 @@ export function arrange(game: Game, p: Player) {
     }
   };
   go(0);
-  wilds.forEach((x, i) => (x.color = COLOR_NAMES[best[i]]));
+  return best;
 }
 
 export const isAction = (c: Card, action: string) => c.kind === "action" && c.action === action;
@@ -487,8 +502,13 @@ export const richest: Target = (game, p) => others(game, p).reduce((a, b) => (as
 /** The opponent closest to winning: the most full sets, then the most progress toward more. */
 export const leader: Target = (game, p) => {
   const lead = (q: Player) => fullColors(game, q).length * 10 + COLOR_NAMES.reduce((s, c) => s + progress(game, q, c), 0);
-  return others(game, p).reduce((a, b) => (lead(b) > lead(a) ? b : a));
+  return most(others(game, p), lead);
 };
+/** The first of `xs` that scores highest. */
+function most<T>(xs: T[], score: (x: T) => number): T {
+  const s = xs.map(score);
+  return xs[s.indexOf(Math.max(...s))];
+}
 const banked = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0);
 /**
  * Someone whose bank can't cover the charge, so they pay in property, which comes to us. Then
@@ -497,7 +517,7 @@ const banked = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0);
 export const inProperty: Target = (game, p, amount) => {
   const top = leader(game, p, amount);
   const score = (q: Player) => +(banked(q) < amount && assets(q) > banked(q)) * 100 + Math.min(assets(q), amount) + +(q === top) / 2;
-  return others(game, p).reduce((a, b) => (score(b) > score(a) ? b : a));
+  return most(others(game, p), score);
 };
 
 /** Any property, as the color it helps most. */
@@ -513,16 +533,20 @@ export const charge =
     const doubles = p.hand.filter((c) => isAction(c, "doubleRent"));
     let move: Move | null = null;
     let most = 0;
+    const targets = new Map<number, Player>();
     for (const c of p.hand) {
       if (c.kind !== "rent") continue;
       const wild = c.colors === "any";
       for (const color of colorsOf(c)) {
         const r = rent(game, p, color);
+        if (r < (wild ? 3 : 1)) continue;
         const d = doubles.slice(0, Math.min(left - 1, r >= 3 ? game.rules.doubles : 0));
-        const q = wild ? target(game, p, r * 2 ** d.length) : undefined;
+        const amount = r * 2 ** d.length;
+        if (wild && !targets.has(amount)) targets.set(amount, target(game, p, amount));
+        const q = wild ? targets.get(amount) : undefined;
         const payers = q ? [q] : others(game, p);
-        const value = payers.reduce((s, q) => s + Math.min(assets(q), r * 2 ** d.length), 0);
-        if (value > most && r >= (wild ? 3 : 1)) [most, move] = [value, { type: "rent", card: c, color, target: q?.seat, doubles: d }];
+        const value = payers.reduce((s, q) => s + Math.min(assets(q), amount), 0);
+        if (value > most) [most, move] = [value, { type: "rent", card: c, color, target: q?.seat, doubles: d }];
       }
     }
     return move && most >= 2 ? move : null;
