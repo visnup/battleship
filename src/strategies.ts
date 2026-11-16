@@ -77,10 +77,10 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
 };
 
 /**
- * Plays `n` games of one player made by `make` against `defaultPolicy` everywhere else, taking
- * each seat in turn, and counts its wins.
+ * Plays `n` games of one player made by `make` against `defaultPolicy`, or players made by `field`,
+ * everywhere else, taking each seat in turn, and counts its wins.
  */
-export function headToHead(make: (seed: number) => Policy, players: number, seed: number, n: number) {
+export function headToHead(make: (seed: number) => Policy, players: number, seed: number, n: number, field?: (seed: number) => Policy) {
   const seeds = mulberry32(seed);
   let wins = 0;
   let turns = 0;
@@ -88,7 +88,7 @@ export function headToHead(make: (seed: number) => Policy, players: number, seed
   for (let i = 0; i < n; i++) {
     const s = Math.floor(seeds() * 2 ** 32);
     const seat = i % players;
-    const policies = Array.from({ length: players }, (_, j) => (j === seat ? make(s) : defaultPolicy));
+    const policies = Array.from({ length: players }, (_, j) => (j === seat ? make(s) : field ? field(s + j) : defaultPolicy));
     const result = new Game({ players, rng: mulberry32(s), policies, first: 0 }).run();
     wins += +(result.winner === seat);
     turns += result.turns;

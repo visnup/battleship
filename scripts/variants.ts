@@ -152,7 +152,7 @@ const without = (...drop: Step[]) => steps.filter((s) => !drop.includes(s));
 const swap = (from: Step, to: Step) => steps.map((s) => (s === from ? to : s));
 const { passGo, complete, dealBreaker, place, placeWhenBanked, bankBuildings, passGoLast } = STEPS;
 
-const VARIANTS: Record<string, () => Policy> = {
+export const VARIANTS: Record<string, () => Policy> = {
   "the builder": () => STRATEGIES.builder(0),
   "lay down properties before charging (previous)": () => heuristic(...without(place).toSpliced(4, 0, place)),
   "lay down properties before banking (previous)": () => heuristic(...without(place).toSpliced(7, 0, place)),
