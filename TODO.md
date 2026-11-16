@@ -25,7 +25,7 @@
         table changes. Or make `props` copy-on-write (replaced, never edited; `arrange` and
         moved wilds would make new `Placed`s) and key a `WeakMap` on the array. Plays stay
         mutable: copying state on every play would cost more in garbage than it saves.
-- [ ] Close more of the gap to playouts, still 8 to 18 points at 3–5 players. Done: placement
+- [ ] Close more of the gap to playouts, still 7 to 16 points at 3–5 players. Done: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also

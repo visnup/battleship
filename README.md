@@ -103,7 +103,7 @@ slow, so they play 512 games per cell, which is good to about ±4 points.
 | banker | 49.9% | 33.3% | 25.4% | 20.4% |
 | pacifist | 11.9% | 2.0% (2 stalled) | 0.3% (2 stalled) | 0.0% (9 stalled) |
 | random | 7.4% | 2.1% | 0.9% | 0.4% |
-| playouts | 46.1% | 41.0% | 34.6% | 38.1% |
+| playouts | 46.1% | 40.8% | 39.3% | 35.5% |
 
 ![Each strategy's wins in fair shares, by player count](charts/strategies.svg)
 
@@ -121,7 +121,7 @@ game of taking.
 
 **Playouts** plays out every legal move on 80 deals before each play and makes the move that wins
 most. For each deal it reshuffles the cards it can't see, the other hands and the draw pile, so it
-doesn't peek. At 3 to 5 players it wins 8 to 18 points more than the default, so there is still a
+doesn't peek. At 3 to 5 players it wins 7 to 16 points more than the default, so there is still a
 lot to find. At 2 players it's no better, within its ±4 points.
 
 ## Playing well
@@ -208,8 +208,8 @@ beat the default.
 
 ### How good could the choices be?
 
-Playouts still beat the default by 8 to 18 points at 3 to 5 players. What's left, from
-`decisions.ts` at 5 players:
+Playouts still beat the default by 7 to 16 points at 3 to 5 players. What's left at 5
+players:
 
 - **Forced Deal.** At 5 players, the best Forced Deal by playouts, rechecked on fresh deals, beats
   the default's by 4.6 points each time they differ, or 1.6 points a game. Most of that is taking
