@@ -120,16 +120,31 @@ game of taking.
 
 **Random** plays a legal move at random. It's the floor.
 
-**Playouts** plays out every legal move on up to 80 deals before each play and makes the move that
-wins most. For each deal it reshuffles the cards it can't see, the other hands and the draw pile,
-so it doesn't peek. Each deal stops after two rounds, and the board decides: a fitted chance to
-win from full sets, progress toward more, money and cards in hand (`scripts/chance.ts`). That's
-faster than playing to the end, and better: playing to the end, it won 50.3%, 39.5%, 36.4% and
-33.7%. It wins 12 to 23 points more than the default, so there is still a lot to find.
+**Playouts** has no rules of its own. It tries each option by imagining how it turns out, the way
+a chess player thinks a few moves ahead, except by trial instead of reasoning. Before every play
+it lists everything it could do: each card it could bank, lay down or play, at each target, or
+ending its turn. For each option it plays the game forward many times on a copy of the table,
+with the default player making every choice from there, and it picks the option that came out
+ahead most often.
 
-**Quick playouts** plays out each move on 16 deals, one round each. It's about 5 times faster
-than playouts (the row took 4 minutes on 20 cores, against 21) and still wins 5 to 18 points more
-than the default: a strong opponent that's cheap enough to play against.
+It can't see the other hands or the draw pile, so each time it imagines them by shuffling the
+cards it can't see and dealing them out again. It doesn't peek: it only knows what a player at
+the table would. Different shuffles turn out differently, so it tries each option on 8 shuffles
+at a time, drops any option that's clearly behind, and keeps going with the rest, up to 80
+shuffles. This is a Monte Carlo search; the name comes from the casino, since it learns by
+rolling the dice.
+
+It doesn't play each imagined game to the end. It stops two rounds ahead, when everyone has had
+two more turns, and judges the table instead: a formula fitted to thousands of games that turns
+full sets, progress toward more, money and the cards in hand into each player's chance to win
+(`scripts/chance.ts`). That's faster, and it plays better. Playing every imagined game to the end,
+it won 50.3%, 39.5%, 36.4% and 33.7%, probably because the further ahead it looks, the more each
+result depends on the draw and on the default player's weaker choices than on the option tried. It wins 12 to 23 points more than the default, so there is still a lot
+to find.
+
+**Quick playouts** is the same with less imagining: 16 shuffles an option, one round ahead.
+It's about 5 times faster (the row took 4 minutes on 20 cores, against 21) and still wins 5 to 18
+points more than the default: a strong opponent that's cheap enough to play against.
 
 **Skill counts for more at big tables.** Against the default, playouts win 1.24 fair shares at
 2 players and 2.16 at 5. At 2 players the weaker player still wins nearly 4 games in 10; at 5,
