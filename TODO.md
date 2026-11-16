@@ -56,12 +56,11 @@
             `uv`) on the same move features and playout values, and play it head to head. If
             it wins, distill readable rules from it for `STEPS`. Less noisy targets (more deals
             a move) are the other lever.
-- [ ] Close more of the gap to playouts, now 12 to 23 points. `decisions.ts` and the rule
-      screens still play each deal to the end; cut them off like playouts, which would make
-      them faster and their picks better, then look for patterns again. Found, not adopted
-      yet: banking Forced Deal in the first round, +0.35 to +0.4 points at 3–5 players and
-      −0.3 at 2 (400,000 games). Adopt it, at 3+ players, with the next change that reruns
-      the tables. Done: placement
+- [ ] Close more of the gap to playouts, now 12 to 23 points. In progress (2026-11-16), one
+      step at a time on top of the last: adopt banking Forced Deal in the first round at 3+
+      players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance`, run `decisions.ts`
+      with its recheck also cut off at two rounds, test what it finds, then refit and rerun
+      every table once. Done before: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also

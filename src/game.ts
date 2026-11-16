@@ -579,6 +579,14 @@ export const collect =
 
 /** `defaultPolicy`'s rules, in its order. */
 export const STEPS = {
+  /**
+   * Forced Deal as money in the first round at 3+ players, when there's little worth swapping:
+   * +0.35 to +0.4 points at 3–5 players, −0.3 at 2 (`variants.ts`, 400,000 games).
+   */
+  bankForcedDeal(game, p) {
+    const c = game.players.length >= 3 && game.turns <= game.players.length && p.hand.find((c) => isAction(c, "forcedDeal"));
+    return c ? { type: "bank", card: c } : null;
+  },
   /** Pass Go while there's a play left after it. */
   passGo(game, p, left) {
     const c = p.hand.find((c) => isAction(c, "passGo"));

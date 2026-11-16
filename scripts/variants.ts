@@ -178,8 +178,7 @@ const VARIANTS: Record<string, () => Policy> = {
   "bank Forced Deal": () => heuristic(bankIt("forcedDeal"), ...without(STEPS.forcedDeal)),
   "bank Sly Deal": () => heuristic(bankIt("slyDeal"), ...without(STEPS.slyDeal)),
   "bank Forced Deal and Sly Deal": () => heuristic(bankIt("forcedDeal", "slyDeal"), ...without(STEPS.forcedDeal, STEPS.slyDeal)),
-  "bank Forced Deal in the first round": () =>
-    heuristic((game, p, left) => (game.turns <= game.players.length ? bankIt("forcedDeal")(game, p, left) : null), ...steps),
+  "play Forced Deal in the first round (previous)": () => heuristic(...without(STEPS.bankForcedDeal)),
   "bank Double the Rent":() => heuristic(bankIt("doubleRent"), ...steps),
   "Forced Deal for the best chance":withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
