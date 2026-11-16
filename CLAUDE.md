@@ -11,16 +11,39 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `cards.ts`: the 106 playing cards.
 - `game.ts`: the engine. `Game` deals and plays one game; `run()` plays it out. A `Policy` makes
   every choice (what to play, how to pay, when to Just Say No, what to discard), and
-  `defaultPolicy` is a hand-written player: complete a set, Deal Breaker, Sly Deal, lay down
-  properties, build, charge rent, then bank. `arrange` moves wilds on your turn to make the most
-  full sets. `Rules` holds the readings the sheet leaves open.
+  `defaultPolicy` is a hand-written player made of named rules, `STEPS`, tried in order, each
+  with a comment on why it's there. `heuristic(...)` makes a player from any list of steps.
+  `arrange` moves wilds on your turn to make the most full sets. `Rules` holds the readings the
+  sheet leaves open. `clone()` and `run(move)` let a player play a move out on a copy.
+- `strategies.ts`: whole-game strategies in `STRATEGIES`, like magical-athlete's `RACERS`: each
+  has a comment saying how it plays and a short definition, mostly `STEPS` in another order.
+  `builder` plays roughly like the first `defaultPolicy`. `moves` lists every legal move, for `random` and
+  `playouts`, which plays each one out on copies with the cards it can't see reshuffled.
+  `headToHead` seats one player against `defaultPolicy` everywhere else.
+- Improving `defaultPolicy`, like magical-athlete's "Finding better choices":
+  1. `scripts/decisions.ts` plays out every legal move at each of the default player's decisions
+     and groups where playouts clearly disagree (rechecked on fresh deals, since the best of 30
+     noisy estimates overstates its gain).
+  2. Write the pattern as a variant in `scripts/variants.ts`, or reorder steps with
+     `scripts/order.ts`, which moves one step at a time and keeps what wins at 2 and 5 players.
+  3. Adopt it in `STEPS` if it beats the default beyond the noise (±0.3 points at 100,000
+     games); the old behavior stays in `variants.ts` marked "(previous)".
+  4. Rerun the README's tables, since every one is played by or against the default.
+- `scripts/strategies.ts`: one player of each strategy against the default in every other seat,
+  for the "Strategies" section of `README.md`.
+- `scripts/colors.ts`: the colors of winners' and losers' full sets at the end of a game.
+- `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
+  A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;
   `--log` prints every play and `--csv` a row per game, both on one core with `--seed`.
+- `sensitivity.ts`: each game played as read and with one `Rules` flag flipped, from the same
+  seed, for the "Rule readings" section of `README.md`.
 - `parallel.ts` and `worker.ts` are magical-athlete's: they split a script's games into seeded
   chunks across cores, so results don't depend on the core count. Scripts guard their main code
   with `if (import.meta.main)`.
 - `node --test` runs `cards.test.ts`, the contents list, and `game.test.ts`, the sheet's rules.
 - `TODO.md` is the plan: checking the model first, then the analysis.
+- `README.md` is what the simulator has shown so far.
 
 ## Rules worth knowing
 
@@ -41,11 +64,14 @@ Some of these differ from house rules and other editions:
 ## Interpretations
 
 - A win is checked at the start of your turn, after wilds are rearranged, and after each play.
-- Just Say No doesn't count as a play, on your turn or anyone's.
-- Double the Rent counts as a play, and two can go on one Rent card, for 4× rent.
-- Deal Breaker takes the set's house and hotel with it. A house or hotel paid as money goes to
-  the receiver's bank. One left on a set that's no longer full stays, adding no rent until the
-  set is full again.
+Hasbro publishes no FAQ, and fan sites disagree, so each of these that's a `Rules` flag is
+measured both ways in `README.md`.
+
+- Just Say No doesn't count as a play, on your turn or anyone's (`noIsPlay`).
+- Double the Rent counts as a play, and two can go on one Rent card, for 4× rent (`doubles`).
+- Deal Breaker takes the set's house and hotel with it (`breakerTakesBuildings`). A house or
+  hotel paid as money goes to the receiver's bank. One left on a set that's no longer full
+  stays, adding no rent until the set is full again (`strandedToBank`).
 - Extra properties of a color past a full set start a second set. Sly Deal and Forced Deal can
   take one of those.
 - A set of only multicolored wilds isn't full (`Rules.wildOnlySets`).

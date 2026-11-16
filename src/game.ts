@@ -4,7 +4,7 @@ export const COLOR_NAMES = Object.keys(COLORS) as Color[];
 const size = (color: Color) => COLORS[color].rent.length;
 const INDEX = Object.fromEntries(COLOR_NAMES.map((c, i) => [c, i])) as Record<Color, number>;
 const SIZES = COLOR_NAMES.map(size);
-const buildable = (color: Color) => color !== "railroad" && color !== "utility";
+export const buildable = (color: Color) => color !== "railroad" && color !== "utility";
 
 /** A property or wild card on the table, and the color it's being used as. */
 export type Placed = { card: Card; color: Color };
@@ -30,9 +30,24 @@ export type Rules = {
   wildOnlySets: boolean;
   /** When the draw pile runs out, the play pile is shuffled into a new one. */
   reshuffle: boolean;
+  /** How many Double the Rents can go on one Rent card. */
+  doubles: number;
+  /** Just Say No on your own turn counts as one of your three plays. */
+  noIsPlay: boolean;
+  /** A house or hotel on a set that's no longer full goes to its owner's bank. */
+  strandedToBank: boolean;
+  /** Deal Breaker takes the set's house and hotel; otherwise they go to the victim's bank. */
+  breakerTakesBuildings: boolean;
 };
 
-export const defaultRules: Rules = { wildOnlySets: false, reshuffle: true };
+export const defaultRules: Rules = {
+  wildOnlySets: false,
+  reshuffle: true,
+  doubles: 2,
+  noIsPlay: false,
+  strandedToBank: false,
+  breakerTakesBuildings: true,
+};
 
 export type Policy = {
   /** The next card to play, or null to end the turn. `left` is how many plays remain. */
@@ -98,6 +113,8 @@ export class Game {
   policies: Policy[];
   current: number;
   turns = 0;
+  /** Plays the current player has left this turn. */
+  left = 0;
   reshuffles = 0;
   winner: number | null = null;
   log?: string[];
@@ -131,8 +148,13 @@ export class Game {
     return cards;
   }
 
-  run(): GameResult {
+  /** Plays the game out, or with `move`, first finishes the current turn starting with it. */
+  run(move?: Move | null): GameResult {
     try {
+      if (move !== undefined) {
+        this.plays(this.players[this.current], move);
+        this.current = (this.current + 1) % this.players.length;
+      }
       while (this.turns < MAX_TURNS) {
         this.turn(this.players[this.current]);
         this.current = (this.current + 1) % this.players.length;
@@ -143,16 +165,39 @@ export class Game {
     return { winner: this.winner, turns: this.turns, stalled: this.winner === null, reshuffles: this.reshuffles };
   }
 
+  /** A copy to play on without changing this one. Cards are shared; they never change. */
+  clone(): Game {
+    const g: Game = Object.assign(Object.create(Game.prototype), this);
+    g.players = this.players.map((p) => ({
+      seat: p.seat,
+      hand: [...p.hand],
+      bank: [...p.bank],
+      props: p.props.map((x) => ({ ...x })),
+      built: p.built.map((x) => ({ ...x })),
+    }));
+    g.draw = [...this.draw];
+    g.pile = [...this.pile];
+    g.log = undefined;
+    return g;
+  }
+
   turn(p: Player) {
     this.turns++;
     p.hand.push(...this.take(p.hand.length ? 2 : 5));
     this.say(`turn ${this.turns}: P${p.seat} draws, holds ${p.hand.length}`);
     arrange(this, p);
     this.checkWin(p);
-    for (let left = 3; left > 0; ) {
-      const move = this.policies[p.seat].move(this, p, left);
+    this.left = 3;
+    this.plays(p);
+  }
+
+  /** The rest of `p`'s turn: plays until it stops or runs out, then the discard. */
+  plays(p: Player, first?: Move | null) {
+    while (this.left > 0) {
+      const move = first !== undefined ? first : this.policies[p.seat].move(this, p, this.left);
+      first = undefined;
       if (!move) break;
-      left -= 1 + (move.type === "rent" ? move.doubles.length : 0);
+      this.left -= 1 + (move.type === "rent" ? move.doubles.length : 0);
       this.play(p, move);
       arrange(this, p);
       this.checkWin(p);
@@ -244,7 +289,8 @@ export class Game {
         }
         for (const x of q.built.filter((b) => b.color === color).slice(0, 2)) {
           remove(q.built, x);
-          p.built.push(x);
+          if (this.rules.breakerTakesBuildings) p.built.push(x);
+          else q.bank.push(x.card);
         }
         return;
       }
@@ -259,7 +305,9 @@ export class Game {
     let cancelled = false;
     for (;;) {
       const no = from.hand.find((c) => c.kind === "action" && c.action === "justSayNo");
-      if (!no || !this.policies[from.seat].sayNo(this, from, move, to)) return cancelled;
+      const play = this.rules.noIsPlay && from === this.players[this.current];
+      if (!no || (play && this.left <= 0) || !this.policies[from.seat].sayNo(this, from, move, to)) return cancelled;
+      if (play) this.left--;
       remove(from.hand, no);
       this.pile.push(no);
       cancelled = !cancelled;
@@ -283,6 +331,11 @@ export class Game {
         receive(this, p, x);
       }
     }
+    if (this.rules.strandedToBank)
+      for (const b of q.built.filter((b) => !fullSets(this, q, b.color))) {
+        remove(q.built, b);
+        q.bank.push(b.card);
+      }
     this.say(`P${q.seat} pays P${p.seat} ${paid.map((x) => name("kind" in x ? x : x.card)).join(", ") || "nothing"} for ${amount}`);
   }
 }
@@ -419,87 +472,156 @@ export function arrange(game: Game, p: Player) {
   wilds.forEach((x, i) => (x.color = COLOR_NAMES[best[i]]));
 }
 
-const isAction = (c: Card, action: string) => c.kind === "action" && c.action === action;
+export const isAction = (c: Card, action: string) => c.kind === "action" && c.action === action;
 
-/** A hand-written player: complete sets, steal, charge, then bank. */
-export const defaultPolicy: Policy = {
-  move(game, p, left) {
-    const others = game.players.filter((q) => q !== p);
-    const hand = p.hand;
-    const placeable = hand.filter((c) => c.kind === "property" || (c.kind === "wild" && (c.colors !== "any" || p.props.length)));
-    const bestColor = (c: Card) => colorsOf(c).reduce((a, b) => (gain(game, p, b) > gain(game, p, a) ? b : a));
+/** One rule of a hand-written player: a move, or null to fall through to the next rule. */
+export type Step = (game: Game, p: Player, left: number) => Move | null;
 
-    const passGo = hand.find((c) => isAction(c, "passGo"));
-    if (passGo && left >= 2) return { type: "action", card: passGo };
+const others = (game: Game, p: Player) => game.players.filter((q) => q !== p);
+const placeable = (p: Player) => p.hand.filter((c) => c.kind === "property" || (c.kind === "wild" && (c.colors !== "any" || p.props.length)));
+const bestColor = (game: Game, p: Player, c: Card) => colorsOf(c).reduce((a, b) => (gain(game, p, b) > gain(game, p, a) ? b : a));
 
-    for (const c of placeable) {
-      const color = bestColor(c);
-      if (count(p, color) + 1 === size(color)) return { type: "place", card: c, color };
-    }
+/** Who pays a charge aimed at one player: Debt Collector, or the any-color Rent. */
+export type Target = (game: Game, p: Player) => Player;
+export const richest: Target = (game, p) => others(game, p).reduce((a, b) => (assets(b) > assets(a) ? b : a));
+/** The opponent closest to winning: the most full sets, then the most progress toward more. */
+export const leader: Target = (game, p) => {
+  const lead = (q: Player) => fullColors(game, q).length * 10 + COLOR_NAMES.reduce((s, c) => s + progress(game, q, c), 0);
+  return others(game, p).reduce((a, b) => (lead(b) > lead(a) ? b : a));
+};
+const banked = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0);
 
-    const breaker = hand.find((c) => isAction(c, "dealBreaker"));
-    if (breaker) {
-      const sets = others.flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
-      const pick = sets.sort((a, b) => +!fullSets(game, p, a.color) - +!fullSets(game, p, b.color) || rent(game, b.q, b.color) - rent(game, a.q, a.color))[0];
-      if (pick && !fullSets(game, p, pick.color)) return { type: "action", card: breaker, target: pick.q.seat, color: pick.color };
-    }
+/** Any property, as the color it helps most. */
+const layDown: Step = (game, p) => {
+  const [c] = placeable(p);
+  return c ? { type: "place", card: c, color: bestColor(game, p, c) } : null;
+};
 
-    const sly = hand.find((c) => isAction(c, "slyDeal"));
-    if (sly) {
-      const take = stealable(game, p, others)[0];
-      if (take) return { type: "action", card: sly, target: take.q.seat, take: take.x };
-    }
-
-    if (placeable.length) return { type: "place", card: placeable[0], color: bestColor(placeable[0]) };
-
-    for (const c of hand.filter((c) => isAction(c, "house") || isAction(c, "hotel"))) {
-      const color = fullColors(game, p).find(
-        (color) =>
-          buildable(color) &&
-          !p.built.some((b) => b.color === color && b.card.kind === "action" && b.card.action === (c.kind === "action" && c.action)) &&
-          (isAction(c, "house") || p.built.some((b) => b.color === color && isAction(b.card, "house"))),
-      );
-      if (color) return { type: "place", card: c, color };
-    }
-
-    const doubles = hand.filter((c) => isAction(c, "doubleRent"));
-    let charge: Move | null = null;
+/** The rent that collects the most, doubled when it's 3 or more, if it collects 2 or more. */
+export const charge =
+  (target: Target): Step =>
+  (game, p, left) => {
+    const doubles = p.hand.filter((c) => isAction(c, "doubleRent"));
+    let move: Move | null = null;
     let most = 0;
-    for (const c of hand.filter((c) => c.kind === "rent")) {
+    for (const c of p.hand) {
       if (c.kind !== "rent") continue;
       const wild = c.colors === "any";
       for (const color of colorsOf(c)) {
         const r = rent(game, p, color);
-        const target = wild ? others.reduce((a, b) => (assets(b) > assets(a) ? b : a)) : undefined;
-        const payers = wild ? [target!] : others;
-        const d = doubles.slice(0, Math.min(left - 1, r >= 3 ? 2 : 0));
+        const q = wild ? target(game, p) : undefined;
+        const payers = q ? [q] : others(game, p);
+        const d = doubles.slice(0, Math.min(left - 1, r >= 3 ? game.rules.doubles : 0));
         const value = payers.reduce((s, q) => s + Math.min(assets(q), r * 2 ** d.length), 0);
-        if (value > most && r >= (wild ? 3 : 1)) [most, charge] = [value, { type: "rent", card: c, color, target: target?.seat, doubles: d }];
+        if (value > most && r >= (wild ? 3 : 1)) [most, move] = [value, { type: "rent", card: c, color, target: q?.seat, doubles: d }];
       }
     }
-    if (charge && most >= 2) return charge;
+    return move && most >= 2 ? move : null;
+  };
 
-    const debt = hand.find((c) => isAction(c, "debtCollector"));
-    const richest = others.reduce((a, b) => (assets(b) > assets(a) ? b : a));
-    if (debt && assets(richest) > 0) return { type: "action", card: debt, target: richest.seat };
-    const birthday = hand.find((c) => isAction(c, "birthday"));
-    if (birthday && others.some((q) => assets(q) > 0)) return { type: "action", card: birthday };
+/** Debt Collector on `target`, if it has anything to pay with. */
+export const collect =
+  (target: Target): Step =>
+  (game, p) => {
+    const debt = p.hand.find((c) => isAction(c, "debtCollector"));
+    const q = target(game, p);
+    return debt && assets(q) > 0 ? { type: "action", card: debt, target: q.seat } : null;
+  };
 
-    const forced = hand.find((c) => isAction(c, "forcedDeal"));
-    if (forced) {
-      const take = stealable(game, p, others)[0];
-      const give = p.props
-        .filter((x) => loose(game, p, x) && x.color !== take?.x.color && x.card.kind !== "wild")
-        .sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
-      if (take && give && gain(game, p, take.x.color) > progress(game, p, give.color))
-        return { type: "action", card: forced, target: take.q.seat, take: take.x, give };
+/** `defaultPolicy`'s rules, in its order. */
+export const STEPS = {
+  /** Pass Go while there's a play left after it. */
+  passGo(game, p, left) {
+    const c = p.hand.find((c) => isAction(c, "passGo"));
+    return c && left >= 2 ? { type: "action", card: c } : null;
+  },
+  /** A property that completes a set. */
+  complete(game, p) {
+    for (const c of placeable(p)) {
+      const color = bestColor(game, p, c);
+      if (count(p, color) + 1 === size(color)) return { type: "place", card: c, color };
     }
-
-    const money = hand.find((c) => c.kind === "money");
-    if (money) return { type: "bank", card: money };
-    if (passGo) return { type: "action", card: passGo };
     return null;
   },
+  /** The highest-rent full set of a color we don't have. */
+  dealBreaker(game, p) {
+    const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
+    if (!breaker) return null;
+    const sets = others(game, p).flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
+    const pick = sets.filter((s) => !fullSets(game, p, s.color)).sort((a, b) => rent(game, b.q, b.color) - rent(game, a.q, a.color))[0];
+    return pick ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
+  },
+  /** The loose property that helps us most. */
+  slyDeal(game, p) {
+    const sly = p.hand.find((c) => isAction(c, "slyDeal"));
+    const take = sly && stealable(game, p, others(game, p))[0];
+    return take ? { type: "action", card: sly, target: take.q.seat, take: take.x } : null;
+  },
+  /** The best rent, the any-color one on the leader: +1.8 points at 5 players over the richest. */
+  rent: charge(leader),
+  /** Debt Collector on the leader: +1.1 points at 5 players over the richest. */
+  debtCollector: collect(leader),
+  birthday(game, p) {
+    const birthday = p.hand.find((c) => isAction(c, "birthday"));
+    return birthday && others(game, p).some((q) => assets(q) > 0) ? { type: "action", card: birthday } : null;
+  },
+  /** Our least-built loose property for one that helps more. */
+  forcedDeal(game, p) {
+    const forced = p.hand.find((c) => isAction(c, "forcedDeal"));
+    if (!forced) return null;
+    const take = stealable(game, p, others(game, p))[0];
+    const give = p.props
+      .filter((x) => loose(game, p, x) && x.color !== take?.x.color && x.card.kind !== "wild")
+      .sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
+    return take && give && gain(game, p, take.x.color) > progress(game, p, give.color)
+      ? { type: "action", card: forced, target: take.q.seat, take: take.x, give }
+      : null;
+  },
+  /** Once $10M is banked, a property before more money: +0.8 points (`variants.ts`). */
+  placeWhenBanked: (game, p, left) => (banked(p) >= 10 ? layDown(game, p, left) : null),
+  bank(game, p) {
+    const money = p.hand.find((c) => c.kind === "money");
+    return money ? { type: "bank", card: money } : null;
+  },
+  /** A house or hotel, as money. Building them instead loses 2 points a game (`variants.ts`). */
+  bankBuildings(game, p) {
+    const c = p.hand.find((c) => isAction(c, "house") || isAction(c, "hotel"));
+    return c ? { type: "bank", card: c } : null;
+  },
+  /**
+   * Any property, as the color it helps most, once there's nothing to charge or bank. Laying
+   * them down earlier leaves them to be taken: charging first wins 2–3 points, and banking first
+   * 4 more (`variants.ts`, `order.ts`).
+   */
+  place: layDown,
+  /** Pass Go with the last play. */
+  passGoLast(game, p) {
+    const c = p.hand.find((c) => isAction(c, "passGo"));
+    return c ? { type: "action", card: c } : null;
+  },
+} satisfies Record<string, Step>;
+
+/**
+ * A player that makes the first move of `steps` that applies, each a name from `STEPS` or a step
+ * of its own, and otherwise plays like `defaultPolicy`.
+ */
+export function heuristic(...steps: (keyof typeof STEPS | Step)[]): Policy {
+  return { ...defaultPolicy, move: first(steps.map((s) => (typeof s === "string" ? STEPS[s] : s))) };
+}
+
+function first(steps: Step[]): Policy["move"] {
+  return (game, p, left) => {
+    for (const step of steps) {
+      const move = step(game, p, left);
+      if (move) return move;
+    }
+    return null;
+  };
+}
+
+/** A hand-written player: complete sets, steal, charge, bank, then lay down properties. */
+export const defaultPolicy: Policy = {
+  move: first(Object.values(STEPS)),
 
   pay(game, p, amount) {
     const bank = [...p.bank].sort((a, b) => a.value - b.value);

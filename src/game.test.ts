@@ -108,3 +108,52 @@ test("over 7 cards at the end of a turn go to the bottom of the draw pile", () =
   assert.equal(p.hand.length, 7);
   assert.equal(game.draw.at(-1)?.kind, "action");
 });
+
+test("a clone plays out without changing the game it came from", () => {
+  const game = new Game({ players: 3, rng: mulberry32(7) });
+  for (let i = 0; i < 6; i++) game.turn(game.players[i % 3]);
+  const before = JSON.stringify([game.players, game.draw, game.pile]);
+  const result = game.clone().run();
+  assert.notEqual(result.winner, null);
+  assert.equal(JSON.stringify([game.players, game.draw, game.pile]), before);
+});
+
+test("noIsPlay:with no plays left, you can't counter a Just Say No on your turn", () => {
+  const game = setup();
+  game.rules.noIsPlay = true;
+  const [p, q] = game.players;
+  place(q, property("darkBlue", 4), property("darkBlue", 4));
+  const breaker = action("dealBreaker", 5);
+  p.hand.push(breaker, action("justSayNo"));
+  q.hand.push(action("justSayNo"));
+  game.left = 0;
+  game.play(p, { type: "action", card: breaker, target: 1, color: "darkBlue" });
+  assert.equal(p.props.length, 0);
+  assert.equal(p.hand.length, 1);
+});
+
+test("strandedToBank: a house paid off a full set's property goes to the bank", () => {
+  const game = setup();
+  game.rules.strandedToBank = true;
+  const [p, q] = game.players;
+  place(q, property("brown"), property("brown"));
+  q.built.push({ card: action("house", 3), color: "brown" });
+  game.policies = [defaultPolicy, { ...defaultPolicy, pay: (_, q) => [q.props[0]] }];
+  game.collect(q, p, 1);
+  assert.deepEqual(q.built, []);
+  assert.equal(q.bank[0].kind, "action");
+});
+
+test("breakerTakesBuildings off: Deal Breaker leaves the house in the victim's bank", () => {
+  const game = setup();
+  game.rules.breakerTakesBuildings = false;
+  const [p, q] = game.players;
+  place(q, property("brown"), property("brown"));
+  q.built.push({ card: action("house", 3), color: "brown" });
+  const breaker = action("dealBreaker", 5);
+  p.hand.push(breaker);
+  game.play(p, { type: "action", card: breaker, target: 1, color: "brown" });
+  assert.equal(p.props.length, 2);
+  assert.deepEqual(p.built, []);
+  assert.equal(q.bank[0].kind, "action");
+});

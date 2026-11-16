@@ -1,16 +1,16 @@
 import { parseArgs } from "node:util";
-import { Game, mulberry32 } from "../src/game.ts";
+import { Game, mulberry32, type Rules } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 
 /** Plays `n` games of `players`, the first player in seat 0, and tallies wins by seat. */
-export function simulate(players: number, seed: number, n: number, emit?: { csv?: boolean; log?: boolean }) {
+export function simulate(players: number, rules: Partial<Rules>, seed: number, n: number, emit?: { csv?: boolean; log?: boolean }) {
   const rng = mulberry32(seed);
   const wins = Array(players).fill(0);
   let turns = 0;
   let stalled = 0;
   let reshuffles = 0;
   for (let i = 0; i < n; i++) {
-    const game = new Game({ players, rng, first: 0, log: emit?.log });
+    const game = new Game({ players, rng, rules, first: 0, log: emit?.log });
     const result = game.run();
     if (emit?.log) console.log(game.log!.join("\n"));
     if (emit?.csv) console.log([i, result.winner ?? "", result.turns, result.reshuffles].join(","));
@@ -37,9 +37,9 @@ if (import.meta.main) {
   const players = Number(args.players);
   if (args.csv || args.log) {
     if (args.csv) console.log("game,winner,turns,reshuffles");
-    simulate(players, Number(args.seed), n, { csv: args.csv, log: args.log });
+    simulate(players, {}, Number(args.seed), n, { csv: args.csv, log: args.log });
   } else {
-    const { wins, turns, stalled, reshuffles } = await parallel<ReturnType<typeof simulate>>(import.meta.url, "simulate", [players], n);
+    const { wins, turns, stalled, reshuffles } = await parallel<ReturnType<typeof simulate>>(import.meta.url, "simulate", [players, {}], n);
     const pct = (x: number) => `${((100 * x) / n).toFixed(1)}%`.padStart(6);
     console.log(`${n} games of ${players}; even odds of winning are ${pct(n / players)}\n`);
     console.log("seat    win");
