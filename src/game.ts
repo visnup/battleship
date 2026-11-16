@@ -102,7 +102,7 @@ export type GameResult = { winner: number | null; turns: number; stalled: boolea
 // Not an Error, so throwing it doesn't capture a stack trace every game.
 class GameOver {}
 
-export const MAX_TURNS = 1000;
+export const MAX_TURNS = 200;
 
 export class Game {
   players: Player[];

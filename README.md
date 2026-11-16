@@ -33,8 +33,8 @@ Everyone is dealt 5 cards. Each turn you draw 2 (5 if your hand is empty) and pl
 You pay what you owe from your bank and your properties, your choice, and get no change. If you
 can't pay it all, you pay everything you have. Just Say No cancels any action against you, and
 can itself be cancelled by another. You end your turn with at most 7 cards in hand. Three full
-sets of different colors win. When the draw pile runs out, the cards played are shuffled into a
-new one.
+sets of different colors win. The sheet doesn't say what happens when the draw pile runs out;
+here the cards played are shuffled into a new one (see "Rules questions").
 
 ## How to read the numbers
 
@@ -57,7 +57,7 @@ that list was found and how far it is from the best play we know.
 points, two standard errors. Games are played from seeded deals, so a comparison plays both sides
 on the same deals.
 
-**Stalled** games are ones with no winner after 1,000 turns. They count as a win for no one.
+**Stalled** games are ones with no winner after 200 turns. They count as a win for no one.
 "Stalled games" says where they come from.
 
 Node 24 runs everything with no dependencies, and each section names the script behind it:
@@ -564,7 +564,7 @@ only 2 multicolored wilds and 2 Double the Rents in the deck, and the default ba
 Rent when there's no rent to double.
 
 **No reshuffle breaks 4- and 5-player games.** At 5 players the draw pile runs out in more than a
-third of games. Without a reshuffle, a quarter of all games end with no winner after 1,000 turns. A
+third of games. Without a reshuffle, a quarter of all games end with no winner after 200 turns. A
 no-reshuffle house rule needs its own ending.
 
 ## Stalled games
