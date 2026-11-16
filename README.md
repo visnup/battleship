@@ -273,7 +273,7 @@ worth as money. Sorted by 4 players:
 
 ![Each card's value in points, by player count](charts/cards.svg)
 
-![Each card's value in points against its worth as money, by player count](charts/worth.svg)
+![Each card's value in points against its worth as money, at 2 and 5 players](charts/worth.svg)
 
 | card | $M | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |

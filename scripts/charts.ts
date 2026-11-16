@@ -174,7 +174,7 @@ const xOf = (r: Row) => {
   const group = sameWorth.get(`${kindOf(r.card)} ${r.$M}`)!;
   return levels.indexOf(+r.$M) + (group.indexOf(r) - (group.length - 1) / 2) * 0.22;
 };
-const worth = cardRows.flatMap((r) => counts.map((k) => ({ card: r.card, kind: kindOf(r.card), x: xOf(r), players: `${k} players`, value: num(r[`${k} players`]) })));
+const worth = cardRows.flatMap((r) => [2, 5].map((k) => ({ card: r.card, kind: kindOf(r.card), x: xOf(r), players: `${k} players`, value: num(r[`${k} players`]) })));
 const spans = cardRows.map((r) => {
   const vs = worth.filter((d) => d.card === r.card).map((d) => d.value);
   return { card: r.card, kind: kindOf(r.card), x: xOf(r), lo: Math.min(...vs), hi: Math.max(...vs) };
@@ -198,8 +198,8 @@ save("worth", {
         { x: "x", y: "hi", fy: "kind", text: (s) => `${s.card} ${plus(s.hi)}`, textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
       ),
     ),
-    ...counts.map((k, i) =>
-      Plot.text([k], { frameAnchor: "top-right", fy: ["rent"], ...halo, text: [`● ${k} players`], fill: playerColor.range[i], dx: -4, dy: 4 + 14 * i, fontSize: 10, fontWeight: "bold" }),
+    ...[2, 5].map((k) =>
+      Plot.text([k], { frameAnchor: "top-right", fy: ["rent"], ...halo, text: [`● ${k} players`], fill: playerColor.range[k - 2], dx: -4, dy: 4 + 14 * +(k === 5), fontSize: 10, fontWeight: "bold" }),
     ),
   ],
 });
