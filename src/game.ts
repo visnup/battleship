@@ -543,7 +543,7 @@ const layDown: Step = (game, p) => {
 
 /** The rent that collects the most, doubled when it's 3 or more, if it collects 2 or more. */
 export const charge =
-  (target: Target): Step =>
+  (target: Target, least = 2): Step =>
   (game, p, left) => {
     const doubles = p.hand.filter((c) => isAction(c, "doubleRent"));
     let move: Move | null = null;
@@ -564,7 +564,7 @@ export const charge =
         if (value > most) [most, move] = [value, { type: "rent", card: c, color, target: q?.seat, doubles: d }];
       }
     }
-    return move && most >= 2 ? move : null;
+    return move && most >= least ? move : null;
   };
 
 /** Debt Collector on `target`, if it has anything to pay with. */
@@ -616,9 +616,10 @@ export const STEPS = {
   },
   /**
    * The best rent, the any-color one on someone who has to pay in property: +2.8 points at 5
-   * players, with Debt Collector, over aiming both at the leader (`variants.ts`).
+   * players, with Debt Collector, over aiming both at the leader (`variants.ts`). At 2 players,
+   * even a $1M rent: +2.0 points there, and −0.2 to −0.3 at 3 and 4.
    */
-  rent: charge(inProperty),
+  rent: (game, p, left) => charge(inProperty, game.players.length === 2 ? 1 : 2)(game, p, left),
   /** Debt Collector on someone who has to pay in property. */
   debtCollector: collect(inProperty),
   birthday(game, p) {

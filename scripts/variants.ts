@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, type Game, gain, heuristic, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
+import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, type Game, gain, heuristic, inProperty, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { build, chance, headToHead, moves, STRATEGIES } from "../src/strategies.ts";
 
@@ -164,6 +164,7 @@ const VARIANTS: Record<string, () => Policy> = {
   "any-color Rent and Debt Collector on the leader (previous)": both(leader),
   "any-color Rent and Debt Collector on the most paid in property": both(mostProperty),
   "any-color Rent on the least banked": () => heuristic(...swap(STEPS.rent, charge(leastBanked))),
+  "charge rent worth $2M or more at 2 players (previous)": () => heuristic(...swap(STEPS.rent, charge(inProperty))),
   "hold the card that completes a set unless it wins": () =>
     heuristic(...steps.map((s) => (s === complete ? completeToWin : s === place ? placeHolding : s === placeWhenBanked ? placeOnce(10, placeHolding) : s))),
   "Just Say No only against Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(Infinity) }),
