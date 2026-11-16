@@ -64,7 +64,9 @@
       there at 400,000 games, adopted), test what else it finds (banking Double the Rent
       ahead of money: +0.5 at 2 players and +0.4 at 3, adopted; banking Rent cards for
       colors we have none of loses up to 6 points at 5; Deal Breaker on the leader first is
-      even), then refit and rerun every table once. Done before: placement
+      even). A second search round found Forced Deal held at 2 players and Sly Deal after
+      Pass Go at 5, but Sly Deal before Pass Go and nine Forced Deal rules were all even or
+      worse. Then refit and rerun every table once. Done before: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also

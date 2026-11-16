@@ -161,6 +161,7 @@ const VARIANTS: Record<string, () => Policy> = {
   "Pass Go only as the last play": () => heuristic(...without(passGo)),
   "bank Pass Go": () => heuristic(...without(passGo, passGoLast), bankIt("passGo")),
   "Deal Breaker before Pass Go": () => heuristic(...without(dealBreaker).toSpliced(0, 0, dealBreaker)),
+  "Sly Deal before Pass Go": () => heuristic(...without(STEPS.slyDeal).toSpliced(steps.indexOf(STEPS.passGo), 0, STEPS.slyDeal)),
   "Debt Collector on the richest (previous)": () => heuristic(...swap(STEPS.debtCollector, collect(richest))),
   "any-color Rent on the richest (previous)": () => heuristic(...swap(STEPS.rent, charge(richest))),
   "bank all money before laying down properties (previous)": () => heuristic(...without(placeWhenBanked)),
