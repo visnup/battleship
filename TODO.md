@@ -12,7 +12,7 @@
       charge, then bank, then lay properties down; never build; aim one-player charges at whoever
       has to pay in property. Against it, the first one wins 10 points less at 2 players and more
       than a third fewer games at 5.
-- [ ] Speed up playouts until the strategies table's playouts row is good to ±1 point in 15
+- [x] Speed up playouts until the strategies table's playouts row is good to ±1 point in 15
       minutes (30 at most). That's about 32,000 playouts games: 6,400 at 5 players, 10,000 at
       2. On 20 cores at 3.5s a game it took about 93 minutes. With what's checked below, 10,000
       games at each of 2–5 players (±1 everywhere) took 73 minutes on 2026-11-15, so it still
@@ -38,12 +38,16 @@
             whenever their table changes, or make `props` copy-on-write (replaced, never
             edited; `arrange` would make new `Placed`s) and key a `WeakMap` on the array. Plays
             stay mutable: copying state on every play would cost more in garbage than it saves.
-      - [ ] If that's still over 30 minutes: rollouts cut off after a few turns and scored from
-            the board. Much faster but a weaker player; check it by regret first.
+      - [x] Rollouts cut off after two rounds and scored from the board (`chance`): 2.5× faster,
+            and a stronger player, not a weaker one. By regret, 0.73 points a decision against
+            1.30 at 5 players, and 0.77 against 0.98 at 2. One round was faster again but worse
+            at 5 (0.94). The row now takes 21.5 minutes, and playouts win 8 to 10 points more.
       - Comparing playouts and the default on the same deals doesn't help: it cut variance
         2.3× for banker at 2 players, but made it worse for builder, which, like playouts,
         plays very differently from the default.
-- [ ] Close more of the gap to playouts, still 6 to 14 points at 3–5 players. Done: placement
+- [ ] Close more of the gap to playouts, now 10 to 22 points. `decisions.ts` and the rule
+      screens still play each deal to the end; cut them off like playouts, which would make
+      them faster and their picks better, then look for patterns again. Done: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also
@@ -51,8 +55,9 @@
       each Just Say No decision might still find a rule.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
-- [ ] Playouts tie the default at 2 players (50.3%, ±1). Find out whether more deals per move or a
-      better rollout player would help. A counterfactual-regret agent on a cut-down 2-player
+- [ ] Playouts win 60.3% at 2 players, 10 points over the default; playing to the end, they
+      tied it. Find out whether more deals per move, a better `chance` or a better rollout
+      player would help more. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.

@@ -18,7 +18,9 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `strategies.ts`: whole-game strategies in `STRATEGIES`, like magical-athlete's `RACERS`: each
   has a comment saying how it plays and a short definition, mostly `STEPS` in another order.
   `builder` plays roughly like the first `defaultPolicy`. `moves` lists every legal move, for `random` and
-  `playouts`, which plays each one out on copies with the cards it can't see reshuffled.
+  `playouts`, which plays each one out on copies with the cards it can't see reshuffled, for two
+  rounds, then scores the board with `chance`. `scripts/chance.ts` fits `chance`'s weights to
+  default-player games; refit them after changing `defaultPolicy`.
   `headToHead` seats one player against `defaultPolicy` everywhere else.
 - Improving `defaultPolicy`, like magical-athlete's "Finding better choices":
   1. `scripts/decisions.ts` plays out every legal move at each of the default player's decisions

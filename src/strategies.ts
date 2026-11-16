@@ -1,5 +1,7 @@
 import {
+  assets,
   buildable,
+  COLOR_NAMES,
   colorsOf,
   defaultPolicy,
   fullColors,
@@ -7,11 +9,13 @@ import {
   heuristic,
   isAction,
   loose,
+  MAX_TURNS,
   type Move,
   mulberry32,
   type Placed,
   type Player,
   type Policy,
+  progress as progressOf,
   rent,
   STEPS,
   shuffle,
@@ -160,14 +164,18 @@ export function random(seed = 1): Policy {
 /**
  * Plays out every legal move, and ending the turn, with `rollout` for everyone, and makes the
  * move that wins most. Each playout first shuffles the cards `p` can't see, the other hands and
- * the draw pile, so it doesn't peek. Moves race on shared shuffles, 8 at a time, so they differ
+ * the draw pile, so it doesn't peek, and stops after `rounds` rounds, scored by `chance`. Against
+ * playing to the end, two rounds are 2.5× faster at 5 players and 4× at 2, and pick better moves
+ * (each pick valued on 1,000 full deals: 0.73 points from the best a decision against 1.30 at 5
+ * players, 0.77 against 0.98 at 2), probably because the end of a game is mostly noise. One round
+ * is faster still and worse at 5 players. Moves race on shared shuffles, 8 at a time, so they differ
  * by the move and not by the luck of the deal: a move drops out once it's `z` standard errors
  * of the paired difference behind the leader, and the race stops at `n` deals a move. Easy
  * decisions end after a round or two. Against `n` deals for every move, this loses no decision
  * quality at 5 players on two thirds of the playouts, and a little at 2 on four fifths. Halving,
  * dropping the worse half after 8 deals, then 16, and so on, only matched it at equal cost.
  */
-export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2): Policy {
+export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, rounds = 2): Policy {
   const rng = mulberry32(seed);
   const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
   return {
@@ -179,7 +187,7 @@ export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2): P
       let alive = options.map((_, i) => i);
       for (let dealt = 0; dealt < n && alive.length > 1; dealt += 8) {
         const seeds = Array.from({ length: 8 }, () => Math.floor(rng() * 2 ** 32));
-        for (const m of alive) for (const s of seeds) wins[m].push(playout(game, p, options[m], [s], rollout));
+        for (const m of alive) for (const s of seeds) wins[m].push(playout(game, p, options[m], [s], rollout, rounds * game.players.length));
         const lead = alive.reduce((a, b) => (total(wins[b]) > total(wins[a]) ? b : a));
         alive = alive.filter((m) => {
           const d = wins[m].map((w, i) => wins[lead][i] - w);
@@ -193,14 +201,61 @@ export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2): P
   };
 }
 
-/** How many of the games from `seeds` `p` wins making `move` now, then playing like `rollout`. */
-export function playout(game: Game, p: Player, move: Move | null, seeds: number[], rollout = defaultPolicy) {
+/**
+ * How many of the games from `seeds` `p` wins making `move` now, then playing like `rollout`. With
+ * `turns`, each game stops after that many more turns and counts `p`'s `chance` from the board.
+ */
+export function playout(game: Game, p: Player, move: Move | null, seeds: number[], rollout = defaultPolicy, turns = Infinity) {
   let wins = 0;
   for (const s of seeds) {
     const g = sample(game, p, mulberry32(s), rollout);
-    wins += +(g.run(move && translate(move, game, g)).winner === p.seat);
+    const { winner, stalled, turns: played } = g.run(move && translate(move, game, g), game.turns + turns);
+    wins += stalled && played < MAX_TURNS ? chance(g, p.seat) : +(winner === p.seat);
   }
   return wins;
+}
+
+/** What `chance` weighs for each player. */
+export function features(game: Game, q: Player): number[] {
+  let progress = 0;
+  let nearest = 0;
+  for (const c of COLOR_NAMES) {
+    const x = progressOf(game, q, c);
+    if (x < 1) [progress, nearest] = [progress + x, Math.max(nearest, x)];
+  }
+  const full = fullColors(game, q).length;
+  const bank = q.bank.reduce((s, c) => s + c.value, 0);
+  const held = (...actions: string[]) => q.hand.filter((c) => actions.some((a) => isAction(c, a))).length;
+  return [
+    +(full === 1),
+    +(full === 2),
+    progress,
+    nearest,
+    Math.min(bank, 20) / 10,
+    (assets(q) - bank) / 10,
+    q.hand.length / 7,
+    ((q.seat - game.current + game.players.length) % game.players.length) / game.players.length,
+    held("dealBreaker"),
+    held("justSayNo"),
+    held("slyDeal", "forcedDeal"),
+  ];
+}
+
+/**
+ * Weights of `features` by player count, fitted by `scripts/chance.ts` to default-player games.
+ * Refit them when the default player changes.
+ */
+const WEIGHTS: Record<number, number[]> = {
+  2: [0.97, 2.26, 0.28, 0.7, 0.17, 0.17, 0.63, -0.72, 1.38, 0.43, 0.1],
+  3: [1.12, 2.69, 0.63, 0.39, 0.3, -0.05, 0.74, -0.87, 1.07, 0.41, 0.04],
+  4: [1.02, 2.6, 0.51, 0.57, 0.43, 0.01, 0.7, -0.98, 0.94, 0.28, 0.01],
+  5: [0.96, 2.46, 0.53, 0.42, 0.47, -0.01, 0.6, -1.04, 0.81, 0.35, 0.04],
+};
+
+/** `seat`'s chance to win from the board: a softmax over players of their weighted `features`. */
+export function chance(game: Game, seat: number, weights = WEIGHTS[game.players.length]) {
+  const scores = game.players.map((q) => Math.exp(features(game, q).reduce((s, x, i) => s + x * weights[i], 0)));
+  return scores[seat] / scores.reduce((a, b) => a + b, 0);
 }
 
 /** A copy of `game` with the cards `p` can't see dealt again at random, played by `rollout`. */

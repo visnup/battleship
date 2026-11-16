@@ -148,14 +148,17 @@ export class Game {
     return cards;
   }
 
-  /** Plays the game out, or with `move`, first finishes the current turn starting with it. */
-  run(move?: Move | null): GameResult {
+  /**
+   * Plays the game out, or with `move`, first finishes the current turn starting with it. With
+   * `until`, stops after that many turns in all, with no winner.
+   */
+  run(move?: Move | null, until = MAX_TURNS): GameResult {
     try {
       if (move !== undefined) {
         this.plays(this.players[this.current], move);
         this.current = (this.current + 1) % this.players.length;
       }
-      while (this.turns < MAX_TURNS) {
+      while (this.turns < Math.min(until, MAX_TURNS)) {
         this.turn(this.players[this.current]);
         this.current = (this.current + 1) % this.players.length;
       }
