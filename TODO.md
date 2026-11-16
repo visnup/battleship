@@ -60,9 +60,9 @@
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
       (at 16, one round 36.6% at 5 players, two 31.7%, three 26.4%), and stopping at the end of
-      the turn is worse than the default at 2 players. A richer `chance` (sets half done, rent cards, cash and
-      properties in hand) added 1.9 points at 2 players and 1.2 at 5. Still to try: more of
-      that, and a better rollout player. A counterfactual-regret agent on a cut-down 2-player
+      the turn is worse than the default at 2 players. A richer `chance` (sets half done, rent
+      cards, cash and properties in hand) added 1.9 points at 2 players and 1.2 at 5. Still to
+      try: more of that, and a better rollout player. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
