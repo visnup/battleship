@@ -100,6 +100,9 @@
 - [x] Tests for `STEPS`: a small board per rule (`game.test.ts`), so a refactor can't
       quietly change the default player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
+- [ ] A staller: a strategy that tries to make the game stall, from the list in the README's
+      "Stalled games". Count its stalls at 5 players against the pacifist's 48 in 100,000, and
+      see which of its rules matter most.
 - [ ] Idea: a page to play against quick playouts in the browser.
 
 ## Analysis
