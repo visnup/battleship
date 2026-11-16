@@ -182,7 +182,7 @@ const VARIANTS: Record<string, () => Policy> = {
   "any-color Rent and Debt Collector on the leader (previous)": both(leader),
   "any-color Rent and Debt Collector on the most paid in property": both(mostProperty),
   "any-color Rent on the least banked": () => heuristic(...swap(STEPS.rent, charge(leastBanked))),
-  "charge rent worth $2M or more at 2 players (previous)": () => heuristic(...swap(STEPS.rent, charge(inProperty))),
+  "charge rent worth $2M or more at 2 players (previous)": () => heuristic(...swap(STEPS.rent, charge(inProperty, 2))),
   "hold the card that completes a set unless it wins": () =>
     heuristic(...steps.map((s) => (s === complete ? completeToWin : s === place ? placeHolding : s === placeWhenBanked ? placeOnce(10, placeHolding) : s))),
   "Just Say No only against Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(Infinity) }),
@@ -200,7 +200,7 @@ const VARIANTS: Record<string, () => Policy> = {
   "play Forced Deal in the first round (previous)": () => heuristic(...without(STEPS.bankForcedDeal)),
   "bank Double the Rent":() => heuristic(bankIt("doubleRent"), ...steps),
   "hold Double the Rent (previous)": () => heuristic(...without(STEPS.bankDoubleRent)),
-  "bank Rent cards for colors we have none of, before money": beforeBank(deadRent),
+  "bank Rent cards for colors we have none of": beforeBank(deadRent),
   "Deal Breaker on the leader first": withStep(STEPS.dealBreaker, breakLeader),
   "Forced Deal for the best chance":withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),

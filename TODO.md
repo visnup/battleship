@@ -33,11 +33,12 @@
             joins, and skip `arrange` after banking or Pass Go: 1.2× with every result
             unchanged. Garbage collection went from 16% of the time to 2%. Scoring `arrange`'s
             search incrementally was slower and broke ties differently.
-      - [ ] Cheaper rollouts: `arrange`'s key and search, then `fullSets` and `pay`, lead the
-            profile. Memoize `fullSets` and `progress` per player, keyed on a counter bumped
-            whenever their table changes, or make `props` copy-on-write (replaced, never
-            edited; `arrange` would make new `Placed`s) and key a `WeakMap` on the array. Plays
-            stay mutable: copying state on every play would cost more in garbage than it saves.
+      - [ ] Cheaper rollouts. Profiled 2026-11-16 on two-round playouts (0.7 s a game):
+            `arrange` 13.5% and its search 10%, `plays` 7%, `pay` 5%, garbage collection 5%;
+            `fullSets` and `count` only 3.5% together, so memoizing them isn't worth it. A
+            bitmask for `arrange`'s key changed nothing measurable. What's left is `arrange`'s
+            cache missing on the wilds' current colors, which it keys on to break ties the same
+            way; dropping them would change results.
       - [x] Rollouts cut off after two rounds and scored from the board (`chance`): 2.5× faster,
             and a stronger player, not a weaker one. By regret on the richer `chance`
             (2026-11-16, ±2 SE), 0.73 ± 0.12 points a decision against 1.21 ± 0.17 at 5
@@ -56,7 +57,7 @@
             `uv`) on the same move features and playout values, and play it head to head. If
             it wins, distill readable rules from it for `STEPS`. Less noisy targets (more deals
             a move) are the other lever.
-- [ ] Close more of the gap to playouts, now 12 to 23 points. In progress (2026-11-16), one
+- [ ] Close more of the gap to playouts, now 10 to 22 points. Done 2026-11-16, one
       step at a time on top of the last: adopt banking Forced Deal in the first round at 3+
       players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance` (done), run
       `decisions.ts` with its recheck also cut off at two rounds (done: at 2 players the
@@ -66,7 +67,7 @@
       colors we have none of loses up to 6 points at 5; Deal Breaker on the leader first is
       even). A second search round found Forced Deal held at 2 players and Sly Deal after
       Pass Go at 5, but Sly Deal before Pass Go and nine Forced Deal rules were all even or
-      worse. Then refit and rerun every table once. Done before: placement
+      worse. Every table was then rerun on the new default. Done before: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also
@@ -74,7 +75,7 @@
       each Just Say No decision might still find a rule.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
-- [ ] Playouts win 62.1% at 2 players, 12 points over the default; playing to the end, they
+- [ ] Playouts win 59.8% at 2 players, 10 points over the default; playing to the end, they
       tied it. More deals per move still help, about 2 points each time they double: at 80,
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
@@ -103,21 +104,21 @@
 
 ## Analysis
 
-- [x] Who wins: seat order and player count (2 to 5). Going first is worth 13.6 points at 2.
+- [x] Who wins: seat order and player count (2 to 5). Going first is worth 14 points at 2.
 - [x] What each card is worth (`cards.ts`): Deal Breaker by far, then two-color Rents at big
       tables and Just Say No at small ones.
 - [x] Bank or build: never build, and bank about $10M before laying properties down.
 - [x] Which colors to chase (`colors.ts`): the 2-card sets, especially dark blue.
 - [x] How long games last, and how often the draw pile runs out.
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
-- [x] How much is luck: playouts win 1.24 fair shares against the default at 2 players and
-      2.16 at 5, so skill counts for more at big tables.
+- [x] How much is luck: playouts win 1.20 fair shares against the default at 2 players and
+      2.10 at 5, so skill counts for more at big tables.
 - [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 72% at 2
-      players and 48% at 5. Comebacks last at 2 players and run out at 5.
+      players and 46% at 5. Comebacks last at 2 players and run out at 5.
 - [x] Played or banked (`cards.ts`): every action card is worth far more played, except
       Forced Deal early at 3+ players. Holding one unplayed isn't measured: no player here
       reads another's hand, so a held card can't deter.
-- [x] Paying (`payments.ts`): at 5 players the bank is down to $7.5M when charged, one payment
-      in four costs property, and 72% of losers pay in property at least once.
+- [x] Paying (`payments.ts`): at 5 players the bank is down to $8.4M when charged, one payment
+      in five costs property, and 65% of losers pay in property at least once.
 - [x] Opening hands (`openings.ts`): action cards make a hand, and it matters more at big
-      tables (0.61 to 1.41 fair shares at 5 players). The sheet has no mulligan.
+      tables (0.59 to 1.38 fair shares at 5 players). The sheet has no mulligan.
