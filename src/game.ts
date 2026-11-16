@@ -640,6 +640,11 @@ export const STEPS = {
   },
   /** Once $10M is banked, a property before more money: +0.8 points (`variants.ts`). */
   placeWhenBanked: (game, p, left) => (banked(p) >= 10 ? layDown(game, p, left) : null),
+  /** Double the Rent as money, before money: +0.5 points at 2 players, +0.35 at 3 (`variants.ts`). */
+  bankDoubleRent(game, p) {
+    const c = p.hand.find((c) => isAction(c, "doubleRent"));
+    return c ? { type: "bank", card: c } : null;
+  },
   bank(game, p) {
     const money = p.hand.find((c) => c.kind === "money");
     return money ? { type: "bank", card: money } : null;

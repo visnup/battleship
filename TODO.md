@@ -61,8 +61,10 @@
       players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance` (done), run
       `decisions.ts` with its recheck also cut off at two rounds (done: at 2 players the
       default ended turns holding a rent it wouldn't charge for $1M; charging it is +2.0
-      there at 400,000 games, adopted), test what else it finds, then refit and rerun every
-      table once. Done before: placement
+      there at 400,000 games, adopted), test what else it finds (banking Double the Rent
+      ahead of money: +0.5 at 2 players and +0.4 at 3, adopted; banking Rent cards for
+      colors we have none of loses up to 6 points at 5; Deal Breaker on the leader first is
+      even), then refit and rerun every table once. Done before: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also

@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, type Game, gain, heuristic, inProperty, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
+import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, gain, heuristic, inProperty, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, rent, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { build, chance, headToHead, moves, STRATEGIES } from "../src/strategies.ts";
 
@@ -129,6 +129,23 @@ const byChance =
     return best;
   };
 const withStep = (from: Step, to: Step) => () => heuristic(...swap(from, to));
+const beforeBank = (step: Step) => () => heuristic(...steps.toSpliced(steps.indexOf(STEPS.bank), 0, step));
+
+/** Banks a two-color Rent card when we have neither color. */
+const deadRent: Step = (game, p) => {
+  const card = p.hand.find((c) => c.kind === "rent" && c.colors !== "any" && colorsOf(c).every((color) => count(p, color) === 0));
+  return card ? { type: "bank", card } : null;
+};
+
+/** Deal Breaker like the default, but on the leader's sets before anyone else's. */
+const breakLeader: Step = (game, p) => {
+  const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
+  if (!breaker) return null;
+  const top = leader(game, p, 0);
+  const sets = game.players.filter((q) => q !== p).flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
+  const pick = sets.filter((s) => !fullSets(game, p, s.color)).sort((a, b) => +(b.q === top) - +(a.q === top) || rent(game, b.q, b.color) - rent(game, a.q, a.color))[0];
+  return pick ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
+};
 
 const steps = Object.values(STEPS) as Step[];
 const without = (...drop: Step[]) => steps.filter((s) => !drop.includes(s));
@@ -181,6 +198,9 @@ const VARIANTS: Record<string, () => Policy> = {
   "bank Forced Deal and Sly Deal": () => heuristic(bankIt("forcedDeal", "slyDeal"), ...without(STEPS.forcedDeal, STEPS.slyDeal)),
   "play Forced Deal in the first round (previous)": () => heuristic(...without(STEPS.bankForcedDeal)),
   "bank Double the Rent":() => heuristic(bankIt("doubleRent"), ...steps),
+  "hold Double the Rent (previous)": () => heuristic(...without(STEPS.bankDoubleRent)),
+  "bank Rent cards for colors we have none of, before money": beforeBank(deadRent),
+  "Deal Breaker on the leader first": withStep(STEPS.dealBreaker, breakLeader),
   "Forced Deal for the best chance":withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
   "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),
