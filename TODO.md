@@ -84,7 +84,4 @@
       $1M early? Is a held Just Say No worth more than one played?
 - [ ] Bank size: how much cash to keep against rent, and how often players pay in property
       instead. Charging whoever has to pay in property suggests an ideal cushion.
-- [ ] Popular house rules, measured like the sheet's open readings in `sensitivity.ts`: Deal
-      Breaker on any set, Just Say No unblockable, drawing 2 on an empty hand, no Forced Deal
-      on full sets.
 - [ ] Opening hands: which 5-card deals win, and whether any is worth a mulligan.
