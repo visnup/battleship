@@ -65,6 +65,9 @@ Node 24 runs everything with no dependencies, and each section names the script 
 node scripts/sim.ts --n 100000 --players 4
 ```
 
+The charts are drawn from this README's own tables, so they stay in step with them. After
+`pnpm install`, `node scripts/charts.ts` redraws `charts/`.
+
 ## Going first
 
 *From `node scripts/sim.ts`*, with the default player in every seat:
@@ -75,6 +78,8 @@ node scripts/sim.ts --n 100000 --players 4
 | 3 | 36.6% | 32.0% | 31.3% | | | 21.0 | 0.1% |
 | 4 | 27.4% | 24.9% | 24.2% | 23.6% | | 25.2 | 9.4% |
 | 5 | 21.7% | 20.4% | 19.8% | 19.0% | 19.2% | 28.5 | 35.6% |
+
+![Each seat's wins over a fair share, by player count](charts/seats.svg)
 
 **Going first is worth 13.6 points at 2 players.** That's 31% more wins than the second player.
 At 5 players the edge is 1.7 points over a fair share. The first player starts drawing and
@@ -99,6 +104,8 @@ slow, so they play 512 games per cell, which is good to about ±4 points.
 | pacifist | 11.9% | 2.3% | 0.4% | 0.0% |
 | random | 7.4% | 2.5% | 1.2% | 0.6% |
 | playouts | 46.1% | 41.0% | 34.6% | 38.1% |
+
+![Each strategy's wins in fair shares, by player count](charts/strategies.svg)
 
 **Builder** plays the way the default player first did. It lays down properties as soon as it
 draws them, builds houses and hotels, and only then charges rent. It wins 10 points less than the
@@ -147,6 +154,8 @@ change from it gained.
 | lay down wilds before charging | 49.0% | 19.4% |
 | lay down properties once $5M is banked | 49.5% | 19.1% |
 | lay down properties once $15M is banked | 49.8% | 20.3% |
+
+![Each variant's wins over a fair share, at 2 and 5 players](charts/variants.svg)
 
 **Charge before you lay properties down, and bank before that too.** This is the biggest lesson,
 worth 8 points at 2 players and 5 at 5. A property laid down can be taken by Sly Deal, Forced Deal
@@ -247,6 +256,8 @@ worth as money. Sorted by 4 players:
 | $10M | 10 | +1.8 | +1.0 | +0.2 | −0.2 |
 | light blue | 1 | +1.7 | +0.8 | −0.4 | −0.3 |
 
+![Each card's value in points, by player count](charts/cards.svg)
+
 **Deal Breaker is worth the most by far.** With it, a 2-player game goes from a coin flip to 79%
 for the holder. It's a third of a win, taken from someone else.
 
@@ -289,6 +300,8 @@ full set at the end.
 | green | 3 | 23% (6%) | 23% (6%) | 23% (6%) | 23% (5%) |
 | yellow | 3 | 22% (6%) | 22% (6%) | 22% (5%) | 22% (4%) |
 | railroad | 4 | 13% (4%) | 12% (3%) | 12% (3%) | 12% (2%) |
+
+![How often each color is a full set at the end: bars for the winner, ticks for a loser](charts/colors.svg)
 
 **Each 2-card set, dark blue, brown and utility, is in about half of all wins.** That's about twice
 as often as any 3-card set.

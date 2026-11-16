@@ -27,3 +27,4 @@
 - [x] Bank or build: never build, and bank about $10M before laying properties down.
 - [x] Which colors to chase (`colors.ts`): the 2-card sets, especially dark blue.
 - [x] How long games last, and how often the draw pile runs out.
+- [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
