@@ -127,7 +127,7 @@ save("variants", {
   width: 760,
   height: 600,
   marginLeft: 380,
-  x: { label: "Wins over a fair share (points)", grid: true, tickFormat: signed },
+  x: { label: "Wins over a fair share (points)", grid: true, tickFormat: signed, insetLeft: 40, insetRight: 30 },
   y: { label: null, domain: variantOrder },
   fx: { label: null },
   color: diverging,
@@ -135,6 +135,12 @@ save("variants", {
     Plot.ruleX([0], dashed),
     Plot.ruleY(variants, { fx: "players", y: "variant", x1: 0, x2: "over", stroke: "over", strokeWidth: 2 }),
     Plot.dot(variants, { fx: "players", y: "variant", x: "over", fill: "over", stroke: art.ink, strokeWidth: 0.5, r: 4 }),
+    ...[1, -1].map((side) =>
+      Plot.text(
+        variants.filter((d) => (d.over >= 0 ? 1 : -1) === side),
+        { fx: "players", y: "variant", x: "over", text: (d) => plus(d.over), textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
+      ),
+    ),
   ],
 });
 
