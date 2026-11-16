@@ -25,9 +25,10 @@ configs:
 # Monopoly Deal move values
 
 Every decision about what to play next in 40,000 simulated games of Monopoly Deal, 10,000 at
-each of 2 to 5 players. Each row has what the player to move can see, every legal move,
-each move's estimated chance of winning, the simulator's hand-written player's pick, and whether
-the player to move went on to win.
+each of 2 to 5 players: 2,684,161 decisions, from 473,525 at 2 players to 846,531 at 5. Each
+row has what the player to move can see, every legal move, each move's estimated chance of
+winning, the simulator's hand-written player's pick, and whether the player to move went on to
+win.
 
 The games, rules and estimates come from [a simulator](https://github.com/visnup/monopoly-deal)
 of the 2014 US edition (B0965). `scripts/dataset.ts` there regenerates this dataset, and `game_seed` replays any game.
