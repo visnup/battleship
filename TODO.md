@@ -43,11 +43,10 @@
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also
-      untouched: when to hold Just Say No, and what to pay with.
-- [ ] Test the table advice the default doesn't follow yet (web search, 2026-11-15):
-      - Don't complete a set right away, so a Deal Breaker can't take it: hold the card that
-        completes a set unless it wins the game.
-      - Keep a Just Say No for a Deal Breaker instead of spending it on rent or Debt Collector.
+      untouched: what to pay with. Saving Just Say No for a Deal Breaker loses; playouts at
+      each Just Say No decision might still find a rule.
+- [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
+      the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
 - [ ] Playouts tie the default at 2 players (50.3%, ±1). Find out whether more deals per move or a
       better rollout player would help. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)

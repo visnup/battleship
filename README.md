@@ -155,6 +155,10 @@ change from it gained.
 | any-color Rent and Debt Collector on the leader (previous) | 49.9% | 17.6% |
 | any-color Rent and Debt Collector on the most paid in property | 49.9% | 20.0% |
 | any-color Rent on the least banked | 49.9% | 19.4% |
+| hold the card that completes a set unless it wins | 35.8% | 17.4% |
+| Just Say No only against Deal Breaker | 48.4% | 19.3% |
+| keep one Just Say No for a Deal Breaker | 49.1% | 19.5% |
+| keep two Just Say Nos for a Deal Breaker | 48.5% | 19.3% |
 | lay down properties once $5M is banked | 49.5% | 19.0% |
 | lay down properties once $15M is banked | 49.8% | 20.2% |
 
@@ -186,6 +190,13 @@ it for the last play by 3 points at 2 players. Banking it costs 15.
 **Bank about $10M, then lay properties down before banking more.** This beats banking everything
 first by 1 point at 2 players, and is even at 5. $5M is too little, and $15M is about the same as
 $10M.
+
+**Two pieces of table advice lose.** Players online say to hold the property that completes a
+set, so a Deal Breaker can't take the set, and to keep a Just Say No for a Deal Breaker instead
+of spending it on rent. Holding the card costs 14 points at 2 players and 3 at 5: a set in hand
+charges no rent and counts toward no win. Keeping a Just Say No, even only while holding two,
+costs 0.5 to 1.3 points at every player count (3 and 4 players: 32.0% and 23.9%, against 33.2%
+and 25.0%). What you lose by paying now is worth more than the Deal Breaker it might stop later.
 
 **Deal Breaker had a bug.** It sorted sets of a color it already had first, then refused them, so
 it often skipped a better target. Fixing it was worth about half a point.

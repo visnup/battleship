@@ -125,7 +125,7 @@ const variants = variantRows.flatMap((r) =>
 const variantOrder = variantRows.map((r) => r.variant);
 save("variants", {
   width: 760,
-  height: 520,
+  height: 600,
   marginLeft: 380,
   x: { label: "Wins over a fair share (points)", grid: true, tickFormat: signed },
   y: { label: null, domain: variantOrder },

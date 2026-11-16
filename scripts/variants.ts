@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { assets, charge, colorsOf, collect, count, fullColors, fullSets, type Game, heuristic, isAction, leader, type Player, type Policy, progress, rent, richest, STEPS, type Step, type Target } from "../src/game.ts";
+import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, heuristic, isAction, leader, type Player, type Policy, progress, rent, richest, STEPS, type Step, type Target } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { build, headToHead, STRATEGIES } from "../src/strategies.ts";
 
@@ -78,6 +78,24 @@ const mostProperty: Target = (game, p, amount) => {
 const leastBanked: Target = (game, p) => game.players.filter((q) => q !== p).reduce((a, b) => (sum(b.bank) < sum(a.bank) ? b : a));
 const both = (target: Target) => () => heuristic(...swap(STEPS.rent, charge(target)).map((s) => (s === STEPS.debtCollector ? collect(target) : s)));
 
+/** A property that completes a set only when that set wins the game. */
+const completeToWin: Step = (game, p, left) => (fullColors(game, p).length >= 2 ? STEPS.complete(game, p, left) : null);
+/** The first property in hand, as the color it helps most, unless it completes a set that doesn't win. */
+const placeHolding: Step = (game, p) => {
+  for (const card of p.hand) {
+    if (card.kind !== "property" && !(card.kind === "wild" && (card.colors !== "any" || p.props.length))) continue;
+    const color = colorsOf(card).reduce((a, b) => (toward(game, p, b) > toward(game, p, a) ? b : a));
+    if (count(p, color) + 1 === size(color) && fullColors(game, p).length < 2) continue;
+    return { type: "place", card, color };
+  }
+  return null;
+};
+/** Says no like the default to a Deal Breaker, and to anything else only with more than `spare` Just Say Nos in hand. */
+const saveNo =
+  (spare: number): Policy["sayNo"] =>
+  (game, p, move, from) =>
+    isAction(move.card, "dealBreaker") || (p.hand.filter((c) => isAction(c, "justSayNo")).length > spare && defaultPolicy.sayNo(game, p, move, from));
+
 const steps = Object.values(STEPS) as Step[];
 const without = (...drop: Step[]) => steps.filter((s) => !drop.includes(s));
 const swap = (from: Step, to: Step) => steps.map((s) => (s === from ? to : s));
@@ -113,6 +131,11 @@ const VARIANTS: Record<string, () => Policy> = {
   "any-color Rent and Debt Collector on the leader (previous)": both(leader),
   "any-color Rent and Debt Collector on the most paid in property": both(mostProperty),
   "any-color Rent on the least banked": () => heuristic(...swap(STEPS.rent, charge(leastBanked))),
+  "hold the card that completes a set unless it wins": () =>
+    heuristic(...steps.map((s) => (s === complete ? completeToWin : s === place ? placeHolding : s === placeWhenBanked ? placeOnce(10, placeHolding) : s))),
+  "Just Say No only against Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(Infinity) }),
+  "keep one Just Say No for a Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(1) }),
+  "keep two Just Say Nos for a Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(2) }),
   ...Object.fromEntries(
     [5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))]),
   ),
