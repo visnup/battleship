@@ -101,7 +101,9 @@
       before the bank only when the bank can't cover it is even. Likely the two-round `chance`
       overvalues money kept in the bank (fits the data, not reproduced). The default's rule
       stands.
-- [ ] When to Just Say No, by playouts at each decision to say it.
+- [x] When to Just Say No, by playouts at each decision to say it (`sayno.ts`, 2026-11-16). It
+      lets Debt Collector through and leaves a No against its own action standing, but
+      head to head the first is even and never countering loses 0.5 to 0.7 points.
 - [x] Tests for `STEPS`: a small board per rule (`game.test.ts`), so a refactor can't
       quietly change the default player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.

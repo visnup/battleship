@@ -227,6 +227,8 @@ export const VARIANTS: Record<string, () => Policy> = {
   "pay with one loose property when it covers the charge": () => ({ ...defaultPolicy, pay: payOneLoose }),
   "pay with loose properties before money": () => ({ ...defaultPolicy, pay: payLooseFirst }),
   "pay with loose properties before money when the bank can't cover it": () => ({ ...defaultPolicy, pay: payTableFirst }),
+  "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),
+  "never counter a Just Say No": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => game.players[game.current] !== p && defaultPolicy.sayNo(game, p, move, from) }),
   "Forced Deal for the best chance":withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
   "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),

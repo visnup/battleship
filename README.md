@@ -312,8 +312,9 @@ playouts that play each deal to the end:
   whenever it covers the charge wins 36.0% at 2 players and 10.0% at 5. The two-round score
   probably overvalues money kept in the bank. Paying from loose properties first, only when the
   bank can't cover the charge, is even.
-
-Untouched so far: when to hold Just Say No.
+- **When to Just Say No.** `scripts/sayno.ts` does the same at each chance to say it. Playouts
+  would let a Debt Collector through and leave a No against their own action standing, but head
+  to head the first is even and never countering a No loses 0.5 to 0.7 points.
 
 ## What each card is worth
 
