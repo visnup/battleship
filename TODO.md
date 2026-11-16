@@ -39,9 +39,10 @@
             edited; `arrange` would make new `Placed`s) and key a `WeakMap` on the array. Plays
             stay mutable: copying state on every play would cost more in garbage than it saves.
       - [x] Rollouts cut off after two rounds and scored from the board (`chance`): 2.5× faster,
-            and a stronger player, not a weaker one. By regret, 0.73 points a decision against
-            1.30 at 5 players, and 0.77 against 0.98 at 2. One round was faster again but worse
-            at 5 (0.94). The row now takes 21.5 minutes, and playouts win 8 to 10 points more.
+            and a stronger player, not a weaker one. By regret on the richer `chance`
+            (2026-11-16, ±2 SE), 0.73 ± 0.12 points a decision against 1.21 ± 0.17 at 5
+            players, and 0.54 ± 0.08 against 1.03 ± 0.14 at 2; paired on the same decisions,
+            −0.48 ± 0.19 and −0.49 ± 0.16. One round was faster again but worse (0.88, 0.92). The row now takes 21.5 minutes, and playouts win 8 to 10 points more.
       - Comparing playouts and the default on the same deals doesn't help: it cut variance
         2.3× for banker at 2 players, but made it worse for builder, which, like playouts,
         plays very differently from the default.
@@ -60,7 +61,10 @@
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
       (at 16, one round 36.6% at 5 players, two 31.7%, three 26.4%), and stopping at the end of
-      the turn is worse than the default at 2 players. A richer `chance` (sets half done, rent
+      the turn is worse than the default at 2 players. Retuned on the richer `chance`
+      (2026-11-16, 8,000 games, ±1.5): nothing beats 80 deals and two rounds within the
+      30-minute row. One round at 160 deals is 0.6× the time and +1.3 at 5 players but −2.5 at
+      2; two rounds at 160 is +1.7 and +1.5 at 1.5× the time; z = 1.5 gains nothing. A richer `chance` (sets half done, rent
       cards, cash and properties in hand) added 1.9 points at 2 players and 1.2 at 5. Still to
       try: more of that, and a better rollout player. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)

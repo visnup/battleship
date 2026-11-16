@@ -165,10 +165,10 @@ export function random(seed = 1): Policy {
  * Plays out every legal move, and ending the turn, with `rollout` for everyone, and makes the
  * move that wins most. Each playout first shuffles the cards `p` can't see, the other hands and
  * the draw pile, so it doesn't peek, and stops after `rounds` rounds, scored by `chance`. Against
- * playing to the end, two rounds are 2.5× faster at 5 players and 4× at 2, and pick better moves
- * (each pick valued on 1,000 full deals: 0.73 points from the best a decision against 1.30 at 5
- * players, 0.77 against 0.98 at 2), probably because the end of a game is mostly noise. One round
- * is faster still and worse at 5 players. Moves race on shared shuffles, 8 at a time, so they differ
+ * playing to the end, two rounds are 2.6× faster at 5 players and 3.7× at 2, and pick better
+ * moves (each pick valued on 1,000 full deals: 0.73 ± 0.12 points from the best a decision
+ * against 1.21 ± 0.17 at 5 players, 0.54 ± 0.08 against 1.03 ± 0.14 at 2), probably because the
+ * end of a game is mostly noise. One round is faster still and worse. Moves race on shared shuffles, 8 at a time, so they differ
  * by the move and not by the luck of the deal: a move drops out once it's `z` standard errors
  * of the paired difference behind the leader, and the race stops at `n` deals a move. Easy
  * decisions end after a round or two. Against `n` deals for every move, this loses no decision
