@@ -33,7 +33,8 @@ Everyone is dealt 5 cards. Each turn you draw 2 (5 if your hand is empty) and pl
 You pay what you owe from your bank and your properties, your choice, and get no change. If you
 can't pay it all, you pay everything you have. Just Say No cancels any action against you, and
 can itself be cancelled by another. You end your turn with at most 7 cards in hand. Three full
-sets of different colors win.
+sets of different colors win. When the draw pile runs out, the cards played are shuffled into a
+new one.
 
 ## How to read the numbers
 
@@ -43,6 +44,9 @@ win at best.
 
 **A fair share** is 100% ÷ players: 50% at 2 players, 20% at 5.
 
+**Points** are percentage points of a share of wins, never money or cards: winning 21.7% of games
+instead of 20.0% is +1.7 points.
+
 **One hand-written player** plays every seat, or every seat but one: `defaultPolicy` in
 `src/game.ts`. It tries a list of rules in order and makes the first move one allows: complete a
 set, Deal Breaker, Sly Deal, charge rent, Debt Collector, Birthday, Forced Deal, bank, and only
@@ -50,7 +54,10 @@ then lay down properties. Every table depends on how well it plays, and "Playing
 that list was found and how far it is from the best play we know.
 
 **Noise.** Most tables are 100,000 games per cell, so a share of wins is good to about ±0.3
-points. Games are played from seeded deals, so a comparison plays both sides on the same deals.
+points, two standard errors. Games are played from seeded deals, so a comparison plays both sides
+on the same deals.
+
+**Stalled** games are ones with no winner after 1,000 turns. They count as a win for no one.
 
 Node 24 runs everything with no dependencies, and each section names the script behind it:
 
@@ -114,7 +121,9 @@ lot to find. At 2 players it's no better, within its ±4 points.
 
 *From `node scripts/variants.ts`.* `scripts/decisions.ts` plays out every legal move at each of
 the default player's decisions and lists the kinds of decision where playouts, rechecked on fresh
-deals, clearly beat it. Each pattern became a variant, played head to head against the default.
+deals, clearly beat it. Each pattern became a variant, played head to head like the strategies
+above: one player plays the variant, the default plays every other seat, and the table gives the
+variant's share of wins.
 `scripts/order.ts` also searched the order of the rules, moving one at a time. Rows marked
 "(previous)" are what the default used to do, so each costs the default about as much as the
 change from it gained.
@@ -164,12 +173,12 @@ $10M.
 **Deal Breaker had a bug.** It sorted sets of a color it already had first, then refused them, so
 it often skipped a better target. Fixing it was worth 1 point at 5 players.
 
-Tried and rejected, besides the alternatives in the table (20,000 games each, against 50.1% and
-19.6% for the default against itself on the same deals):
+Tried and rejected, besides the alternatives in the table (20,000 games each, at 2 and 5
+players, against 50.1% and 19.6% for the default in that seat on the same deals):
 
 - Choosing which property to lay down first: by the most progress toward a set, the least, wilds
   first, wilds last, the cheapest, the dearest, the highest rent or the smallest set. All were
-  within noise of taking the first one in hand, or worse (wilds first: 18.6% at 5 players).
+  within noise of taking the first one in hand, the one held longest, or worse (wilds first: 18.6% at 5 players).
 - Laying down a property of a color a Rent card in hand charges, then charging: 49.7% and 18.8%.
 - Laying down properties before Debt Collector and Birthday: 46.2% and 16.5%.
 
@@ -192,7 +201,8 @@ Untouched so far: when to hold Just Say No, and what to pay with.
 
 *From `node scripts/cards.ts`*, which deals each game twice: once as dealt, and once with one copy
 of a card moved from the draw pile into one player's opening hand. The difference in that player's
-wins is the card's value, in points. The noise is about ±0.5 points. Sorted by 4 players:
+wins is the card's value, in points. The noise is about ±0.5 points, and $M is what the card is
+worth as money. Sorted by 4 players:
 
 | card | $M | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |
@@ -297,8 +307,9 @@ plan.
 The rule sheet leaves some rules open, and Hasbro publishes no FAQ to settle them. Fan sites
 disagree, and they rarely cite a source. So the engine reads each one way (see `CLAUDE.md`), and
 *`node scripts/sensitivity.ts`* plays 100,000 games each way from the same seeds, for each player
-count. Each cell gives the share of games whose winner changes, then the change in the first
-player's share of wins in points, then the change in turns per game:
+count. Each row names the other reading. Each cell gives the share of games whose winner changes,
+then the change in the first player's share of wins in points, then the change in turns per game,
+then any change in the number of stalled games:
 
 | reading | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
