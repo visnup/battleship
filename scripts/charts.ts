@@ -177,7 +177,7 @@ const xOf = (r: Row) => {
 const worth = cardRows.flatMap((r) => [2, 5].map((k) => ({ card: r.card, kind: kindOf(r.card), x: xOf(r), players: `${k} players`, value: num(r[`${k} players`]) })));
 const spans = cardRows.map((r) => {
   const vs = worth.filter((d) => d.card === r.card).map((d) => d.value);
-  return { card: r.card, kind: kindOf(r.card), x: xOf(r), lo: Math.min(...vs), hi: Math.max(...vs) };
+  return { card: r.card, kind: kindOf(r.card), x: xOf(r), hi: Math.max(...vs), from: vs[0], to: vs[1] };
 });
 const named = new Set([...Map.groupBy(spans, (s) => s.kind).values()].map((ss) => ss.reduce((a, b) => (b.hi > a.hi ? b : a)).card).concat("$10M"));
 save("worth", {
@@ -190,7 +190,7 @@ save("worth", {
   color: playerColor,
   marks: [
     Plot.ruleY([0], dashed),
-    Plot.ruleX(spans, { x: "x", y1: "lo", y2: "hi", fy: "kind", stroke: art.gray, strokeOpacity: 0.5, strokeWidth: 2 }),
+    Plot.arrow(spans.filter((s) => Math.abs(s.to - s.from) > 0.8), { x: "x", y1: "from", y2: "to", fy: "kind", stroke: art.gray, strokeWidth: 1.5, headLength: 5, insetStart: 4, insetEnd: 4 }),
     Plot.dot(worth, { x: "x", y: "value", fy: "kind", fill: "players", stroke: art.paper, strokeWidth: 0.5, r: 3 }),
     ...[1, -1].map((side) =>
       Plot.text(
