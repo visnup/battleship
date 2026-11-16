@@ -414,6 +414,8 @@ ahead wins them, and in parentheses how often the one furthest behind does. 100,
 | 7 | 67%: 80% (20%) | 43%: 66% (8%) | 23%: 57% (4%) | 8%: 50% (2%) |
 | 8 | 47%: 79% (21%) | 21%: 63% (9%) | 7%: 52% (5%) | 1%: 51% (1%) |
 
+![After each round, how often the player ahead (solid) and the one furthest behind (dashed) go on to win](charts/decided.svg)
+
 **Nothing is decided early.** After three rounds the player ahead wins 72% of 2-player games and
 48% at 5, where a fair share is 20%. Whoever is furthest behind still wins 28% at 2 players and
 6% at 5.
@@ -437,6 +439,8 @@ being ahead says less. At 5 players two thirds of games are over by round 6.
 | property paid a game | $3.2M | $10.1M | $19.6M | $31.5M |
 | winner ever paid in property | 19% | 32% | 39% | 43% |
 | each loser ever paid in property | 36% | 52% | 63% | 72% |
+
+![How often payments cost property, and how many players ever pay in property, by player count](charts/paying.svg)
 
 **Big tables are expensive.** Two-color Rent cards and Birthday charge everyone, so at 5 players
 there are six times as many payments as at 2, and $31.5M of property changes hands a game.
@@ -477,6 +481,8 @@ parentheses) how many hands that was. Rent cards count as actions and wilds as p
 | 2 | 0.93 (19%) | 0.93 (19%) | 0.92 (19%) | 0.90 (19%) |
 | 3 | 0.85 (4%) | 0.86 (4%) | 0.84 (4%) | 0.82 (4%) |
 
+![Wins in fair shares by how many actions, properties and money cards the opening hand held](charts/openings.svg)
+
 **Action cards make a hand.** A hand of four or five action cards wins 1.1 to 1.4 fair shares,
 and one with none 0.67 to 0.87. Properties and money are the weak cards to open with.
 
@@ -500,6 +506,8 @@ then any change in the number of stalled games:
 | Deal Breaker leaves the house and hotel | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
 | A set of only multicolored wilds is full | 0.3%: +0.0, +0.0 | 1.0%: +0.0, +0.0 | 2.0%: +0.0, +0.0 | 3.0%: +0.0, +0.0 |
 | No reshuffle | 0.0%: +0.0, +0.0 | 0.1%: +0.0, +0.4, +38 stalled | 4.5%: −0.7, +30.6, +3170 stalled | 21.8%: −2.8, +160.9, +16671 stalled |
+
+![How often each other reading changes the winner, by player count](charts/readings.svg)
 
 Once a reading changes one play, the rest of the game goes differently, and the winner then
 changes about as often as in an unrelated game. So the first number tracks how often the rule

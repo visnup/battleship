@@ -13,7 +13,7 @@ const { document } = new JSDOM("").window;
 function table(first: string, after = ""): Row[] {
   const lines = readme.split("\n");
   const from = after ? lines.indexOf(after) : 0;
-  const start = lines.findIndex((l, i) => i > from && l.startsWith(`| ${first} |`));
+  const start = lines.findIndex((l, i) => i > from && l.startsWith(first ? `| ${first} |` : "| |"));
   if (start < 0) throw new Error(`no table starting with "${first}"`);
   const cells = (l: string) => l.split("|").slice(1, -1).map((c) => c.trim());
   const head = cells(lines[start]);
@@ -210,3 +210,92 @@ save("colors", {
     Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.ink, strokeWidth: 2 }),
   ],
 }, true);
+
+// When a game is decided: after each round, how often the player ahead wins, and the one furthest behind.
+const decided = table("after round").flatMap((r) =>
+  counts.flatMap((k) => {
+    const m = r[`${k} players`].match(/: ([\d.]+)% \(([\d.]+)%\)/);
+    if (!m) return [];
+    return [
+      { round: +r["after round"], players: `${k} players`, who: "ahead", wins: +m[1] },
+      { round: +r["after round"], players: `${k} players`, who: "behind", wins: +m[2] },
+    ];
+  }),
+);
+save("decided", {
+  width: 640,
+  height: 360,
+  marginRight: 70,
+  x: { label: "After round", type: "point", padding: 0.4 },
+  y: { label: "Goes on to win (%)", grid: true, domain: [0, 100] },
+  color: playerColor,
+  marks: [
+    Plot.line(decided.filter((d) => d.who === "ahead"), { x: "round", y: "wins", stroke: "players", strokeWidth: 2 }),
+    Plot.line(decided.filter((d) => d.who === "behind"), { x: "round", y: "wins", stroke: "players", strokeWidth: 2, strokeDasharray: "4,3" }),
+    Plot.dot(decided, { x: "round", y: "wins", fill: "players", stroke: art.paper, r: 3 }),
+    Plot.text(
+      decided.filter((d) => d.round === 4 && d.players === "2 players"),
+      { x: "round", y: "wins", text: (d) => (d.who === "ahead" ? "the player ahead" : "the one furthest behind"), dy: -12, ...halo },
+    ),
+    // 4 and 5 players end a point apart
+    ...[-6, 0, 6].map((dy) =>
+      Plot.text(
+        decided.filter((d) => d.who === "ahead" && (({ "4 players": -6, "5 players": 6 }) as Record<string, number>)[d.players] === (dy || undefined)),
+        Plot.selectLast({ x: "round", y: "wins", z: "players", text: "players", textAnchor: "start", dx: 8, dy, ...halo }),
+      ),
+    ),
+  ],
+});
+
+// Paying: how often payments cost property, and how many players ever pay in property.
+const pays = table("")
+  .filter((r) => r[`${counts[0]} players`].endsWith("%"))
+  .flatMap((r) => counts.map((k) => ({ measure: r[""], players: k, share: num(r[`${k} players`]) })));
+save("paying", {
+  width: 640,
+  height: 320,
+  marginRight: 200,
+  x: { label: "Players", type: "point", domain: counts, padding: 0.4 },
+  y: { label: "Share (%)", grid: true, domain: [0, 80] },
+  marks: [
+    Plot.line(pays, { x: "players", y: "share", z: "measure", stroke: art.ink, strokeWidth: 2 }),
+    Plot.dot(pays, { x: "players", y: "share", fill: art.ink, stroke: art.paper, r: 4 }),
+    Plot.text(pays, Plot.selectLast({ x: "players", y: "share", z: "measure", text: "measure", textAnchor: "start", dx: 8, ...halo })),
+  ],
+});
+
+// Opening hands: wins in fair shares by how many of each kind of card the opening hand held.
+const openings = (["actions", "properties", "money cards"] as const).flatMap((kind) =>
+  table(kind).flatMap((r) => counts.map((k) => ({ kind, held: +r[kind], players: `${k} players`, shares: num(r[`${k} players`]) }))),
+);
+save("openings", {
+  width: 760,
+  height: 300,
+  marginRight: 70,
+  x: { label: "In the opening hand", type: "point", padding: 0.3 },
+  y: { label: "Wins, in fair shares", grid: true },
+  fx: { label: null, domain: ["actions", "properties", "money cards"], padding: 0.3 },
+  color: playerColor,
+  marks: [
+    Plot.ruleY([1], dashed),
+    Plot.line(openings, { fx: "kind", x: "held", y: "shares", stroke: "players", strokeWidth: 2 }),
+    Plot.dot(openings, { fx: "kind", x: "held", y: "shares", fill: "players", stroke: art.paper, r: 3 }),
+    Plot.text(openings.filter((d) => d.kind === "actions"), Plot.selectLast({ fx: "kind", x: "held", y: "shares", z: "players", text: "players", textAnchor: "start", dx: 8, ...halo })),
+  ],
+});
+
+// Rules questions: how often each other reading changes the winner.
+const readingRows = table("reading");
+const readings = readingRows.flatMap((r) => counts.map((k) => ({ reading: r.reading, players: `${k}`, changed: num(r[`${k} players`]) })));
+save("readings", {
+  width: 560,
+  height: 40 + readingRows.length * 24,
+  marginLeft: 300,
+  x: { label: "Players", axis: "top", type: "band" },
+  y: { label: null, domain: readingRows.map((r) => r.reading) },
+  color: { type: "sqrt", scheme: "Blues", domain: [0, 25] },
+  marks: [
+    Plot.cell(readings, { x: "players", y: "reading", fill: "changed", inset: 0.5 }),
+    Plot.text(readings, { x: "players", y: "reading", text: (d) => `${d.changed.toFixed(1)}%`, fill: (d) => (d.changed > 10 ? art.paper : art.ink), fontSize: 10 }),
+  ],
+});
