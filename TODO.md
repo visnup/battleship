@@ -98,9 +98,9 @@
 - [x] What to pay with, by playouts (`pay.ts`, 2026-11-16). At 5 players it paid with a loose
       property where the default paid money in 904 of 3,251 payments, +0.8 points each by its
       two-round score. Head to head that loses 10 to 26 points; paying from loose properties
-      before the bank only when the bank can't cover it is even. Likely the two-round `chance`
-      overvalues money kept in the bank (fits the data, not reproduced). The default's rule
-      stands.
+      before the bank only when the bank can't cover it is even. Not because `chance` overvalues the bank: halving its weight left quick playouts
+      unchanged and zeroing it lost 3 points at 5 players (4,000 games). More likely playouts
+      want property only in some spots, and no rule found them. The default's rule stands.
 - [x] When to Just Say No, by playouts at each decision to say it (`sayno.ts`, 2026-11-16). It
       lets Debt Collector through and leaves a No against its own action standing, but
       head to head the first is even and never countering loses 0.5 to 0.7 points.

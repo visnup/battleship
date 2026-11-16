@@ -309,8 +309,9 @@ playouts that play each deal to the end:
 - **What to pay with.** `scripts/pay.ts` replays each game to every payment the default makes and
   plays out each way to pay. At 5 players it pays with a loose property instead of money in a
   quarter of payments. Head to head that loses 10 to 26 points: paying with one loose property
-  whenever it covers the charge wins 36.0% at 2 players and 10.0% at 5. The two-round score
-  probably overvalues money kept in the bank. Paying from loose properties first, only when the
+  whenever it covers the charge wins 36.0% at 2 players and 10.0% at 5. Playouts want property only in some
+  spots, and no rule tried picks them out (`chance` overvaluing the bank isn't why: halving its
+  weight changed nothing). Paying from loose properties first, only when the
   bank can't cover the charge, is even.
 - **When to Just Say No.** `scripts/sayno.ts` does the same at each chance to say it. Playouts
   would let a Debt Collector through and leave a No against their own action standing, but head
