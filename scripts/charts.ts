@@ -167,27 +167,38 @@ save("cards", {
 const kinds = { action: art["dark blue"], rent: art.orange, property: art.green, wild: art.pink, money: art.gray };
 const kindOf = (card: string): keyof typeof kinds =>
   card.startsWith("$") ? "money" : card.startsWith("Rent") ? "rent" : card.startsWith("Property Wild") ? "wild" : card in art ? "property" : "action";
-const worth = cardRows.flatMap((r) => counts.map((k) => ({ card: r.card, kind: kindOf(r.card), money: +r.$M, players: `${k} players`, value: num(r[`${k} players`]) })));
-const top = new Set(counts.flatMap((k) => worth.filter((d) => d.players === `${k} players`).sort((a, b) => b.value - a.value).slice(0, 3)));
+// Cards of a kind with the same $M sit side by side.
+const sameWorth = Map.groupBy(cardRows, (r) => `${kindOf(r.card)} ${r.$M}`);
+const xOf = (r: Row) => {
+  const group = sameWorth.get(`${kindOf(r.card)} ${r.$M}`)!;
+  return +r.$M + (group.indexOf(r) - (group.length - 1) / 2) * 0.22;
+};
+const worth = cardRows.flatMap((r) => counts.map((k) => ({ card: r.card, kind: kindOf(r.card), x: xOf(r), players: `${k} players`, value: num(r[`${k} players`]) })));
+const spans = cardRows.map((r) => {
+  const vs = worth.filter((d) => d.card === r.card).map((d) => d.value);
+  return { card: r.card, kind: kindOf(r.card), x: xOf(r), lo: Math.min(...vs), hi: Math.max(...vs) };
+});
+const named = new Set([...Map.groupBy(spans, (s) => s.kind).values()].map((ss) => ss.reduce((a, b) => (b.hi > a.hi ? b : a)).card).concat("$10M"));
 save("worth", {
   width: 640,
-  height: 720,
+  height: 760,
   marginRight: 70,
-  x: { label: "Worth as money ($M)", grid: true, domain: [0, 10.5], insetLeft: 6 },
+  x: { label: "Worth as money ($M)", grid: true, domain: [0, 10.5], insetLeft: 6, insetRight: 6 },
   y: { label: "Value (points)", grid: true, tickFormat: signed },
-  fy: { label: null },
-  color: { domain: Object.keys(kinds), range: Object.values(kinds) },
+  fy: { label: null, domain: Object.keys(kinds) },
+  color: playerColor,
   marks: [
     Plot.ruleY([0], dashed),
-    Plot.dot(worth, { x: "money", y: "value", fy: "players", fill: "kind", stroke: art.paper, r: 4 }),
+    Plot.ruleX(spans, { x: "x", y1: "lo", y2: "hi", fy: "kind", stroke: art.gray, strokeOpacity: 0.5, strokeWidth: 2 }),
+    Plot.dot(worth, { x: "x", y: "value", fy: "kind", fill: "players", stroke: art.paper, strokeWidth: 0.5, r: 3 }),
     ...[1, -1].map((side) =>
       Plot.text(
-        worth.filter((d) => (top.has(d) || d.card === "$10M") && (d.money > 8 ? -1 : 1) === side),
-        { x: "money", y: "value", fy: "players", text: (d) => `${d.card} ${plus(d.value)}`, textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
+        spans.filter((s) => named.has(s.card) && (s.x > 8 ? -1 : 1) === side),
+        { x: "x", y: "hi", fy: "kind", text: (s) => `${s.card} ${plus(s.hi)}`, textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
       ),
     ),
-    ...Object.entries(kinds).map(([kind, fill], i) =>
-      Plot.text([kind], { frameAnchor: "top-right", fy: ["2 players"], ...halo, text: [`● ${kind}`], fill, dx: -4, dy: 4 + 14 * i, fontSize: 10, fontWeight: "bold" }),
+    ...counts.map((k, i) =>
+      Plot.text([k], { frameAnchor: "top-right", fy: ["action"], ...halo, text: [`● ${k} players`], fill: playerColor.range[i], dx: -4, dy: 4 + 14 * i, fontSize: 10, fontWeight: "bold" }),
     ),
   ],
 });
