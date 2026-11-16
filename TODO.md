@@ -48,7 +48,10 @@
         plays very differently from the default.
 - [ ] Close more of the gap to playouts, now 12 to 23 points. `decisions.ts` and the rule
       screens still play each deal to the end; cut them off like playouts, which would make
-      them faster and their picks better, then look for patterns again. Done: placement
+      them faster and their picks better, then look for patterns again. Found, not adopted
+      yet: banking Forced Deal in the first round, +0.35 to +0.4 points at 3–5 players and
+      −0.3 at 2 (400,000 games). Adopt it, at 3+ players, with the next change that reruns
+      the tables. Done: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also
@@ -75,7 +78,7 @@
 
 - [x] Who wins: seat order and player count (2 to 5). Going first is worth 13.6 points at 2.
 - [x] What each card is worth (`cards.ts`): Deal Breaker by far, then two-color Rents at big
-      tables and Just Say No at small ones. Not split yet by whether it's played, banked or held.
+      tables and Just Say No at small ones.
 - [x] Bank or build: never build, and bank about $10M before laying properties down.
 - [x] Which colors to chase (`colors.ts`): the 2-card sets, especially dark blue.
 - [x] How long games last, and how often the draw pile runs out.
@@ -84,8 +87,10 @@
       2.16 at 5, so skill counts for more at big tables.
 - [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 72% at 2
       players and 48% at 5. Comebacks last at 2 players and run out at 5.
-- [ ] Each card's value split by use: played, banked or held. Is a Rent card worth more as
-      $1M early? Is a held Just Say No worth more than one played?
-- [ ] Bank size: how much cash to keep against rent, and how often players pay in property
-      instead. Charging whoever has to pay in property suggests an ideal cushion.
-- [ ] Opening hands: which 5-card deals win, and whether any is worth a mulligan.
+- [x] Played or banked (`cards.ts`): every action card is worth far more played, except
+      Forced Deal early at 3+ players. Holding one unplayed isn't measured: no player here
+      reads another's hand, so a held card can't deter.
+- [x] Paying (`payments.ts`): at 5 players the bank is down to $7.5M when charged, one payment
+      in four costs property, and 72% of losers pay in property at least once.
+- [x] Opening hands (`openings.ts`): action cards make a hand, and it matters more at big
+      tables (0.61 to 1.41 fair shares at 5 players). The sheet has no mulligan.

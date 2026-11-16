@@ -323,6 +323,43 @@ blue, pink and railroad are worth least.
 A card worth nothing or less, like Forced Deal or a railroad at 5 players, shows where the
 default player misplays it, not that you'd be better off without it.
 
+### Played or banked
+
+The same deals again, with the extra action or Rent card banked on the player's first play
+instead. Each cell is the card's value banked, then (in parentheses) played as the default plays
+it:
+
+| card | $M | 2 players | 3 players | 4 players | 5 players |
+| --- | --- | --- | --- | --- | --- |
+| Deal Breaker | 5 | +2.8 (+28.7) | +3.3 (+26.2) | +2.6 (+21.2) | +1.6 (+15.9) |
+| Rent, dark blue/green | 1 | −0.2 (+3.3) | +1.1 (+5.6) | +1.2 (+7.6) | +0.7 (+8.7) |
+| Just Say No | 4 | +1.3 (+12.8) | +2.1 (+10.2) | +1.7 (+7.1) | +1.0 (+4.8) |
+| It's My Birthday | 2 | +0.6 (+4.6) | +1.7 (+5.8) | +1.8 (+6.2) | +1.0 (+6.4) |
+| Rent, red/yellow | 1 | −0.1 (+2.3) | +1.0 (+4.0) | +1.1 (+6.1) | +0.7 (+6.4) |
+| Rent, any color | 3 | +1.0 (+4.9) | +1.9 (+5.5) | +1.9 (+5.0) | +1.7 (+4.1) |
+| Rent, pink/orange | 1 | −0.0 (+0.7) | +1.5 (+3.6) | +0.7 (+4.6) | +0.4 (+5.4) |
+| Rent, light blue/brown | 1 | −0.1 (+0.2) | +0.8 (+3.2) | +1.2 (+4.6) | +0.2 (+4.8) |
+| Rent, railroad/utility | 1 | −0.2 (−0.0) | +1.2 (+3.1) | +0.8 (+4.4) | +0.7 (+5.0) |
+| Debt Collector | 3 | +1.1 (+9.0) | +1.8 (+5.3) | +1.5 (+4.1) | +1.2 (+2.7) |
+| Pass Go | 1 | +0.1 (+5.5) | +2.0 (+3.8) | +1.0 (+2.8) | +0.9 (+1.3) |
+| Sly Deal | 3 | +1.2 (+8.0) | +2.0 (+3.2) | +1.8 (+1.7) | +1.1 (+0.4) |
+| House | 3 | +1.4 (+1.3) | +1.9 (+1.7) | +1.8 (+1.5) | +1.1 (+0.9) |
+| Hotel | 4 | +1.7 (+1.4) | +2.6 (+2.2) | +1.8 (+1.5) | +1.3 (+0.8) |
+| Double the Rent | 1 | +0.2 (+1.0) | +1.2 (+0.5) | +0.5 (+0.3) | +0.4 (+0.5) |
+| Forced Deal | 3 | +1.2 (+3.2) | +2.1 (+1.0) | +1.9 (+0.3) | +1.4 (−0.2) |
+
+**Play your action cards; don't bank them.** Banked on the first play, none is worth more than
+3.3 points, about what money is. Played, Deal Breaker is worth ten times that, and most Rent
+cards several times. A Rent card's $1M is the least of it.
+
+**Except Forced Deal, early, at 3 or more players.** It's worth more banked on the first play
+than as the default plays it. Banking every Forced Deal still loses, 1.1 points at 5 players and
+3 at 2 (`variants.ts`). Banking one only in the first round gains 0.35 to 0.4 points at 3 to 5
+players and loses 0.3 at 2 (400,000 games). Sly Deal at 5 players is the same story, but
+banking every Sly Deal loses 2 to 7 points.
+
+Houses and hotels come out the same either way: the default banks them already.
+
 ## Which colors to chase
 
 *From `node scripts/colors.ts`*, which counts, at the end of each game, the colors of the winner's
@@ -385,6 +422,64 @@ the leader, but the last player rarely catches all of them.
 
 **The lead stops growing after round 5 or so.** Games still going then are the close ones, so
 being ahead says less. At 5 players two thirds of games are over by round 6.
+
+## Paying
+
+*From `node scripts/payments.ts`*, every payment in 100,000 games of default players each:
+
+| | 2 players | 3 players | 4 players | 5 players |
+| --- | --- | --- | --- | --- |
+| payments a game | 6.6 | 16.0 | 26.7 | 39.8 |
+| bank when charged | $10.9M | $8.9M | $8.0M | $7.5M |
+| paid partly in property | 14% | 19% | 22% | 24% |
+| property paid a game | $3.2M | $10.1M | $19.6M | $31.5M |
+| winner ever paid in property | 19% | 32% | 39% | 43% |
+| each loser ever paid in property | 36% | 52% | 63% | 72% |
+
+**Big tables are expensive.** Two-color Rent cards and Birthday charge everyone, so at 5 players
+there are six times as many payments as at 2, and $31.5M of property changes hands a game.
+
+**The bank runs dry with more players.** The default banks about $10M before laying properties
+down, and at 2 players that's what it has when charged. At 5 it's $7.5M, and one payment in four
+costs property. Most losers at 5 players pay in property at least once, and so do 43% of winners:
+paying in property hurts, but it doesn't decide the game.
+
+## Opening hands
+
+*From `node scripts/openings.ts`*, each player's wins in 100,000 games of default players, by
+what its 5 opening cards were. Each cell is wins in fair shares (1.00 is a fair share), then (in
+parentheses) how many hands that was. Rent cards count as actions and wilds as properties.
+
+| actions | 2 players | 3 players | 4 players | 5 players |
+| --- | --- | --- | --- | --- |
+| 0 | 0.87 (5%) | 0.77 (5%) | 0.71 (5%) | 0.67 (5%) |
+| 1 | 0.93 (21%) | 0.88 (21%) | 0.84 (21%) | 0.82 (21%) |
+| 2 | 0.99 (35%) | 0.99 (35%) | 0.97 (35%) | 0.96 (35%) |
+| 3 | 1.05 (27%) | 1.07 (27%) | 1.10 (27%) | 1.12 (27%) |
+| 4 | 1.10 (10%) | 1.17 (10%) | 1.24 (10%) | 1.28 (10%) |
+| 5 | 1.14 (1%) | 1.27 (1%) | 1.32 (2%) | 1.41 (2%) |
+
+| properties | 2 players | 3 players | 4 players | 5 players |
+| --- | --- | --- | --- | --- |
+| 0 | 1.00 (9%) | 1.09 (9%) | 1.13 (10%) | 1.17 (9%) |
+| 1 | 1.01 (30%) | 1.04 (29%) | 1.08 (29%) | 1.09 (30%) |
+| 2 | 1.01 (35%) | 1.01 (35%) | 1.00 (35%) | 0.99 (35%) |
+| 3 | 0.99 (20%) | 0.94 (20%) | 0.90 (20%) | 0.89 (20%) |
+| 4 | 0.95 (6%) | 0.84 (5%) | 0.78 (6%) | 0.74 (5%) |
+| 5 | 0.84 (1%) | 0.74 (1%) | 0.66 (1%) | 0.61 (1%) |
+
+| money cards | 2 players | 3 players | 4 players | 5 players |
+| --- | --- | --- | --- | --- |
+| 0 | 1.07 (34%) | 1.07 (34%) | 1.07 (34%) | 1.08 (34%) |
+| 1 | 0.99 (42%) | 1.00 (42%) | 0.99 (42%) | 1.00 (42%) |
+| 2 | 0.93 (19%) | 0.93 (19%) | 0.92 (19%) | 0.90 (19%) |
+| 3 | 0.85 (4%) | 0.86 (4%) | 0.84 (4%) | 0.82 (4%) |
+
+**Action cards make a hand.** A hand of four or five action cards wins 1.1 to 1.4 fair shares,
+and one with none 0.67 to 0.87. Properties and money are the weak cards to open with.
+
+**The opening hand matters more at big tables.** At 2 players every hand is within 16% of a fair
+share; at 5, the best and worst are more than twice apart.
 
 ## Rules questions
 
