@@ -544,7 +544,7 @@ then any change in the number of stalled games:
 | A broken set's house and hotel go to the bank | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
 | Deal Breaker leaves the house and hotel | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
 | A set of only multicolored wilds is full | 0.3%: +0.0, +0.0 | 1.0%: +0.0, +0.0 | 2.0%: +0.1, +0.0 | 3.2%: +0.0, +0.0 |
-| No reshuffle | 0.0%: +0.0, +0.0 | 0.1%: +0.0, +0.8, +81 stalled | 7.4%: −1.6, +52.3, +5418 stalled | 29.9%: −4.6, +230.5, +23889 stalled |
+| No reshuffle | 0.0%: +0.0, +0.0 | 0.1%: +0.0, +0.1, +81 stalled | 7.4%: −1.6, +9.0, +5418 stalled | 29.9%: −4.6, +39.4, +23889 stalled |
 
 Once a reading changes one play, the rest of the game goes differently, and the winner then
 changes about as often as in an unrelated game. So the first number tracks how often the rule
