@@ -111,6 +111,23 @@
       "Stalled games". Count its stalls at 5 players against the pacifist's 48 in 100,000, and
       see which of its rules matter most.
 - [ ] Idea: a page to play against quick playouts in the browser.
+- [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
+      move decision of 10,000 default games at each player count, with each move's two-round
+      playout value. It goes stale whenever the default player or `chance` changes, so
+      regenerate it first (66 minutes).
+      - [ ] Where the gap to playouts is: by card and situation, the value the default's pick
+            gives up against the best move. Minutes of SQL, and it says which of the rest are
+            worth doing.
+      - [ ] Screen rules offline: rebuild each board from what the mover sees (opponents' hands
+            as placeholders), run a candidate rule, and score its pick with the stored values.
+            Only what passes gets the 100,000-game check, since offline gains have failed head
+            to head before (paying).
+      - [ ] A learned board score in place of `chance`, from 2.7 million boards labeled with
+            who won, on what the mover can see.
+      - [ ] A learned rollout player: a model that predicts playouts' pick, played inside
+            playouts in place of the default. This is also the nonlinear model above.
+      - [ ] Tune racing offline: how close each decision's top moves are says how many deals
+            and what `z` it needs.
 
 ## Analysis
 
