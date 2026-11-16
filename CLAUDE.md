@@ -37,8 +37,9 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `scripts/decided.ts`: after each round, how often the player ahead by `chance` wins.
 - `scripts/payments.ts` and `scripts/openings.ts`: who pays what, and wins by opening hand.
 - `scripts/strong.ts`: findings rechecked against quick playouts in every other seat.
-- `scripts/pay.ts`: playouts at each of the default player's payments, found by replaying the
-  game from its seed, since a payment comes mid-turn and a copy can't play on from it.
+- `scripts/pay.ts` and `scripts/sayno.ts`: playouts at each of the default player's payments and
+  Just Say No decisions, found by replaying the game from its seed (`scripts/replay.ts`), since
+  they come mid-turn and a copy can't play on from there.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;
