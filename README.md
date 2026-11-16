@@ -103,7 +103,7 @@ slow, so they play 10,000 games per cell, which is good to about ±1 point.
 | banker | 49.9% | 33.3% | 25.4% | 20.4% |
 | pacifist | 11.9% | 2.0% (2 stalled) | 0.3% (2 stalled) | 0.0% (9 stalled) |
 | random | 7.4% | 2.1% | 0.9% | 0.4% |
-| playouts | 60.3% | 49.9% | 46.0% | 41.7% |
+| playouts | 62.1% | 51.1% | 46.5% | 43.2% |
 
 ![Each strategy's wins in fair shares, by player count](charts/strategies.svg)
 
@@ -124,7 +124,7 @@ wins most. For each deal it reshuffles the cards it can't see, the other hands a
 so it doesn't peek. Each deal stops after two rounds, and the board decides: a fitted chance to
 win from full sets, progress toward more, money and cards in hand (`scripts/chance.ts`). That's
 faster than playing to the end, and better: playing to the end, it won 50.3%, 39.5%, 36.4% and
-33.7%. It wins 10 to 22 points more than the default, so there is still a lot to find.
+33.7%. It wins 12 to 23 points more than the default, so there is still a lot to find.
 
 ## Playing well
 
@@ -221,7 +221,7 @@ beat the default.
 
 ### How good could the choices be?
 
-Playouts still beat the default by 10 to 22 points. What's left at 5 players, found with
+Playouts still beat the default by 12 to 23 points. What's left at 5 players, found with
 playouts that play each deal to the end:
 
 - **Forced Deal.** At 5 players, the best Forced Deal by playouts, rechecked on fresh deals, beats
@@ -359,17 +359,17 @@ ahead wins them, and in parentheses how often the one furthest behind does. 100,
 
 | after round | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
-| 1 | 100%: 63% (37%) | 100%: 47% (24%) | 100%: 37% (18%) | 100%: 31% (14%) |
-| 2 | 100%: 67% (33%) | 100%: 52% (21%) | 100%: 43% (14%) | 100%: 38% (10%) |
-| 3 | 100%: 71% (29%) | 100%: 58% (17%) | 99%: 50% (10%) | 98%: 47% (6%) |
-| 4 | 99%: 75% (25%) | 97%: 63% (13%) | 94%: 57% (7%) | 88%: 55% (4%) |
-| 5 | 94%: 78% (22%) | 87%: 66% (10%) | 77%: 60% (5%) | 64%: 57% (2%) |
-| 6 | 84%: 80% (20%) | 67%: 67% (9%) | 50%: 60% (4%) | 32%: 55% (2%) |
-| 7 | 67%: 80% (20%) | 43%: 66% (9%) | 23%: 57% (4%) | 8%: 53% (2%) |
-| 8 | 47%: 79% (21%) | 21%: 63% (9%) | 7%: 52% (5%) | 1%: 52% (1%) |
+| 1 | 100%: 64% (36%) | 100%: 47% (24%) | 100%: 37% (18%) | 100%: 32% (13%) |
+| 2 | 100%: 68% (32%) | 100%: 52% (21%) | 100%: 43% (14%) | 100%: 39% (10%) |
+| 3 | 100%: 72% (28%) | 100%: 58% (16%) | 99%: 51% (10%) | 98%: 48% (6%) |
+| 4 | 99%: 76% (24%) | 97%: 64% (13%) | 94%: 58% (7%) | 88%: 55% (3%) |
+| 5 | 94%: 79% (21%) | 87%: 67% (10%) | 77%: 61% (5%) | 64%: 57% (2%) |
+| 6 | 84%: 80% (20%) | 67%: 68% (9%) | 50%: 60% (4%) | 32%: 54% (2%) |
+| 7 | 67%: 80% (20%) | 43%: 66% (8%) | 23%: 57% (4%) | 8%: 50% (2%) |
+| 8 | 47%: 79% (21%) | 21%: 63% (9%) | 7%: 52% (5%) | 1%: 51% (1%) |
 
-**Nothing is decided early.** After three rounds the player ahead wins 71% of 2-player games and
-47% at 5, where a fair share is 20%. Whoever is furthest behind still wins 29% at 2 players and
+**Nothing is decided early.** After three rounds the player ahead wins 72% of 2-player games and
+48% at 5, where a fair share is 20%. Whoever is furthest behind still wins 28% at 2 players and
 6% at 5.
 
 **Comebacks run out at big tables.** At 2 players, the player behind after round 5 still wins

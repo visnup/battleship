@@ -45,7 +45,7 @@
       - Comparing playouts and the default on the same deals doesn't help: it cut variance
         2.3× for banker at 2 players, but made it worse for builder, which, like playouts,
         plays very differently from the default.
-- [ ] Close more of the gap to playouts, now 10 to 22 points. `decisions.ts` and the rule
+- [ ] Close more of the gap to playouts, now 12 to 23 points. `decisions.ts` and the rule
       screens still play each deal to the end; cut them off like playouts, which would make
       them faster and their picks better, then look for patterns again. Done: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
@@ -55,13 +55,14 @@
       each Just Say No decision might still find a rule.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
-- [ ] Playouts win 60.3% at 2 players, 10 points over the default; playing to the end, they
+- [ ] Playouts win 62.1% at 2 players, 12 points over the default; playing to the end, they
       tied it. More deals per move still help, about 2 points each time they double: at 80,
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
       (at 16, one round 36.6% at 5 players, two 31.7%, three 26.4%), and stopping at the end of
-      the turn is worse than the default at 2 players. Still to try: a better `chance` or a
-      better rollout player. A counterfactual-regret agent on a cut-down 2-player
+      the turn is worse than the default at 2 players. A richer `chance` (sets half done, rent cards, cash and
+      properties in hand) added 1.9 points at 2 players and 1.2 at 5. Still to try: more of
+      that, and a better rollout player. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
@@ -77,8 +78,8 @@
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
 - [ ] How much is luck: how often the stronger player (playouts) wins against the default, by
       player count. Does skill matter more at 2 players or at 5?
-- [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 71% at 2
-      players and 47% at 5. Comebacks last at 2 players and run out at 5.
+- [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 72% at 2
+      players and 48% at 5. Comebacks last at 2 players and run out at 5.
 - [ ] Each card's value split by use: played, banked or held. Is a Rent card worth more as
       $1M early? Is a held Just Say No worth more than one played?
 - [ ] Bank size: how much cash to keep against rent, and how often players pay in property
