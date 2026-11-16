@@ -12,9 +12,9 @@
       charge, then bank, then lay properties down; never build; aim at the leader. Against it,
       the first one wins 10 points less at 2 players and a third fewer games at 5.
 - [ ] Close more of the gap to playouts, still 8 to 18 points at 3–5 players. `decisions.ts`
-      points at which property or wild to lay down and as which color, the any-color Rent's
-      color and target, and Forced Deal's target. Also untouched: when to hold Just Say No, and
-      what to pay with.
+      points at the any-color Rent's color and target, and Forced Deal's target. Also
+      untouched: when to hold Just Say No, and what to pay with. Placement is done: which card
+      to lay down and when showed no pattern that beat the default (`variants.ts`).
 - [ ] Playouts tie the default at 2 players (±4). Find out whether more deals per move or a
       better rollout player would help.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
