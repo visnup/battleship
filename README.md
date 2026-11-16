@@ -72,14 +72,14 @@ The charts are drawn from this README's own tables, so they stay in step with th
 
 *From `node scripts/sim.ts`*, with the default player in every seat:
 
+![Each seat's wins over a fair share, by player count](charts/seats.svg)
+
 | players | first | second | third | fourth | fifth | turns per game | draw pile reshuffled |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2 | 56.8% | 43.2% | | | | 16.3 | 0.0% |
 | 3 | 37.2% | 32.2% | 30.6% | | | 20.6 | 0.1% |
 | 4 | 28.1% | 24.6% | 24.1% | 23.2% | | 24.4 | 6.4% |
 | 5 | 22.1% | 20.1% | 19.5% | 18.9% | 19.4% | 27.5 | 27.8% |
-
-![Each seat's wins over a fair share, by player count](charts/seats.svg)
 
 **Going first is worth 13.6 points at 2 players.** That's 31% more wins than the second player.
 At 5 players the edge is 2.1 points over a fair share. The first player starts drawing and
@@ -96,6 +96,8 @@ cards after the deal. It almost never runs out at 2 or 3 players.
 `src/strategies.ts` against the default player in every other seat, rotating seats. Playouts are
 slow, so they play 10,000 games per cell, which is good to about ±1 point.
 
+![Each strategy's wins in fair shares, by player count](charts/strategies.svg)
+
 | strategy | 2 players (fair 50.0%) | 3 players (fair 33.3%) | 4 players (fair 25.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- | --- | --- |
 | default | 49.9% | 33.3% | 25.0% | 20.0% |
@@ -104,8 +106,6 @@ slow, so they play 10,000 games per cell, which is good to about ±1 point.
 | pacifist | 11.9% | 2.0% (2 stalled) | 0.3% (2 stalled) | 0.0% (9 stalled) |
 | random | 7.4% | 2.1% | 0.9% | 0.4% |
 | playouts | 62.1% | 51.1% | 46.5% | 43.2% |
-
-![Each strategy's wins in fair shares, by player count](charts/strategies.svg)
 
 **Builder** plays the way the default player first did. It lays down properties as soon as it
 draws them, builds houses and hotels, and only then charges rent. It wins 10 points less than the
@@ -141,6 +141,8 @@ variant's share of wins.
 "(previous)" are what the default used to do, so each costs the default about as much as the
 change from it gained.
 
+![Each variant's wins over a fair share, at 2 and 5 players](charts/variants.svg)
+
 | variant | 2 players (fair 50.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- |
 | the builder | 40.1% | 12.5% |
@@ -167,8 +169,6 @@ change from it gained.
 | keep two Just Say Nos for a Deal Breaker | 48.5% | 19.3% |
 | lay down properties once $5M is banked | 49.5% | 19.0% |
 | lay down properties once $15M is banked | 49.8% | 20.2% |
-
-![Each variant's wins over a fair share, at 2 and 5 players](charts/variants.svg)
 
 **Charge before you lay properties down, and bank before that too.** This is the biggest lesson,
 worth 8 points at 2 players and 6 at 5. A property laid down can be taken by Sly Deal, Forced Deal
@@ -255,6 +255,8 @@ of a card moved from the draw pile into one player's opening hand. The differenc
 wins is the card's value, in points. The noise is about ±0.5 points, and $M is what the card is
 worth as money. Sorted by 4 players:
 
+![Each card's value in points, by player count](charts/cards.svg)
+
 | card | $M | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |
 | Deal Breaker | 5 | +28.7 | +26.2 | +21.2 | +15.9 |
@@ -298,8 +300,6 @@ worth as money. Sorted by 4 players:
 | light blue | 1 | +1.6 | +1.0 | +0.2 | −0.1 |
 | railroad | 2 | +1.2 | +0.3 | −0.5 | −0.6 |
 
-![Each card's value in points, by player count](charts/cards.svg)
-
 **Deal Breaker is worth the most by far.** With it, a 2-player game goes from a coin flip to 79%
 for the holder. It's a third of a win, taken from someone else.
 
@@ -329,6 +329,8 @@ The same deals again, with the extra action or Rent card banked on the player's 
 instead. Each cell is the card's value banked, then (in parentheses) played as the default plays
 it:
 
+![Each action card's value played and banked, at 2 and 5 players](charts/used.svg)
+
 | card | $M | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |
 | Deal Breaker | 5 | +2.8 (+28.7) | +3.3 (+26.2) | +2.6 (+21.2) | +1.6 (+15.9) |
@@ -347,8 +349,6 @@ it:
 | Hotel | 4 | +1.7 (+1.4) | +2.6 (+2.2) | +1.8 (+1.5) | +1.3 (+0.8) |
 | Double the Rent | 1 | +0.2 (+1.0) | +1.2 (+0.5) | +0.5 (+0.3) | +0.4 (+0.5) |
 | Forced Deal | 3 | +1.2 (+3.2) | +2.1 (+1.0) | +1.9 (+0.3) | +1.4 (−0.2) |
-
-![Each action card's value played and banked, at 2 and 5 players](charts/used.svg)
 
 **Play your action cards; don't bank them.** Banked on the first play, none is worth more than
 3.3 points, about what money is. Played, Deal Breaker is worth ten times that, and most Rent
@@ -369,6 +369,8 @@ full sets and of the losers'. A winner has exactly 3 sets, so the shares in a co
 300%. The winner's share comes first, then in parentheses how often a loser holds that color as a
 full set at the end.
 
+![How often each color is a full set at the end: bars for the winner, ticks for a loser](charts/colors.svg)
+
 | color | cards in a set | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |
 | dark blue | 2 | 49% (12%) | 52% (12%) | 53% (11%) | 55% (9%) |
@@ -381,8 +383,6 @@ full set at the end.
 | green | 3 | 23% (6%) | 23% (6%) | 23% (5%) | 23% (4%) |
 | yellow | 3 | 22% (6%) | 22% (6%) | 21% (5%) | 22% (4%) |
 | railroad | 4 | 13% (4%) | 12% (3%) | 12% (3%) | 12% (2%) |
-
-![How often each color is a full set at the end: bars for the winner, ticks for a loser](charts/colors.svg)
 
 **Each 2-card set, dark blue, brown and utility, is in about half of all wins.** That's about twice
 as often as any 3-card set.
@@ -403,6 +403,8 @@ ahead by the chance to win that playouts score boards with: full sets, progress 
 money and cards in hand. Each cell is the share of games still going, then how often the player
 ahead wins them, and in parentheses how often the one furthest behind does. 100,000 games each.
 
+![After each round, how often the player ahead (solid) and the one furthest behind (dashed) go on to win](charts/decided.svg)
+
 | after round | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
 | 1 | 100%: 64% (36%) | 100%: 47% (24%) | 100%: 37% (18%) | 100%: 32% (13%) |
@@ -413,8 +415,6 @@ ahead wins them, and in parentheses how often the one furthest behind does. 100,
 | 6 | 84%: 80% (20%) | 67%: 68% (9%) | 50%: 60% (4%) | 32%: 54% (2%) |
 | 7 | 67%: 80% (20%) | 43%: 66% (8%) | 23%: 57% (4%) | 8%: 50% (2%) |
 | 8 | 47%: 79% (21%) | 21%: 63% (9%) | 7%: 52% (5%) | 1%: 51% (1%) |
-
-![After each round, how often the player ahead (solid) and the one furthest behind (dashed) go on to win](charts/decided.svg)
 
 **Nothing is decided early.** After three rounds the player ahead wins 72% of 2-player games and
 48% at 5, where a fair share is 20%. Whoever is furthest behind still wins 28% at 2 players and
@@ -431,6 +431,8 @@ being ahead says less. At 5 players two thirds of games are over by round 6.
 
 *From `node scripts/payments.ts`*, every payment in 100,000 games of default players each:
 
+![How often payments cost property, and how many players ever pay in property, by player count](charts/paying.svg)
+
 | | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
 | payments a game | 6.6 | 16.0 | 26.7 | 39.8 |
@@ -439,8 +441,6 @@ being ahead says less. At 5 players two thirds of games are over by round 6.
 | property paid a game | $3.2M | $10.1M | $19.6M | $31.5M |
 | winner ever paid in property | 19% | 32% | 39% | 43% |
 | each loser ever paid in property | 36% | 52% | 63% | 72% |
-
-![How often payments cost property, and how many players ever pay in property, by player count](charts/paying.svg)
 
 **Big tables are expensive.** Two-color Rent cards and Birthday charge everyone, so at 5 players
 there are six times as many payments as at 2, and $31.5M of property changes hands a game.
@@ -455,6 +455,8 @@ paying in property hurts, but it doesn't decide the game.
 *From `node scripts/openings.ts`*, each player's wins in 100,000 games of default players, by
 what its 5 opening cards were. Each cell is wins in fair shares (1.00 is a fair share), then (in
 parentheses) how many hands that was. Rent cards count as actions and wilds as properties.
+
+![Wins in fair shares by how many actions, properties and money cards the opening hand held](charts/openings.svg)
 
 | actions | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
@@ -481,8 +483,6 @@ parentheses) how many hands that was. Rent cards count as actions and wilds as p
 | 2 | 0.93 (19%) | 0.93 (19%) | 0.92 (19%) | 0.90 (19%) |
 | 3 | 0.85 (4%) | 0.86 (4%) | 0.84 (4%) | 0.82 (4%) |
 
-![Wins in fair shares by how many actions, properties and money cards the opening hand held](charts/openings.svg)
-
 **Action cards make a hand.** A hand of four or five action cards wins 1.1 to 1.4 fair shares,
 and one with none 0.67 to 0.87. Properties and money are the weak cards to open with.
 
@@ -498,6 +498,8 @@ count. Each row names the other reading. Each cell gives the share of games whos
 then the change in the first player's share of wins in points, then the change in turns per game,
 then any change in the number of stalled games:
 
+![How often each other reading changes the winner, by player count](charts/readings.svg)
+
 | reading | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
 | One Double the Rent per Rent card | 0.2%: +0.0, +0.0 | 0.4%: +0.0, +0.0 | 0.6%: +0.0, +0.0 | 0.6%: +0.0, +0.0 |
@@ -506,8 +508,6 @@ then any change in the number of stalled games:
 | Deal Breaker leaves the house and hotel | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
 | A set of only multicolored wilds is full | 0.3%: +0.0, +0.0 | 1.0%: +0.0, +0.0 | 2.0%: +0.0, +0.0 | 3.0%: +0.0, +0.0 |
 | No reshuffle | 0.0%: +0.0, +0.0 | 0.1%: +0.0, +0.4, +38 stalled | 4.5%: −0.7, +30.6, +3170 stalled | 21.8%: −2.8, +160.9, +16671 stalled |
-
-![How often each other reading changes the winner, by player count](charts/readings.svg)
 
 Once a reading changes one play, the rest of the game goes differently, and the winner then
 changes about as often as in an unrelated game. So the first number tracks how often the rule
