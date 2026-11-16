@@ -11,6 +11,20 @@
 - [x] A better `defaultPolicy`, from playouts (`decisions.ts`, `variants.ts`, `order.ts`):
       charge, then bank, then lay properties down; never build; aim at the leader. Against it,
       the first one wins 10 points less at 2 players and a third fewer games at 5.
+- [ ] Speed up playouts. A 5-player game with one playouts player takes about 10s: it makes
+      ~17 decisions of ~14 legal moves, each played out on 80 deals, so ~19,000 rollouts a game
+      (as many at 2 players: more decisions, fewer moves). A plain game is 1.5ms. In order:
+      - The new `inProperty` target calls `leader` for every color and rent card in `charge`,
+        and `leader` scores every player's colors. `lead`, `fullColors` and `progress` are now
+        about 40% of the profile. Score the leader once per call.
+      - Spend deals where they decide something: play every move on 10–20 deals, drop the
+        ones clearly behind, and give the rest the remaining deals (successive halving).
+      - Fewer moves: Forced Deal lists every take × give, and many moves are the same up to
+        which identical card or which seat.
+      - Memoize `fullSets` and `progress` per player, keyed on a counter bumped whenever their
+        table changes. Or make `props` copy-on-write (replaced, never edited; `arrange` and
+        moved wilds would make new `Placed`s) and key a `WeakMap` on the array. Plays stay
+        mutable: copying state on every play would cost more in garbage than it saves.
 - [ ] Close more of the gap to playouts, still 8 to 18 points at 3–5 players. `decisions.ts`
       points at the any-color Rent's color and target, and Forced Deal's target. Also
       untouched: when to hold Just Say No, and what to pay with. Placement is done: which card
