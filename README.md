@@ -14,7 +14,8 @@ The answers come from the model, not from real tables. It follows the rule sheet
 edition (B0965), and the rules the sheet leaves open are measured both ways (see "Rules
 questions"). It hasn't been checked against logged real games yet.
 
-The simulator and this analysis were written with Claude, working in Claude Code throughout.
+The simulator and this analysis were written with Claude Opus 5.5 at medium effort, working in Claude
+Code throughout.
 
 ## A quick refresher
 

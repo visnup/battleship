@@ -32,8 +32,8 @@ the player to move went on to win.
 The games, rules and estimates come from [a simulator](https://github.com/visnup/monopoly-deal)
 of the 2014 US edition (B0965). `scripts/dataset.ts` there regenerates this dataset, and `game_seed` replays any game.
 
-The simulator, its analysis and this card were written with Claude Opus 5.5, working in Claude
-Code throughout.
+The simulator, its analysis and this card were written with Claude Opus 5.5 at medium effort,
+working in Claude Code throughout.
 
 For example, how often the default player's pick is the best-valued move, with DuckDB:
 
