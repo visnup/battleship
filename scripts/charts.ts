@@ -25,30 +25,37 @@ const num = (cell: string) => Number(cell.replace("−", "-").match(/^[-+]?[\d.]
 /** The number in parentheses: "49% (12%)". */
 const paren = (cell: string) => Number(cell.match(/\(([\d.]+)%\)/)?.[1]);
 
-/** The cards' own inks: the property colors, and the black and white of the card faces. */
+/** The cards' own inks: the property colors, sampled from rules/properties.jpg and white-balanced against each card's paper. */
 const art = {
-  brown: "#8a4b2d",
-  "light blue": "#7ccbef",
-  pink: "#d23f8f",
-  orange: "#f39223",
-  red: "#e2262a",
-  yellow: "#f6d300",
-  green: "#1f9d55",
-  "dark blue": "#1d4f9e",
-  railroad: "#2b2b2b",
-  utility: "#b9d89a",
+  brown: "#6e432c",
+  "light blue": "#acd6ef",
+  pink: "#ab3970",
+  orange: "#cf6a2d",
+  red: "#c4261e",
+  yellow: "#ffde22",
+  green: "#39933c",
+  "dark blue": "#184477",
+  railroad: "#141414",
+  utility: "#c8eac9",
   paper: "#ffffff",
   ink: "#1a1a1a",
   gray: "#8c8c8c",
 };
 const ns = "http://www.w3.org/2000/svg";
 
-function save(name: string, options: Plot.PlotOptions) {
+/**
+ * Dark mode flips lightness and keeps hue, so paper goes dark and ink light. With `trueColors`,
+ * it swaps only paper and ink instead, so property colors stay as printed: dark blue stays dark.
+ * (Flipping those back with a second filter works in Chrome, but WebKit ignores CSS filters on
+ * SVG elements.)
+ */
+function save(name: string, options: Plot.PlotOptions, trueColors = false) {
   const svg = Plot.plot({ document, style: { background: art.paper, color: art.ink }, ...options }) as unknown as SVGSVGElement;
   svg.setAttribute("xmlns", ns);
-  // Dark mode flips lightness and keeps hue: paper goes dark, ink light, and the colors stay put.
   const dark = document.createElementNS(ns, "style");
-  dark.textContent = "@media (prefers-color-scheme: dark) { :root { filter: invert(1) hue-rotate(180deg); background: none !important } }";
+  dark.textContent = trueColors
+    ? `@media (prefers-color-scheme: dark) { :root { background: ${art.ink} !important; color: ${art.paper} !important } [stroke="${art.ink}"] { stroke: ${art.paper} } [stroke="${art.paper}"] { stroke: ${art.ink} } }`
+    : "@media (prefers-color-scheme: dark) { :root { filter: invert(1) hue-rotate(180deg); background: none !important } }";
   svg.prepend(dark);
   writeFileSync(new URL(`${name}.svg`, dir), svg.outerHTML + "\n");
 }
@@ -158,7 +165,8 @@ save("colors", {
   y: { label: null, domain: colorRows.map((r) => r.color) },
   fx: { label: null },
   marks: [
-    Plot.barX(colors, { fx: "players", y: "color", x: "winners", fill: (d) => art[d.color as keyof typeof art], stroke: art.ink, strokeWidth: 0.5, insetTop: 2, insetBottom: 2 }),
+    Plot.barX(colors, { fx: "players", y: "color", x: "winners", fill: (d) => art[d.color as keyof typeof art], stroke: art.gray, strokeWidth: 0.5, insetTop: 2, insetBottom: 2 }),
+    Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.paper, strokeWidth: 4 }),
     Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.ink, strokeWidth: 2 }),
   ],
-});
+}, true);
