@@ -14,13 +14,15 @@
       than a third fewer games at 5.
 - [ ] Speed up playouts until the strategies table's playouts row is good to ±1 point in 15
       minutes (30 at most). That's about 32,000 playouts games: 6,400 at 5 players, 10,000 at
-      2. On 20 cores at 3.5s a game it takes about 93 minutes, so it needs 3–6× more.
+      2. On 20 cores at 3.5s a game it took about 93 minutes. With what's checked below, 10,000
+      games at each of 2–5 players (±1 everywhere) took 73 minutes on 2026-11-15, so it still
+      needs 2.5–5× more.
       - [x] Memoize `arrange`, score each player once in `leader` and `inProperty`, and pick
             the any-color Rent's target once per amount: 1.75× with every result unchanged
             (250bb75).
       - [x] One move per wild placed (`arrange` re-colors it after every play) and per
             identical card taken or given: about 10%, same results in the benchmark.
-      - [ ] Racing: play every live move on 8 more shared deals at a time, and drop one once
+      - [x] Racing: play every live move on 8 more shared deals at a time, and drop one once
             it's 2 standard errors of the paired difference behind the leader, up to 80 deals.
             By regret (each method's pick, valued on 1,000 independent deals, against the
             best move, at ~450–600 sampled decisions): 1.19 points a decision on 656 rollouts
@@ -37,7 +39,7 @@
       - Comparing playouts and the default on the same deals doesn't help: it cut variance
         2.3× for banker at 2 players, but made it worse for builder, which, like playouts,
         plays very differently from the default.
-- [ ] Close more of the gap to playouts, still 7 to 16 points at 3–5 players. Done: placement
+- [ ] Close more of the gap to playouts, still 6 to 14 points at 3–5 players. Done: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
       players and mostly in what to take, but 15 rules for it didn't beat the default. Also
@@ -46,7 +48,7 @@
       - Don't complete a set right away, so a Deal Breaker can't take it: hold the card that
         completes a set unless it wins the game.
       - Keep a Just Say No for a Deal Breaker instead of spending it on rent or Debt Collector.
-- [ ] Playouts tie the default at 2 players (±4). Find out whether more deals per move or a
+- [ ] Playouts tie the default at 2 players (50.3%, ±1). Find out whether more deals per move or a
       better rollout player would help. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
