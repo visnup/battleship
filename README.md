@@ -244,9 +244,9 @@ Tried and rejected, besides the alternatives in the table (at 2 and 5 players, a
 20.0% for the default):
 
 - Choosing which property to lay down first: by the most progress toward a set, the least, wilds
-  first, the cheapest, the dearest, the highest rent or the smallest set. All were within noise
-  of taking the first one in hand, the one held longest, or worse (wilds first: 19.2% at 5
-  players). The most progress first with wilds last gains 0.4 points at 2 players, but 0.2 at 3
+  first, the cheapest or the dearest (by the $M printed in its corner), the highest rent or the
+  smallest set. All were within noise of taking the first one in hand, the one held longest, or
+  worse (wilds first: 19.2% at 5 players). The most progress first with wilds last gains 0.4 points at 2 players, but 0.2 at 3
   and −0.2 at 5 (400,000 games each).
 - Laying down a property of a color a Rent card in hand charges, then charging: 49.5% and 19.5%.
 - Laying down properties before Debt Collector and Birthday: 45.7% and 15.8%.
@@ -292,11 +292,11 @@ playouts that play each deal to the end:
 - **Forced Deal.** At 5 players, the best Forced Deal by playouts, rechecked on fresh deals, beats
   the default's by 4.6 points each time they differ, or 1.6 points a game. Most of that is taking
   a different card, often from a different player. But no rule for it beat the default: taking
-  from the leader, the dearest card, wilds first, what the victim is closest to finishing, giving
-  the cheapest card or what helps the victim least, giving wilds too, swapping on a tie, on any
-  swap or only on a clear gain, or playing it before rent. Each was scored by playouts at the same
-  decisions. None beat the default beyond the noise, and some, like taking the dearest, did
-  worse. Playouts that stop after two rounds find more: at 5 players they play a Forced Deal
+  from the leader, the dearest card (the most $M in its corner), wilds first, what the victim is
+  closest to finishing, giving the cheapest card or what helps the victim least, giving wilds
+  too, swapping on a tie, on any swap or only on a clear gain, or playing it before rent. Each
+  was scored by playouts at the same decisions. None beat the default beyond the noise, and
+  some, like taking the dearest, did worse. Playouts that stop after two rounds find more: at 5 players they play a Forced Deal
   where the default plays something else worth about 7 points a game. But playing it whenever it
   can, before rent, or giving wilds too, each lost 0.1 to 0.9 points head to head at 2 to 5
   players (`variants.ts`). Which swap matters, not how often. Picking the swap that most raises
