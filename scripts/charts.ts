@@ -163,7 +163,36 @@ save("cards", {
   ],
 });
 
-// Played or banked: each action card's value banked on the first play, and played.
+// What each card is worth against what it's worth as money.
+const kinds = { action: art["dark blue"], rent: art.orange, property: art.green, wild: art.pink, money: art.gray };
+const kindOf = (card: string): keyof typeof kinds =>
+  card.startsWith("$") ? "money" : card.startsWith("Rent") ? "rent" : card.startsWith("Property Wild") ? "wild" : card in art ? "property" : "action";
+const worth = cardRows.flatMap((r) => counts.map((k) => ({ card: r.card, kind: kindOf(r.card), money: +r.$M, players: `${k} players`, value: num(r[`${k} players`]) })));
+const top = new Set(counts.flatMap((k) => worth.filter((d) => d.players === `${k} players`).sort((a, b) => b.value - a.value).slice(0, 3)));
+save("worth", {
+  width: 640,
+  height: 720,
+  marginRight: 70,
+  x: { label: "Worth as money ($M)", grid: true, domain: [0, 10.5], insetLeft: 6 },
+  y: { label: "Value (points)", grid: true, tickFormat: signed },
+  fy: { label: null },
+  color: { domain: Object.keys(kinds), range: Object.values(kinds) },
+  marks: [
+    Plot.ruleY([0], dashed),
+    Plot.dot(worth, { x: "money", y: "value", fy: "players", fill: "kind", stroke: art.paper, r: 4 }),
+    ...[1, -1].map((side) =>
+      Plot.text(
+        worth.filter((d) => (top.has(d) || d.card === "$10M") && (d.money > 8 ? -1 : 1) === side),
+        { x: "money", y: "value", fy: "players", text: (d) => `${d.card} ${plus(d.value)}`, textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
+      ),
+    ),
+    ...Object.entries(kinds).map(([kind, fill], i) =>
+      Plot.text([kind], { frameAnchor: "top-right", fy: ["2 players"], ...halo, text: [`● ${kind}`], fill, dx: -4, dy: 4 + 14 * i, fontSize: 10, fontWeight: "bold" }),
+    ),
+  ],
+});
+
+// Played or banked:each action card's value banked on the first play, and played.
 const usedRows = table("card", "### Played or banked");
 const used = usedRows.flatMap((r) =>
   [2, 5].flatMap((k) => {

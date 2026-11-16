@@ -81,7 +81,19 @@
       try: more of that, and a better rollout player. A counterfactual-regret agent on a cut-down 2-player
       game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
+- [ ] Recheck the findings against strong opponents: every analysis plays against default
+      players. With quick playouts in every seat, does never building still win, does banking
+      $10M first, and how big is going first?
+- [ ] Remember what's been played. No player tracks it, so none knows when the Just Say Nos
+      and Deal Breakers are gone and a full set is safe. Try it as a variant, and in playouts'
+      guesses at the hidden cards.
+- [ ] What to pay with, by playouts. `decisions.ts` only watches moves, so payment choices
+      have never been searched.
+- [ ] When to Just Say No, by playouts at each decision to say it.
+- [ ] Tests for `STEPS`: a small board per rule, so a refactor can't quietly change the
+      default player. Only the sheet's rules are tested now.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
+- [ ] Idea: a page to play against quick playouts in the browser.
 
 ## Analysis
 
