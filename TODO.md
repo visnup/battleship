@@ -9,22 +9,34 @@
 - [x] An engine: deal, turns, payments, Just Say No chains, and a heuristic player (`game.ts`).
 - [x] Whole-game strategies head to head (`strategies.ts`).
 - [x] A better `defaultPolicy`, from playouts (`decisions.ts`, `variants.ts`, `order.ts`):
-      charge, then bank, then lay properties down; never build; aim one-player charges at whoever has to pay in property. Against it,
-      the first one wins 10 points less at 2 players and a third fewer games at 5.
-- [ ] Speed up playouts. A 5-player game with one playouts player takes about 10s: it makes
-      ~17 decisions of ~14 legal moves, each played out on 80 deals, so ~19,000 rollouts a game
-      (as many at 2 players: more decisions, fewer moves). A plain game is 1.5ms. In order:
-      - The new `inProperty` target calls `leader` for every color and rent card in `charge`,
-        and `leader` scores every player's colors. `lead`, `fullColors` and `progress` are now
-        about 40% of the profile. Score the leader once per call.
-      - Spend deals where they decide something: play every move on 10–20 deals, drop the
-        ones clearly behind, and give the rest the remaining deals (successive halving).
-      - Fewer moves: Forced Deal lists every take × give, and many moves are the same up to
-        which identical card or which seat.
-      - Memoize `fullSets` and `progress` per player, keyed on a counter bumped whenever their
-        table changes. Or make `props` copy-on-write (replaced, never edited; `arrange` and
-        moved wilds would make new `Placed`s) and key a `WeakMap` on the array. Plays stay
-        mutable: copying state on every play would cost more in garbage than it saves.
+      charge, then bank, then lay properties down; never build; aim one-player charges at whoever
+      has to pay in property. Against it, the first one wins 10 points less at 2 players and more
+      than a third fewer games at 5.
+- [ ] Speed up playouts until the strategies table's playouts row is good to ±1 point in 15
+      minutes (30 at most). That's about 32,000 playouts games: 6,400 at 5 players, 10,000 at
+      2. On 20 cores at 3.5s a game it takes about 93 minutes, so it needs 3–6× more.
+      - [x] Memoize `arrange`, score each player once in `leader` and `inProperty`, and pick
+            the any-color Rent's target once per amount: 1.75× with every result unchanged
+            (250bb75).
+      - [x] One move per wild placed (`arrange` re-colors it after every play) and per
+            identical card taken or given: about 10%, same results in the benchmark.
+      - [ ] Racing: play every live move on 8 more shared deals at a time, and drop one once
+            it's 2 standard errors of the paired difference behind the leader, up to 80 deals.
+            By regret (each method's pick, valued on 1,000 independent deals, against the
+            best move, at ~450–600 sampled decisions): 1.19 points a decision on 656 rollouts
+            at 5 players, against 1.26 on 985 for 80 deals each; 0.94 on 545 against 0.84 on
+            683 at 2. z = 1.5 is 1.9× cheaper at 5 players at the same regret, but worse at 2.
+            Successive halving only matched 80 deals each at equal cost.
+      - [ ] Cheaper rollouts: `arrange`'s key and search, then `fullSets` and `pay`, lead the
+            profile. Memoize `fullSets` and `progress` per player, keyed on a counter bumped
+            whenever their table changes, or make `props` copy-on-write (replaced, never
+            edited; `arrange` would make new `Placed`s) and key a `WeakMap` on the array. Plays
+            stay mutable: copying state on every play would cost more in garbage than it saves.
+      - [ ] If that's still over 30 minutes: rollouts cut off after a few turns and scored from
+            the board. Much faster but a weaker player; check it by regret first.
+      - Comparing playouts and the default on the same deals doesn't help: it cut variance
+        2.3× for banker at 2 players, but made it worse for builder, which, like playouts,
+        plays very differently from the default.
 - [ ] Close more of the gap to playouts, still 7 to 16 points at 3–5 players. Done: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
@@ -49,3 +61,15 @@
 - [x] Which colors to chase (`colors.ts`): the 2-card sets, especially dark blue.
 - [x] How long games last, and how often the draw pile runs out.
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
+- [ ] How much is luck: how often the stronger player (playouts) wins against the default, by
+      player count. Does skill matter more at 2 players or at 5?
+- [ ] When a game is decided: win chances from the board (full sets, cards in hand, bank)
+      round by round. How often does the leader after round 3 win, and do comebacks happen?
+- [ ] Each card's value split by use: played, banked or held. Is a Rent card worth more as
+      $1M early? Is a held Just Say No worth more than one played?
+- [ ] Bank size: how much cash to keep against rent, and how often players pay in property
+      instead. Charging whoever has to pay in property suggests an ideal cushion.
+- [ ] Popular house rules, measured like the sheet's open readings in `sensitivity.ts`: Deal
+      Breaker on any set, Just Say No unblockable, drawing 2 on an empty hand, no Forced Deal
+      on full sets.
+- [ ] Opening hands: which 5-card deals win, and whether any is worth a mulligan.

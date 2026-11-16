@@ -102,7 +102,8 @@ export function moves(game: Game, p: Player, left: number): Move[] {
     seen.add(key);
     if (card.kind === "money" || card.kind === "action" || card.kind === "rent") out.push({ type: "bank", card });
     if (card.kind === "property" || card.kind === "wild") {
-      for (const color of colorsOf(card)) out.push({ type: "place", card, color });
+      // One color is enough: `arrange` moves wilds to their best color after every play
+      out.push({ type: "place", card, color: colorsOf(card)[0] });
     } else if (card.kind === "rent") {
       for (const color of colorsOf(card)) {
         if (!rent(game, p, color)) continue;
@@ -119,7 +120,8 @@ export function moves(game: Game, p: Player, left: number): Move[] {
 
 function actions(game: Game, p: Player, card: Card, others: Player[]): Move[] {
   if (card.kind !== "action") return [];
-  const looseOf = (q: Player) => q.props.filter((x) => loose(game, q, x));
+  // Identical cards of one player are the same move
+  const looseOf = (q: Player) => [...new Map(q.props.filter((x) => loose(game, q, x)).map((x) => [JSON.stringify(x), x])).values()];
   const has = (color: string, a: string) => p.built.some((b) => b.color === color && isAction(b.card, a));
   const sets = fullColors(game, p).filter(buildable);
   switch (card.action) {
