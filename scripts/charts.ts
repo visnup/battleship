@@ -169,9 +169,10 @@ const kindOf = (card: string): keyof typeof kinds =>
   card.startsWith("$") ? "money" : card.startsWith("Rent") ? "rent" : card.startsWith("Property Wild") ? "wild" : card in art ? "property" : "action";
 // Cards of a kind with the same $M sit side by side.
 const sameWorth = Map.groupBy(cardRows, (r) => `${kindOf(r.card)} ${r.$M}`);
+const levels = [...new Set(cardRows.map((r) => +r.$M))].sort((a, b) => a - b);
 const xOf = (r: Row) => {
   const group = sameWorth.get(`${kindOf(r.card)} ${r.$M}`)!;
-  return +r.$M + (group.indexOf(r) - (group.length - 1) / 2) * 0.22;
+  return levels.indexOf(+r.$M) + (group.indexOf(r) - (group.length - 1) / 2) * 0.22;
 };
 const worth = cardRows.flatMap((r) => counts.map((k) => ({ card: r.card, kind: kindOf(r.card), x: xOf(r), players: `${k} players`, value: num(r[`${k} players`]) })));
 const spans = cardRows.map((r) => {
@@ -183,7 +184,7 @@ save("worth", {
   width: 640,
   height: 760,
   marginRight: 70,
-  x: { label: "Worth as money ($M)", grid: true, domain: [0, 10.5], insetLeft: 6, insetRight: 6 },
+  x: { label: "Worth as money ($M)", grid: true, ticks: levels.map((_, i) => i), tickFormat: (i: number) => levels[i], insetLeft: 12, insetRight: 12 },
   y: { label: "Value (points)", grid: true, tickFormat: signed },
   fy: { label: null, domain: Object.keys(kinds) },
   color: playerColor,
@@ -193,12 +194,12 @@ save("worth", {
     Plot.dot(worth, { x: "x", y: "value", fy: "kind", fill: "players", stroke: art.paper, strokeWidth: 0.5, r: 3 }),
     ...[1, -1].map((side) =>
       Plot.text(
-        spans.filter((s) => named.has(s.card) && (s.x > 8 ? -1 : 1) === side),
+        spans.filter((s) => named.has(s.card) && (s.x > levels.length - 2 ? -1 : 1) === side),
         { x: "x", y: "hi", fy: "kind", text: (s) => `${s.card} ${plus(s.hi)}`, textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
       ),
     ),
     ...counts.map((k, i) =>
-      Plot.text([k], { frameAnchor: "top-right", fy: ["action"], ...halo, text: [`● ${k} players`], fill: playerColor.range[i], dx: -4, dy: 4 + 14 * i, fontSize: 10, fontWeight: "bold" }),
+      Plot.text([k], { frameAnchor: "top-right", fy: ["rent"], ...halo, text: [`● ${k} players`], fill: playerColor.range[i], dx: -4, dy: 4 + 14 * i, fontSize: 10, fontWeight: "bold" }),
     ),
   ],
 });
