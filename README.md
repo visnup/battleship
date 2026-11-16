@@ -238,7 +238,10 @@ playouts that play each deal to the end:
   worse. Playouts that stop after two rounds find more: at 5 players they play a Forced Deal
   where the default plays something else worth about 7 points a game. But playing it whenever it
   can, before rent, or giving wilds too, each lost 0.1 to 1.1 points head to head at 2 to 5
-  players (`variants.ts`). Which swap matters, not how often.
+  players (`variants.ts`). Which swap matters, not how often. Picking the swap that most raises
+  `chance`, the board score playouts end on, loses too: 48.1% and 19.0% at 2 and 5 players, or
+  49.1% and 19.3% only when it raises it. So does picking Sly Deal by it (49.5%, 19.4%). Deal
+  Breaker by it ties the default (49.9%, 20.1%).
 - **The any-color Rent.** Aiming it at whoever has to pay in property closed most of its gap. The
   best move by playouts now gains at most 2.5 points where they differ, and that's an overstated
   estimate.

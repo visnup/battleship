@@ -1,8 +1,8 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, gain, heuristic, isAction, leader, loose, type Player, type Policy, progress, rent, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
+import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, gain, heuristic, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, rent, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
-import { build, headToHead, STRATEGIES } from "../src/strategies.ts";
+import { build, chance, headToHead, moves, STRATEGIES } from "../src/strategies.ts";
 
 // Changes to `defaultPolicy`, each from a pattern in `decisions.ts`, played head to head against
 // it. Adopted ones move into `STEPS`, and the rest stay here, so the table shows what each costs.
@@ -110,6 +110,35 @@ const forced =
   };
 const forcedEarly = (step: Step) => () => heuristic(...without(STEPS.forcedDeal).toSpliced(without(STEPS.forcedDeal).indexOf(STEPS.rent), 0, step));
 
+/**
+ * `action` as whichever of its moves leaves `p` the best `chance` from the board, with nobody
+ * saying no, so it doesn't peek at their hands. With `only`, just when that beats not playing it.
+ */
+const byChance =
+  (action: string, only = false): Step =>
+  (game, p, left) => {
+    const options = moves(game, p, left).filter((m) => m.type === "action" && isAction(m.card, action));
+    if (!options.length) return null;
+    const after = (move: Move | null) => {
+      const g = game.clone();
+      g.rng = mulberry32(1);
+      g.policies = g.players.map(() => ({ ...defaultPolicy, sayNo: () => false }));
+      if (move?.type === "action") {
+        const copy = (x: Placed, seat: number) => g.players[seat].props[game.players[seat].props.indexOf(x)];
+        g.play(g.players[p.seat], { ...move, take: move.take && copy(move.take, move.target!), give: move.give && copy(move.give, p.seat) });
+      }
+      return chance(g, p.seat);
+    };
+    let best: Move | null = null;
+    let top = only ? after(null) : -Infinity;
+    for (const m of options) {
+      const c = after(m);
+      if (c > top) [top, best] = [c, m];
+    }
+    return best;
+  };
+const withStep = (from: Step, to: Step) => () => heuristic(...swap(from, to));
+
 const steps = Object.values(STEPS) as Step[];
 const without = (...drop: Step[]) => steps.filter((s) => !drop.includes(s));
 const swap = (from: Step, to: Step) => steps.map((s) => (s === from ? to : s));
@@ -156,6 +185,10 @@ const VARIANTS: Record<string, () => Policy> = {
   "Forced Deal unless it gives more progress than it takes": () => heuristic(...swap(STEPS.forcedDeal, forced((a, b) => a >= b))),
   "Forced Deal whenever it can, before rent": forcedEarly(forced(() => true)),
   "Forced Deal whenever it can, giving wilds too, before rent": forcedEarly(forced(() => true, true)),
+  "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),
+  "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
+  "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),
+  "Deal Breaker for the best chance": withStep(STEPS.dealBreaker, byChance("dealBreaker")),
   ...Object.fromEntries(
     [5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))]),
   ),
