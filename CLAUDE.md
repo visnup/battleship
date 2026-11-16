@@ -34,6 +34,7 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `scripts/strategies.ts`: one player of each strategy against the default in every other seat,
   for the "Strategies" section of `README.md`.
 - `scripts/colors.ts`: the colors of winners' and losers' full sets at the end of a game.
+- `scripts/decided.ts`: after each round, how often the player ahead by `chance` wins.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;

@@ -77,8 +77,8 @@
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
 - [ ] How much is luck: how often the stronger player (playouts) wins against the default, by
       player count. Does skill matter more at 2 players or at 5?
-- [ ] When a game is decided: win chances from the board (full sets, cards in hand, bank)
-      round by round. How often does the leader after round 3 win, and do comebacks happen?
+- [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 71% at 2
+      players and 47% at 5. Comebacks last at 2 players and run out at 5.
 - [ ] Each card's value split by use: played, banked or held. Is a Rent card worth more as
       $1M early? Is a held Just Say No worth more than one played?
 - [ ] Bank size: how much cash to keep against rent, and how often players pay in property
