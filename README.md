@@ -58,6 +58,7 @@ points, two standard errors. Games are played from seeded deals, so a comparison
 on the same deals.
 
 **Stalled** games are ones with no winner after 1,000 turns. They count as a win for no one.
+"Stalled games" says where they come from.
 
 Node 24 runs everything with no dependencies, and each section names the script behind it:
 
@@ -565,6 +566,28 @@ Rent when there's no rent to double.
 **No reshuffle breaks 4- and 5-player games.** At 5 players the draw pile runs out in more than a
 third of games. Without a reshuffle, a quarter of all games end with no winner after 1,000 turns. A
 no-reshuffle house rule needs its own ending.
+
+## Stalled games
+
+**A game stalls when the cards run out of circulation.** In every stalled game we looked at, the
+draw pile and the discard pile are both empty, and all 106 cards are in banks, on tables or in
+hands. A banked card never comes back, and a full bank holds many action cards. With nothing to
+draw, the cards left in hand can't finish anyone's third set, and the game never ends.
+
+**Players who bank their action cards cause it.** Default players alone never stalled in 400,000
+games. One pacifist, which banks every action card, stalls 11 games in 100,000 at 4 players and
+48 at 5. Without the reshuffle the draw pile empties for good, and a quarter of 5-player games
+stall ("Rules questions").
+
+**A player out to stall the game would, untested:**
+
+- bank every money and action card, and never play an action, since played ones are reshuffled
+  back in;
+- use all three plays every turn, since cards over the 7-card limit go back to the draw pile;
+- lay properties down without completing sets, since properties can't be banked;
+- spend Just Say No on any steal that would complete someone's set, and pay with money before
+  property, never with a property that finishes someone's set;
+- play at 5 players, where the draw pile already runs out in more than a third of games.
 
 ## Next
 
