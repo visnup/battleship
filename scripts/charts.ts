@@ -9,10 +9,11 @@ const dir = new URL("../charts/", import.meta.url);
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const { document } = new JSDOM("").window;
 
-/** The markdown table whose first header cell is `first`, as rows keyed by header. */
-function table(first: string): Row[] {
+/** The markdown table whose first header cell is `first`, after the heading `after` if given, as rows keyed by header. */
+function table(first: string, after = ""): Row[] {
   const lines = readme.split("\n");
-  const start = lines.findIndex((l) => l.startsWith(`| ${first} |`));
+  const from = after ? lines.indexOf(after) : 0;
+  const start = lines.findIndex((l, i) => i > from && l.startsWith(`| ${first} |`));
   if (start < 0) throw new Error(`no table starting with "${first}"`);
   const cells = (l: string) => l.split("|").slice(1, -1).map((c) => c.trim());
   const head = cells(lines[start]);
@@ -22,8 +23,8 @@ function table(first: string): Row[] {
 }
 /** A cell's leading number: "56.8%", "+2.1", "−0.3" or "49% (12%)". */
 const num = (cell: string) => Number(cell.replace("−", "-").match(/^[-+]?[\d.]+/)?.[0]);
-/** The number in parentheses: "49% (12%)". */
-const paren = (cell: string) => Number(cell.match(/\(([\d.]+)%\)/)?.[1]);
+/** The number in parentheses: "49% (12%)" or "+2.8 (−0.2)". */
+const paren = (cell: string) => Number(cell.replaceAll("−", "-").match(/\(([-+]?[\d.]+)%?\)/)?.[1]);
 
 /** The cards' own inks: the property colors, sampled from rules/properties.jpg and white-balanced against each card's paper. */
 const art = {
@@ -157,6 +158,39 @@ save("cards", {
   marks: [
     Plot.cell(cards, { x: "players", y: "card", fill: "value", inset: 0.5 }),
     Plot.text(cards, { x: "players", y: "card", text: (d) => plus(d.value), fill: (d) => (Math.abs(d.value) > 15 ? art.paper : art.ink), fontSize: 10 }),
+  ],
+});
+
+// Played or banked: each action card's value banked on the first play, and played.
+const usedRows = table("card", "### Played or banked");
+const used = usedRows.flatMap((r) =>
+  [2, 5].flatMap((k) => {
+    const cell = r[`${k} players`];
+    return [
+      { card: r.card, players: `${k} players`, use: "banked", value: num(cell) },
+      { card: r.card, players: `${k} players`, use: "played", value: paren(cell) },
+    ];
+  }),
+);
+save("used", {
+  width: 760,
+  height: 60 + usedRows.length * 20,
+  marginLeft: 170,
+  x: { label: "Value (points)", grid: true, tickFormat: signed, insetLeft: 10, insetRight: 10 },
+  y: { label: null, domain: usedRows.map((r) => r.card) },
+  fx: { label: null },
+  color: { domain: ["played", "banked"], range: [art["dark blue"], art.gray] },
+  marks: [
+    Plot.text(
+      used.filter((d) => d.card === usedRows[0].card && d.players === "2 players"),
+      { fx: "players", y: "card", x: "value", text: "use", fill: "use", dy: -11, fontSize: 10, ...halo },
+    ),
+    Plot.ruleX([0], dashed),
+    Plot.ruleY(
+      usedRows.flatMap((r) => [2, 5].map((k) => ({ card: r.card, players: `${k} players`, x1: num(r[`${k} players`]), x2: paren(r[`${k} players`]) }))),
+      { fx: "players", y: "card", x1: "x1", x2: "x2", stroke: art.gray, strokeOpacity: 0.5 },
+    ),
+    Plot.dot(used, { fx: "players", y: "card", x: "value", fill: "use", stroke: art.paper, r: 4 }),
   ],
 });
 

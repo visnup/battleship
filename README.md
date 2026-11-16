@@ -348,6 +348,8 @@ it:
 | Double the Rent | 1 | +0.2 (+1.0) | +1.2 (+0.5) | +0.5 (+0.3) | +0.4 (+0.5) |
 | Forced Deal | 3 | +1.2 (+3.2) | +2.1 (+1.0) | +1.9 (+0.3) | +1.4 (−0.2) |
 
+![Each action card's value played and banked, at 2 and 5 players](charts/used.svg)
+
 **Play your action cards; don't bank them.** Banked on the first play, none is worth more than
 3.3 points, about what money is. Played, Deal Breaker is worth ten times that, and most Rent
 cards several times. A Rent card's $1M is the least of it.
