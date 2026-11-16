@@ -40,6 +40,9 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `scripts/pay.ts` and `scripts/sayno.ts`: playouts at each of the default player's payments and
   Just Say No decisions, found by replaying the game from its seed (`scripts/replay.ts`), since
   they come mid-turn and a copy can't play on from there.
+- `scripts/dataset.ts`: every move decision of default games, with each move's two-round
+  playout value, as JSONL shards in `dataset/data/` (not committed). `uv run dataset/parquet.py`
+  joins them into Parquet, and `dataset/README.md` is the Hugging Face dataset card.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;
