@@ -71,6 +71,9 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
 
   /** Plays out every legal move on 80 deals, and makes the one that wins most. */
   "playouts": (seed) => playouts(80, seed),
+
+  /** Playouts on 16 deals, each cut off after one round: a strong player that's still quick. */
+  "quick playouts": (seed) => playouts(16, seed, defaultPolicy, 2, 1),
 };
 
 /**

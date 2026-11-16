@@ -106,6 +106,7 @@ slow, so they play 10,000 games per cell, which is good to about ±1 point.
 | pacifist | 11.9% | 2.0% (2 stalled) | 0.3% (2 stalled) | 0.0% (9 stalled) |
 | random | 7.4% | 2.1% | 0.9% | 0.4% |
 | playouts | 62.1% | 51.1% | 46.5% | 43.2% |
+| quick playouts | 54.9% | 43.5% | 40.6% | 37.9% |
 
 **Builder** plays the way the default player first did. It lays down properties as soon as it
 draws them, builds houses and hotels, and only then charges rent. It wins 10 points less than the
@@ -125,6 +126,10 @@ so it doesn't peek. Each deal stops after two rounds, and the board decides: a f
 win from full sets, progress toward more, money and cards in hand (`scripts/chance.ts`). That's
 faster than playing to the end, and better: playing to the end, it won 50.3%, 39.5%, 36.4% and
 33.7%. It wins 12 to 23 points more than the default, so there is still a lot to find.
+
+**Quick playouts** plays out each move on 16 deals, one round each. It's about 5 times faster
+than playouts (the row took 4 minutes on 20 cores, against 21) and still wins 5 to 18 points more
+than the default: a strong opponent that's cheap enough to play against.
 
 **Skill counts for more at big tables.** Against the default, playouts win 1.24 fair shares at
 2 players and 2.16 at 5. At 2 players the weaker player still wins nearly 4 games in 10; at 5,

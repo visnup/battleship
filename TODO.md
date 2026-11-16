@@ -51,8 +51,11 @@
       two-round playout values (40 deals a move) at every decision of 4,000 default games.
       It lost to the default, 48.1% at 2 players and 17.4% at 5 (10,000 games). With a
       feature for "the default's move", so it only learns corrections, 47.5% and 18.4%
-      (4,000 games). Four times the data didn't help, so the model is the limit; next would
-      be a nonlinear one (trees or a small network) or per-move noise far below 40 deals'.
+      (4,000 games). Four times the data didn't help, so the model is the limit.
+      - [ ] Fit a nonlinear model (gradient-boosted trees or a small network, in Python via
+            `uv`) on the same move features and playout values, and play it head to head. If
+            it wins, distill readable rules from it for `STEPS`. Less noisy targets (more deals
+            a move) are the other lever.
 - [ ] Close more of the gap to playouts, now 12 to 23 points. `decisions.ts` and the rule
       screens still play each deal to the end; cut them off like playouts, which would make
       them faster and their picks better, then look for patterns again. Found, not adopted

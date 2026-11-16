@@ -107,9 +107,9 @@ save("strategies", {
   y: { label: "Wins, in fair shares", grid: true },
   marks: [
     Plot.ruleY([1], dashed),
-    Plot.line(strategies, { x: "players", y: "shares", z: "strategy", stroke: (d) => (d.strategy === "playouts" ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), strokeWidth: 2 }),
-    Plot.dot(strategies, { x: "players", y: "shares", fill: (d) => (d.strategy === "playouts" ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), stroke: art.paper, r: 4 }),
-    Plot.text(strategies.filter((d) => d.strategy === "playouts" || d.strategy === "builder"), { x: "players", y: "shares", text: (d) => d.shares.toFixed(2), dy: -10, fontSize: 9, ...halo }),
+    Plot.line(strategies, { x: "players", y: "shares", z: "strategy", stroke: (d) => (d.strategy.includes("playouts") ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), strokeWidth: 2 }),
+    Plot.dot(strategies, { x: "players", y: "shares", fill: (d) => (d.strategy.includes("playouts") ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), stroke: art.paper, r: 4 }),
+    Plot.text(strategies.filter((d) => d.strategy.includes("playouts") || d.strategy === "builder"), { x: "players", y: "shares", text: (d) => d.shares.toFixed(2), dy: -10, fontSize: 9, ...halo }),
     // banker and default end within 0.01 of each other, and so do random and pacifist
     ...[-7, 0, 7].map((dy) =>
       Plot.text(
