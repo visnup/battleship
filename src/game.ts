@@ -507,7 +507,9 @@ export const isAction = (c: Card, action: string) => c.kind === "action" && c.ac
 /** One rule of a hand-written player: a move, or null to fall through to the next rule. */
 export type Step = (game: Game, p: Player, left: number) => Move | null;
 
-const others = (game: Game, p: Player) => game.players.filter((q) => q !== p);
+// In turn order from `p`, so ties go to the next player and not to seat 0: by seat, the first
+// player in seat 0 took every tie and won 21.9% at 5 players, not 23.5%.
+const others = (game: Game, p: Player) => game.players.map((_, i) => game.players[(p.seat + 1 + i) % game.players.length]).slice(0, -1);
 const placeable = (p: Player) => p.hand.filter((c) => c.kind === "property" || (c.kind === "wild" && (c.colors !== "any" || p.props.length)));
 const bestColor = (game: Game, p: Player, c: Card) => colorsOf(c).reduce((a, b) => (gain(game, p, b) > gain(game, p, a) ? b : a));
 
