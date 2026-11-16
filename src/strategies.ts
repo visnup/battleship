@@ -158,23 +158,37 @@ export function random(seed = 1): Policy {
 }
 
 /**
- * Plays out every legal move, and ending the turn, `n` times each with `rollout` for everyone,
- * and makes the move that wins most. Each playout first shuffles the cards `p` can't see, the
- * other hands and the draw pile, so it doesn't peek. Every move is played out on the same `n`
- * shuffles, so they differ by the move and not by the luck of the deal. (Successive halving,
- * dropping the worse half of the moves after 8 deals, then 16, and so on, lost to this at 2
- * players: 46.9% against 60.0% with 80 here.)
+ * Plays out every legal move, and ending the turn, with `rollout` for everyone, and makes the
+ * move that wins most. Each playout first shuffles the cards `p` can't see, the other hands and
+ * the draw pile, so it doesn't peek. Moves race on shared shuffles, 8 at a time, so they differ
+ * by the move and not by the luck of the deal: a move drops out once it's `z` standard errors
+ * of the paired difference behind the leader, and the race stops at `n` deals a move. Easy
+ * decisions end after a round or two. Against `n` deals for every move, this loses no decision
+ * quality at 5 players on two thirds of the playouts, and a little at 2 on four fifths. Halving,
+ * dropping the worse half after 8 deals, then 16, and so on, only matched it at equal cost.
  */
-export function playouts(n: number, seed = 1, rollout = defaultPolicy): Policy {
+export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2): Policy {
   const rng = mulberry32(seed);
+  const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
   return {
     ...defaultPolicy,
     move(game, p, left) {
       const options = [null, ...moves(game, p, left)];
       if (options.length === 1) return null;
-      const seeds = Array.from({ length: n }, () => Math.floor(rng() * 2 ** 32));
-      const wins = options.map((m) => playout(game, p, m, seeds, rollout));
-      return options[wins.indexOf(Math.max(...wins))];
+      const wins = options.map(() => [] as number[]);
+      let alive = options.map((_, i) => i);
+      for (let dealt = 0; dealt < n && alive.length > 1; dealt += 8) {
+        const seeds = Array.from({ length: 8 }, () => Math.floor(rng() * 2 ** 32));
+        for (const m of alive) for (const s of seeds) wins[m].push(playout(game, p, options[m], [s], rollout));
+        const lead = alive.reduce((a, b) => (total(wins[b]) > total(wins[a]) ? b : a));
+        alive = alive.filter((m) => {
+          const d = wins[m].map((w, i) => wins[lead][i] - w);
+          const mean = total(d) / d.length;
+          const sd = Math.sqrt(d.reduce((s, x) => s + (x - mean) ** 2, 0) / (d.length - 1)) || 1 / Math.sqrt(d.length);
+          return m === lead || mean < (z * sd) / Math.sqrt(d.length);
+        });
+      }
+      return options[alive.reduce((a, b) => (total(wins[b]) > total(wins[a]) ? b : a))];
     },
   };
 }

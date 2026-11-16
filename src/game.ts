@@ -557,8 +557,9 @@ export const collect =
   (target: Target): Step =>
   (game, p) => {
     const debt = p.hand.find((c) => isAction(c, "debtCollector"));
+    if (!debt) return null;
     const q = target(game, p, DEBT);
-    return debt && assets(q) > 0 ? { type: "action", card: debt, target: q.seat } : null;
+    return assets(q) > 0 ? { type: "action", card: debt, target: q.seat } : null;
   };
 
 /** `defaultPolicy`'s rules, in its order. */
@@ -710,7 +711,7 @@ function gain(game: Game, p: Player, color: Color): number {
 /** Loose properties of others, the most useful to `p` first. */
 function stealable(game: Game, p: Player, others: Player[]) {
   return others
-    .flatMap((q) => q.props.filter((x) => loose(game, q, x)).map((x) => ({ q, x })))
-    .filter(({ x }) => colorsOf(x.card).some((c) => gain(game, p, c) > 0))
-    .sort((a, b) => Math.max(...colorsOf(b.x.card).map((c) => gain(game, p, c))) - Math.max(...colorsOf(a.x.card).map((c) => gain(game, p, c))) || b.x.card.value - a.x.card.value);
+    .flatMap((q) => q.props.filter((x) => loose(game, q, x)).map((x) => ({ q, x, helps: Math.max(...colorsOf(x.card).map((c) => gain(game, p, c))) })))
+    .filter(({ helps }) => helps > 0)
+    .sort((a, b) => b.helps - a.helps || b.x.card.value - a.x.card.value);
 }
