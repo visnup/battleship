@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, gain, heuristic, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, rent, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
+import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, type Game, gain, heuristic, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { build, chance, headToHead, moves, STRATEGIES } from "../src/strategies.ts";
 
@@ -17,15 +17,6 @@ const bankIt =
 
 const mostBanked: Target = (game, p) => game.players.filter((q) => q !== p).reduce((a, b) => (sum(b.bank) > sum(a.bank) ? b : a));
 const sum = (cards: { value: number }[]) => cards.reduce((s, c) => s + c.value, 0);
-
-/** The first Deal Breaker step, which sorted sets of colors we have first and then refused them. */
-const dealBreakerBug: Step = (game, p) => {
-  const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
-  if (!breaker) return null;
-  const sets = game.players.filter((q) => q !== p).flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
-  const pick = sets.sort((a, b) => +!fullSets(game, p, a.color) - +!fullSets(game, p, b.color) || rent(game, b.q, b.color) - rent(game, a.q, a.color))[0];
-  return pick && !fullSets(game, p, pick.color) ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
-};
 
 /** Lays down a wild before anything but completing a set. */
 const placeWild: Step = (game, p) => {
@@ -149,7 +140,6 @@ const VARIANTS: Record<string, () => Policy> = {
   "lay down properties before charging (previous)": () => heuristic(...without(place).toSpliced(4, 0, place)),
   "lay down properties before banking (previous)": () => heuristic(...without(place).toSpliced(7, 0, place)),
   "build houses and hotels, never bank them (previous)": () => heuristic(...without(bankBuildings).toSpliced(-2, 0, build)),
-  "Deal Breaker refuses when the best set is a color it has (previous)": () => heuristic(...swap(dealBreaker, dealBreakerBug)),
   "build, else bank them": () => heuristic(...steps.toSpliced(-3, 0, build)),
   "Pass Go only as the last play": () => heuristic(...without(passGo)),
   "bank Pass Go": () => heuristic(...without(passGo, passGoLast), bankIt("passGo")),

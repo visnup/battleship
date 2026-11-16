@@ -169,7 +169,6 @@ change from it gained.
 | lay down properties before charging (previous) | 42.0% | 14.0% |
 | lay down properties before banking (previous) | 44.4% | 16.0% |
 | build houses and hotels, never bank them (previous) | 46.5% | 17.9% |
-| Deal Breaker refuses when the best set is a color it has (previous) | 49.5% | 19.4% |
 | build, else bank them | 49.7% | 19.8% |
 | Pass Go only as the last play | 46.6% | 16.9% |
 | bank Pass Go | 34.6% | 12.7% |
@@ -223,9 +222,6 @@ of spending it on rent. Holding the card costs 14 points at 2 players and 3 at 5
 charges no rent and counts toward no win. Keeping a Just Say No, even only while holding two,
 costs 0.5 to 1.3 points at every player count (3 and 4 players: 32.0% and 23.9%, against 33.2%
 and 25.0%). What you lose by paying now is worth more than the Deal Breaker it might stop later.
-
-**Deal Breaker had a bug.** It sorted sets of a color it already had first, then refused them, so
-it often skipped a better target. Fixing it was worth about half a point.
 
 Tried and rejected, besides the alternatives in the table (at 2 and 5 players, against 49.9% and
 20.0% for the default):
