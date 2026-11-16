@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, heuristic, isAction, leader, type Player, type Policy, progress, rent, richest, STEPS, type Step, type Target } from "../src/game.ts";
+import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, gain, heuristic, isAction, leader, loose, type Player, type Policy, progress, rent, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { build, headToHead, STRATEGIES } from "../src/strategies.ts";
 
@@ -96,6 +96,20 @@ const saveNo =
   (game, p, move, from) =>
     isAction(move.card, "dealBreaker") || (p.hand.filter((c) => isAction(c, "justSayNo")).length > spare && defaultPolicy.sayNo(game, p, move, from));
 
+/** Forced Deal taking the most useful loose property, giving our least-built loose one, wilds too with `wilds`, whenever `worth` says so. */
+const forced =
+  (worth: (gained: number, lost: number) => boolean, wilds = false): Step =>
+  (game, p) => {
+    const card = p.hand.find((c) => isAction(c, "forcedDeal"));
+    if (!card) return null;
+    const take = stealable(game, p, game.players.filter((q) => q !== p))[0];
+    const give = p.props
+      .filter((x) => loose(game, p, x) && x.color !== take?.x.color && (wilds || x.card.kind !== "wild"))
+      .sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
+    return take && give && worth(gain(game, p, take.x.color), progress(game, p, give.color)) ? { type: "action", card, target: take.q.seat, take: take.x, give } : null;
+  };
+const forcedEarly = (step: Step) => () => heuristic(...without(STEPS.forcedDeal).toSpliced(without(STEPS.forcedDeal).indexOf(STEPS.rent), 0, step));
+
 const steps = Object.values(STEPS) as Step[];
 const without = (...drop: Step[]) => steps.filter((s) => !drop.includes(s));
 const swap = (from: Step, to: Step) => steps.map((s) => (s === from ? to : s));
@@ -136,6 +150,12 @@ const VARIANTS: Record<string, () => Policy> = {
   "Just Say No only against Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(Infinity) }),
   "keep one Just Say No for a Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(1) }),
   "keep two Just Say Nos for a Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(2) }),
+  "Forced Deal before rent": forcedEarly(STEPS.forcedDeal),
+  "Forced Deal whenever it can": () => heuristic(...swap(STEPS.forcedDeal, forced(() => true))),
+  "Forced Deal giving wilds too": () => heuristic(...swap(STEPS.forcedDeal, forced((a, b) => a > b, true))),
+  "Forced Deal unless it gives more progress than it takes": () => heuristic(...swap(STEPS.forcedDeal, forced((a, b) => a >= b))),
+  "Forced Deal whenever it can, before rent": forcedEarly(forced(() => true)),
+  "Forced Deal whenever it can, giving wilds too, before rent": forcedEarly(forced(() => true, true)),
   ...Object.fromEntries(
     [5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))]),
   ),

@@ -24,7 +24,7 @@ const key = (m: Move | null) =>
 
 /**
  * Plays `n` games with the default player everywhere, and at each of seat 0's decisions plays out every
- * legal move on 40 shared deals. When another move beats the default player's, both are played out
+ * legal move on 40 shared deals, two rounds each like `playouts`. When another move beats the default player's, both are played out
  * again on 200 fresh deals, and the row records how much the other move gains there, in wins.
  */
 export function decisions(players: number, seed: number, n: number) {
@@ -40,7 +40,7 @@ export function decisions(players: number, seed: number, n: number) {
       count++;
       const draw = (k: number) => Array.from({ length: k }, () => Math.floor(seeds() * 2 ** 32));
       const first = draw(40);
-      const scored = options.map((m) => ({ m, wins: playout(game, p, m, first) }));
+      const scored = options.map((m) => ({ m, wins: playout(game, p, m, first, defaultPolicy, 2 * players) }));
       const best = scored.reduce((a, b) => (b.wins > a.wins ? b : a)).m;
       if (key(best) !== key(choice)) {
         const fresh = draw(200);

@@ -231,7 +231,10 @@ playouts that play each deal to the end:
   the cheapest card or what helps the victim least, giving wilds too, swapping on a tie, on any
   swap or only on a clear gain, or playing it before rent. Each was scored by playouts at the same
   decisions. None beat the default beyond the noise, and some, like taking the dearest, did
-  worse.
+  worse. Playouts that stop after two rounds find more: at 5 players they play a Forced Deal
+  where the default plays something else worth about 7 points a game. But playing it whenever it
+  can, before rent, or giving wilds too, each lost 0.1 to 1.1 points head to head at 2 to 5
+  players (`variants.ts`). Which swap matters, not how often.
 - **The any-color Rent.** Aiming it at whoever has to pay in property closed most of its gap. The
   best move by playouts now gains at most 2.5 points where they differ, and that's an overstated
   estimate.

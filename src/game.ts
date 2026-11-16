@@ -725,12 +725,12 @@ export const defaultPolicy: Policy = {
 };
 
 /** How much one more card of `color` would help `p`: toward a set, or none past a full one. */
-function gain(game: Game, p: Player, color: Color): number {
+export function gain(game: Game, p: Player, color: Color): number {
   return count(p, color) % size(color) === 0 && count(p, color) ? 0 : progress(game, p, color, 1);
 }
 
 /** Loose properties of others, the most useful to `p` first. */
-function stealable(game: Game, p: Player, others: Player[]) {
+export function stealable(game: Game, p: Player, others: Player[]) {
   return others
     .flatMap((q) => q.props.filter((x) => loose(game, q, x)).map((x) => ({ q, x, helps: Math.max(...colorsOf(x.card).map((c) => gain(game, p, c))) })))
     .filter(({ helps }) => helps > 0)
