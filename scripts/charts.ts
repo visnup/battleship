@@ -90,6 +90,7 @@ save("seats", {
     Plot.ruleY([0], dashed),
     Plot.line(seats, { x: "seat", y: "over", stroke: "players", strokeWidth: 2 }),
     Plot.dot(seats, { x: "seat", y: "over", fill: "players", stroke: art.paper, r: 4 }),
+    Plot.text(seats.filter((d) => d.seat === 1), { x: "seat", y: "over", text: (d) => plus(d.over), textAnchor: "end", dx: -8, fontSize: 9, ...halo }),
     Plot.text(seats, Plot.selectLast({ x: "seat", y: "over", z: "players", text: "players", textAnchor: "start", dx: 8, ...halo })),
   ],
 });
@@ -108,6 +109,7 @@ save("strategies", {
     Plot.ruleY([1], dashed),
     Plot.line(strategies, { x: "players", y: "shares", z: "strategy", stroke: (d) => (d.strategy === "playouts" ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), strokeWidth: 2 }),
     Plot.dot(strategies, { x: "players", y: "shares", fill: (d) => (d.strategy === "playouts" ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), stroke: art.paper, r: 4 }),
+    Plot.text(strategies.filter((d) => d.strategy === "playouts" || d.strategy === "builder"), { x: "players", y: "shares", text: (d) => d.shares.toFixed(2), dy: -10, fontSize: 9, ...halo }),
     // banker and default end within 0.01 of each other, and so do random and pacifist
     ...[-7, 0, 7].map((dy) =>
       Plot.text(
@@ -176,7 +178,7 @@ save("used", {
   width: 760,
   height: 60 + usedRows.length * 20,
   marginLeft: 170,
-  x: { label: "Value (points)", grid: true, tickFormat: signed, insetLeft: 10, insetRight: 10 },
+  x: { label: "Value (points)", grid: true, tickFormat: signed, insetLeft: 36, insetRight: 10 },
   y: { label: null, domain: usedRows.map((r) => r.card) },
   fx: { label: null },
   color: { domain: ["played", "banked"], range: [art["dark blue"], art.gray] },
@@ -191,6 +193,15 @@ save("used", {
       { fx: "players", y: "card", x1: "x1", x2: "x2", stroke: art.gray, strokeOpacity: 0.5 },
     ),
     Plot.dot(used, { fx: "players", y: "card", x: "value", fill: "use", stroke: art.paper, r: 4 }),
+    ...[1, -1].map((side) =>
+      Plot.text(
+        used.filter((d) => {
+          const other = used.find((o) => o.card === d.card && o.players === d.players && o.use !== d.use)!;
+          return (d.value >= other.value ? 1 : -1) === side;
+        }),
+        { fx: "players", y: "card", x: "value", text: (d) => plus(d.value), textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
+      ),
+    ),
   ],
 });
 
@@ -201,6 +212,7 @@ save("colors", {
   width: 760,
   height: 300,
   marginLeft: 80,
+  marginRight: 20,
   x: { label: "Games ending with it as a full set (%)", grid: true },
   y: { label: null, domain: colorRows.map((r) => r.color) },
   fx: { label: null },
@@ -208,6 +220,7 @@ save("colors", {
     Plot.barX(colors, { fx: "players", y: "color", x: "winners", fill: (d) => art[d.color as keyof typeof art], stroke: art.gray, strokeWidth: 0.5, insetTop: 2, insetBottom: 2 }),
     Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.paper, strokeWidth: 4 }),
     Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.ink, strokeWidth: 2 }),
+    Plot.text(colors, { fx: "players", y: "color", x: (d) => Math.max(d.winners, d.losers), text: (d) => `${Math.round(d.winners)}`, textAnchor: "start", dx: 5, fontSize: 9, ...halo }),
   ],
 }, true);
 
@@ -233,6 +246,10 @@ save("decided", {
     Plot.line(decided.filter((d) => d.who === "ahead"), { x: "round", y: "wins", stroke: "players", strokeWidth: 2 }),
     Plot.line(decided.filter((d) => d.who === "behind"), { x: "round", y: "wins", stroke: "players", strokeWidth: 2, strokeDasharray: "4,3" }),
     Plot.dot(decided, { x: "round", y: "wins", fill: "players", stroke: art.paper, r: 3 }),
+    Plot.text(
+      decided.filter((d) => d.round === 3 && d.who === "ahead" && (d.players === "2 players" || d.players === "5 players")),
+      { x: "round", y: "wins", text: (d) => `${Math.round(d.wins)}%`, textAnchor: "start", dx: 6, dy: 12, fontSize: 10, ...halo },
+    ),
     Plot.text(
       decided.filter((d) => d.round === 4 && d.players === "2 players"),
       { x: "round", y: "wins", text: (d) => (d.who === "ahead" ? "the player ahead" : "the one furthest behind"), dy: -12, ...halo },
@@ -260,6 +277,12 @@ save("paying", {
   marks: [
     Plot.line(pays, { x: "players", y: "share", z: "measure", stroke: art.ink, strokeWidth: 2 }),
     Plot.dot(pays, { x: "players", y: "share", fill: art.ink, stroke: art.paper, r: 4 }),
+    ...[-10, 14].map((dy) =>
+      Plot.text(
+        pays.filter((d) => (d.measure === "paid partly in property") === dy > 0),
+        { x: "players", y: "share", text: (d) => `${Math.round(d.share)}%`, dy, fontSize: 9, ...halo },
+      ),
+    ),
     Plot.text(pays, Plot.selectLast({ x: "players", y: "share", z: "measure", text: "measure", textAnchor: "start", dx: 8, ...halo })),
   ],
 });
@@ -280,6 +303,13 @@ save("openings", {
     Plot.ruleY([1], dashed),
     Plot.line(openings, { fx: "kind", x: "held", y: "shares", stroke: "players", strokeWidth: 2 }),
     Plot.dot(openings, { fx: "kind", x: "held", y: "shares", fill: "players", stroke: art.paper, r: 3 }),
+    ...[Plot.selectFirst, Plot.selectLast].map((select, i) =>
+      Plot.text(
+        // money cards' lines start within 0.01 of each other
+        openings.filter((d) => d.players === "5 players" || (d.players === "2 players" && !(i === 0 && d.kind === "money cards"))),
+        select({ fx: "kind", x: "held", y: "shares", z: (d) => `${d.kind} ${d.players}`, text: (d) => d.shares.toFixed(2), textAnchor: i ? "middle" : "start", dx: i ? 0 : 4, dy: -9, fontSize: 9, ...halo }),
+      ),
+    ),
     Plot.text(openings.filter((d) => d.kind === "actions"), Plot.selectLast({ fx: "kind", x: "held", y: "shares", z: "players", text: "players", textAnchor: "start", dx: 8, ...halo })),
   ],
 });
