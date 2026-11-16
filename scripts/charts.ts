@@ -75,7 +75,7 @@ save("seats", {
   width: 640,
   height: 300,
   marginRight: 70,
-  x: { label: "Seat in turn order", ticks: [1, 2, 3, 4, 5], tickFormat: "d" },
+  x: { label: "Seat in turn order", type: "point", domain: [1, 2, 3, 4, 5], padding: 0.4 },
   y: { label: "Wins over a fair share (points)", grid: true, tickFormat: signed },
   color: playerColor,
   marks: [
