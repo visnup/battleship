@@ -194,11 +194,26 @@
             `dataset/model-r4a.json` and so on. This run predates `round.sh`, so its compares
             print to the task log (`/private/tmp/claude-501/-Users-visnup-Developer-visnup/fa910614-8ef4-4a1f-b390-cd32857ed97d/tasks/bxjvdv1ms.output`),
             not `dataset/r4a/`; if that's gone, rerun `node scripts/compare.ts
-            dataset/model-r3.json dataset/model-r4a.json --n 50000` for each. Adopt the winner into `src/model.json` and the README's
-            rounds table (then `node scripts/charts.ts`), and run later rounds that way while
-            they gain.
+            dataset/model-r3.json dataset/model-r4a.json --n 50000` for each. Adopt the winner
+            into `src/model.json` and the README's rounds table (then `node scripts/charts.ts`).
+            4a tied round 3: +0.1, −0.1, +0.2 and +0.3 (±0.3–0.4), and as playouts' filter +0.2
+            ±0.9 at 2 players and −0.3 ±1.2 at 5.
+            **The loop is near its limit as set up** (fits the data, not tested). Rounds gained
+            only when the labels changed: round 1 over round 0, and round 3, the first with the
+            learned payer in the playouts. Rounds 2 and 4a, the same recipe again, tied. Every
+            label asks which move is best if the default then plays two rounds, so iterating
+            converges on the best one-step deviation from the default, however strong the player
+            generating the games. As playouts' filter, no round since 1 has gained. Held out, the
+            model gains +0.4 to +0.7 a decision against a noisy ceiling of +1.8 to +3.5, which
+            4b and 4c probe as label noise. More rounds of the same recipe aren't worth running;
+            stronger rollouts are, if they stay cheap like the learned payer (the learned player
+            inside the playouts was 9–20× slower for no gain). In order:
       - [ ] Mine the latest model for rules, as round 0 gave two: where it overrules the
-            default most often, and by how much on playouts.
+            default most often, and by how much on playouts. Adopted into `defaultPolicy`, they
+            make every rollout stronger at no cost, and so the labels; then run another round.
+      - [ ] Learn Just Say No and discarding, and use them in the rollouts like the payer.
+      - [ ] Only if the model plateaus against cleaner labels: features beyond the 94
+            hand-made ones.
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
             margin, instead of only dropping moves `z` standard errors behind. Not yet run;
             needs quiet cores.
