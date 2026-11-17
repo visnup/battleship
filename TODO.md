@@ -178,6 +178,10 @@
             minute for the learned player. Values are centered on each decision's mean:
             centering on the default's pick instead halved the held-out gain (+0.17 against
             +0.39 at 2 players), since the default's row is then always exactly 0.
+            Round 2 (2,500 games a count, rounds 1–2) tied round 1: +0.1 to +0.5 ±0.4. Round 3
+            (5,000 games, rounds 2–3, playouts paying by the learned payer, 73 minutes) gains
+            +0.5, +1.6, +1.7 and +2.0 (±0.35–0.45) over round 1: the learned player 58.1%, 46.1%,
+            39.4% and 34.6%. Ranking playouts it ties (−0.7 ±1.0 at 2, +0.9 ±1.4 at 5). Adopted.
       - [x] A small model inside the playouts (2026-11-17, quick playouts, 4,000 games, ±1.6 at
             2 players and ±1.5 at 5): the default there wins 53.2% and 33.5%. 50 trees 54.0% and
             33.5% at 9–12× the time, 150 trees 54.8% and 33.8% at 13–19×, a network 32 wide
