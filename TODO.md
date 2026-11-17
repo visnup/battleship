@@ -142,9 +142,22 @@
             at 9 ms of CPU a game. Inside quick playouts as everyone's rollout player, 53.5% at
             2 players and 38.1% at 5 (1,000 games, ±3), against 55.6% and 36.1% with the
             default, at about 20× the time: 1,000 trees are 85% of it even from flat arrays.
-            Full playouts with the default cost less and win 42.8% at 5. Untried: far fewer
-            trees, refitting `chance` to learned games, or the model as a prior that limits
-            which moves playouts try.
+            Full playouts with the default cost less and win 42.8% at 5.
+            As a filter it works (`playouts`' `candidates`, 10,000 games, ±1): playing out only
+            the trees' top 5 moves wins 60.9% and 44.6% at 2 and 5 players in 0.6–0.8× the
+            time, and with 160 deals instead of 80, 61.8% and 46.0% (+2.0, +3.2) in the same
+            time at 5 players and 1.3× at 2. Top 3 is cheaper and about 1 point worse; top 2
+            loses 3 points at 5. Adopting it means committing a model, now 7 MB of trees.
+      - [x] A neural network instead of trees (`learn_mlx.py`, MLX on the GPU): 512 wide, 2
+            layers, 5 minutes against the trees' 16 on the CPU. Held out, +0.67 to +0.74 a
+            decision (trees +0.59 to +0.72). Head to head (100,000 games) 55.2%, 43.1%, 37.1%
+            and 32.9% at 2–5 players: −1.1 at 2 against the trees, +1.9 and +2.6 at 4 and 5.
+            Ranking playouts' top 5 with it instead of the trees is even.
+      - [x] A learned board score (`learn_value.py`, `position` in `learn.ts`): the mover's
+            chance of winning from what they see, fitted to who won (overfits after 5 epochs:
+            about 37,000 games behind 2.7 million boards). In place of `chance` on the top 3
+            and 80 deals: +1.7 at 5 players, even at 2; on the top 5 and 160 deals, even at
+            both, at 1.2–1.7× the time.
       - [ ] Tune racing offline: how close each decision's top moves are says how many deals
             and what `z` it needs.
 
