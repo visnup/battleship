@@ -44,7 +44,7 @@ export function Board({ game, me }: Props) {
       <section className="middle">
         <div className={g.draw.length ? "deck" : "deck empty"}>Draw Pile ({g.draw.length})</div>
         {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className="deck empty">Discard</span>}
-        <ol className="log">
+        <ul className="log">
           {(g.log ?? []).slice(-6).map((line, i) => (
             <li key={i}>
               {line
@@ -53,7 +53,7 @@ export function Board({ game, me }: Props) {
                 .replace(/\b[a-z]+[A-Z]\w*/g, colorName)}
             </li>
           ))}
-        </ol>
+        </ul>
       </section>
       {order.map((n) => (
         <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={n === seat} />
@@ -123,7 +123,8 @@ export function Board({ game, me }: Props) {
         }
         .log {
           margin: 0;
-          padding-left: 1.2em;
+          padding: 0;
+          list-style: none;
           font-size: small;
           opacity: 0.8;
         }
