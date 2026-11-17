@@ -192,7 +192,9 @@ export function paid(file = PAY): Policy["pay"] {
   return (game, p, amount) => {
     const all = payable(p);
     const options = payments(game, p, amount, 24);
-    const scores = options.map((o) => scorer(payment(game, p, amount, o.map((j) => all[j]))));
+    if (options.length === 1) return options[0].map((j) => all[j]);
+    const features = payment(game, p, amount);
+    const scores = options.map((o) => scorer(features(o.map((j) => all[j]))));
     return options[scores.indexOf(Math.max(...scores))].map((j) => all[j]);
   };
 }

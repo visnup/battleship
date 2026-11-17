@@ -80,12 +80,13 @@ if (import.meta.main) {
       model: { type: "string", default: "" },
       top: { type: "string", default: "0" },
       pay: { type: "boolean", default: false },
+      players: { type: "string", default: "2,3,4,5" },
       out: { type: "string", default: "dataset/data" },
     },
   });
   mkdirSync(args.out, { recursive: true });
   const out = new URL(args.out, `file://${process.cwd()}/`).pathname;
-  for (const players of [2, 3, 4, 5]) {
+  for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();
     const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.model, Number(args.top), args.pay, out], Number(args.games));
     console.log(`${players} players: ${args.games} games, ${decisions} decisions, ${((performance.now() - t) / 60000).toFixed(1)} min`);

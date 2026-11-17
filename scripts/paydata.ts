@@ -24,7 +24,7 @@ export function shard(players: number, deals: number, seed: number, n: number) {
     const found: { k: number; options: number[][]; rows: number[][] }[] = [];
     watch("pay", players, s, first, counts, (k, game, p, amount) => {
       const options = payments(game, p, amount, 24);
-      if (options.length > 1) found.push({ k, options, rows: options.map((o) => payment(game, p, amount, o.map((j) => payable(p)[j]))) });
+      if (options.length > 1) found.push({ k, options, rows: options.map((o) => payment(game, p, amount)(o.map((j) => payable(p)[j]))) });
     });
     for (const { k, options, rows } of found) {
       const shuffles = Array.from({ length: deals }, () => Math.floor(seeds() * 2 ** 32));
