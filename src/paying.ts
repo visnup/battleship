@@ -25,13 +25,17 @@ export function payments(game: Game, p: Player, amount: number, cap = 200): numb
   };
   pick(0, [], 0);
   const mine = defaultPolicy.pay(game, p, amount).map((x) => all.indexOf(x));
-  const key = (o: number[]) =>
-    o
-      .map((j) => label(game, p, all[j]))
-      .sort()
-      .join();
+  const labels = all.map((x) => label(game, p, x));
   const seen = new Set<string>();
-  return [mine, ...found].filter((o) => !seen.has(key(o)) && seen.add(key(o))).slice(0, cap);
+  return [mine, ...found]
+    .filter((o) => {
+      const key = o
+        .map((j) => labels[j])
+        .sort()
+        .join();
+      return !seen.has(key) && seen.add(key);
+    })
+    .slice(0, cap);
 }
 
 /** `p` paying toward `amount`: given what's paid, it and the table it's paid on as numbers. */

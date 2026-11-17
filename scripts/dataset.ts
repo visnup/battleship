@@ -4,14 +4,14 @@ import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game
 import { paid, ranked } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { encode, key, observe } from "../src/replay.ts";
-import { playout } from "../src/strategies.ts";
+import { chance, playout } from "../src/strategies.ts";
 
 /**
  * Plays `n` games of `players` and writes every move decision with a choice to a shard in `out`:
  * what the mover sees, each legal move's two-round playout value on `deals` shared deals, the
  * default's pick, and whether the mover went on to win. With `model`, the learned player plays
  * the games, and with `top` too, only its `top` moves, the default's pick and one other at random
- * are played out. With `pay`, the playouts pay as `src/pay.json` says.
+ * are played out. With `pay`, the mover pays as `src/pay.json` says in the playouts.
  */
 export function shard(players: number, deals: number, model: string, top: number, pay: boolean, out: string, seed: number, n: number) {
   const rng = mulberry32(seed);
@@ -45,7 +45,7 @@ export function shard(players: number, deals: number, model: string, top: number
         }
         if (options.length > 1) {
           const seeds = Array.from({ length: deals }, () => Math.floor(rng() * 2 ** 32));
-          const values = options.map((m) => seeds.map((s) => playout(game, p, m, [s], rollout, 2 * players)));
+          const values = options.map((m) => seeds.map((s) => playout(game, p, m, [s], rollout, 2 * players, chance, defaultPolicy)));
           rows.push({
             game: `${players}p-${seed}-${i}`,
             game_seed: gameSeed,

@@ -182,6 +182,10 @@
             (5,000 games, rounds 2–3, playouts paying by the learned payer, 73 minutes) gains
             +0.5, +1.6, +1.7 and +2.0 (±0.35–0.45) over round 1: the learned player 58.1%, 46.1%,
             39.4% and 34.6%. Ranking playouts it ties (−0.7 ±1.0 at 2, +0.9 ±1.4 at 5). Adopted.
+            From round 4 only the mover pays by the learned payer in the playouts, as in the
+            field it's measured against: labeling is 1.7× faster at 2 players and 2.7× at 5, and
+            on the same deals its values correlate 0.99 and 0.78 with everyone paying that way
+            (default paying: 0.97 and 0.75).
       - [x] A small model inside the playouts (2026-11-17, quick playouts, 4,000 games, ±1.6 at
             2 players and ±1.5 at 5): the default there wins 53.2% and 33.5%. 50 trees 54.0% and
             33.5% at 9–12× the time, 150 trees 54.8% and 33.8% at 13–19×, a network 32 wide

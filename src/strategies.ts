@@ -145,12 +145,13 @@ export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, ro
 
 /**
  * How many of the games from `seeds` `p` wins making `move` now, then playing like `rollout`. With
- * `turns`, each game stops after that many more turns and scores `p`'s board with `leaf`.
+ * `turns`, each game stops after that many more turns and scores `p`'s board with `leaf`. The
+ * others play like `field`.
  */
-export function playout(game: Game, p: Player, move: Move | null, seeds: number[], rollout = defaultPolicy, turns = Infinity, leaf = chance) {
+export function playout(game: Game, p: Player, move: Move | null, seeds: number[], rollout = defaultPolicy, turns = Infinity, leaf = chance, field = rollout) {
   let wins = 0;
   for (const s of seeds) {
-    const g = sample(game, p, mulberry32(s), rollout);
+    const g = sample(game, p, mulberry32(s), rollout, field);
     const { winner, stalled, turns: played } = g.run(move && translate(move, game, g), game.turns + turns);
     wins += stalled && played < MAX_TURNS ? leaf(g, p.seat) : +(winner === p.seat);
   }
@@ -204,11 +205,11 @@ export function chance(game: Game, seat: number, weights = WEIGHTS[game.players.
   return scores[seat] / scores.reduce((a, b) => a + b, 0);
 }
 
-/** A copy of `game` with the cards `p` can't see dealt again at random, played by `rollout`. */
-function sample(game: Game, p: Player, rng: () => number, rollout: Policy): Game {
+/** A copy of `game` with the cards `p` can't see dealt again at random, `p` played by `rollout` and the others by `field`. */
+function sample(game: Game, p: Player, rng: () => number, rollout: Policy, field: Policy): Game {
   const g = game.clone();
   g.rng = rng;
-  g.policies = g.players.map(() => rollout);
+  g.policies = g.players.map((q) => (q.seat === p.seat ? rollout : field));
   const hidden = g.players.filter((q) => q.seat !== p.seat);
   const cards = shuffle([...hidden.flatMap((q) => q.hand), ...g.draw], rng);
   for (const q of hidden) q.hand = cards.splice(0, q.hand.length);
