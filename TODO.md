@@ -211,7 +211,8 @@
       - [ ] Mine the latest model for rules, as round 0 gave two: where it overrules the
             default most often, and by how much on playouts. Adopted into `defaultPolicy`, they
             make every rollout stronger at no cost, and so the labels; then run another round.
-      - [ ] Learn Just Say No and discarding, and use them in the rollouts like the payer.
+      - [ ] Then Just Say No and discarding (the "Learn the other decisions" item below), used
+            in the rollouts like the payer.
       - [ ] Only if the model plateaus against cleaner labels: features beyond the 94
             hand-made ones.
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
