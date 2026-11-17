@@ -1,4 +1,4 @@
-import type { Card as CardType, Color } from "../cards.ts";
+import { type Action, BIRTHDAY, type Card as CardType, type Color, COLORS, DEBT, HOTEL_RENT, HOUSE_RENT } from "../cards.ts";
 import { colorsOf } from "../game.ts";
 
 const PAINT: Record<Color, string> = {
@@ -19,6 +19,34 @@ export const colorName = (s: string) => s.replace(/([A-Z])/g, " $1").replace(/^.
 
 export const label = (c: CardType) => (c.kind === "money" ? `$${c.value}M` : c.kind === "property" ? colorName(c.color) : c.kind === "wild" ? "Wild" : c.kind === "rent" ? "Rent" : colorName(c.action));
 
+const rents = (c: Color) => `${colorName(c)} rent: ${COLORS[c].rent.map((r, i) => `${i + 1} card${i ? "s" : ""} $${r}M`).join(", ")} (full set)`;
+
+const ACTIONS: Record<Action, string> = {
+  dealBreaker: "Take a full set from another player, with its house and hotel.",
+  justSayNo: "Cancel an action played against you. Another Just Say No cancels this one. On your own turn, it uses a play.",
+  slyDeal: "Take one property from another player, not from a full set.",
+  forcedDeal: "Swap one of your properties for one of another player's, not from a full set.",
+  debtCollector: `One player pays you $${DEBT}M.`,
+  birthday: `Everyone pays you $${BIRTHDAY}M.`,
+  doubleRent: "Play with a Rent card to double the rent. It uses a play of its own.",
+  house: `Put on a full set, not railroads or utilities, for $${HOUSE_RENT}M more rent.`,
+  hotel: `Put on a full set that has a house, for $${HOTEL_RENT}M more rent.`,
+  passGo: "Draw two cards.",
+};
+
+/** What `c` does, for its title. */
+function explain(c: CardType): string {
+  const worth = `Worth $${c.value}M in the bank.`;
+  if (c.kind === "money") return `${label(c)}: bank it to pay with.`;
+  if (c.kind === "property") return `${colorName(c.color)}, worth $${c.value}M when paid.\n${rents(c.color)}`;
+  if (c.kind === "wild")
+    return c.colors === "any"
+      ? "Wild: counts as any color, and can be moved on your turn. Can't pay with it, or make a set of only these."
+      : `Wild: counts as ${c.colors.map(colorName).join(" or ")}, and can be moved on your turn. Worth $${c.value}M when paid.\n${c.colors.map(rents).join("\n")}`;
+  if (c.kind === "rent") return c.colors === "any" ? `Rent: one player pays you rent on any one of your colors. ${worth}` : `Rent: everyone pays you rent on your ${c.colors.map(colorName).join(" or ")}. ${worth}`;
+  return `${label(c)}: ${ACTIONS[c.action]} ${worth}`;
+}
+
 /** A card; `banked` grays its name and darkens its value, which is all it's worth in a bank. */
 export function Card({ card, color, selected, banked, onClick }: { card: CardType; color?: Color; selected?: boolean; banked?: boolean; onClick?: () => void }) {
   const cash = banked && card.kind !== "money";
@@ -38,7 +66,7 @@ export function Card({ card, color, selected, banked, onClick }: { card: CardTyp
     <Tag
       className={`m-0 box-border inline-flex h-[6.3em] w-[4.5em] shrink-0 flex-col overflow-hidden rounded-[0.4em] bg-white p-0 text-center text-[0.85rem] text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-[gold]" : ""}`}
       onClick={onClick}
-      title={label(card)}
+      title={explain(card)}
     >
       <span className="h-[1.4em]" style={{ background: band }} />
       <span className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold ${cash ? "text-gray-400" : ""}`}>{label(card)}</span>
