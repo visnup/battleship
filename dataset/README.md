@@ -25,7 +25,7 @@ configs:
 # Monopoly Deal move values
 
 Every decision about what to play next in 40,000 simulated games of Monopoly Deal, 10,000 at
-each of 2 to 5 players: 2,688,521 decisions, from 473,525 at 2 players to 846,649 at 5. Each
+each of 2 to 5 players: 2,680,192 decisions, from 471,782 at 2 players to 847,687 at 5. Each
 row has what the player to move can see, every legal move, each move's estimated chance of
 winning, the simulator's hand-written player's pick, and whether the player to move went on to
 win.
@@ -60,7 +60,7 @@ same 32 deals:
 `value` is the mean of the 32 scores and `se` its standard error. The 32 deals are shared by
 every move of a decision, so the difference between two moves is less noisy than their `se`s
 suggest. In the simulator, picking the move with the highest value this way (with up to 80 deals)
-beats the default player by 10 to 23 points.
+beats the default player by 9 to 19 points.
 
 The values are estimates for a particular rollout player and scoring function, not the game's
 true values. They're good at ranking moves within one decision, but they don't judge the
