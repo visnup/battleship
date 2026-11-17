@@ -72,7 +72,7 @@ export function Card({ card, color, selected, onClick }: { card: CardType; color
           align-items: center;
           justify-content: center;
           padding: 0 0.2em;
-          font-weight: 600;
+          font-weight: 800;
           line-height: 1.1;
         }
         .value {

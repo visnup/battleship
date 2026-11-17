@@ -134,7 +134,7 @@ export function Board({ game, me }: Props) {
           background: #b8292f;
           color: white;
           font-size: 0.85rem;
-          font-weight: 600;
+          font-weight: 800;
           line-height: 1.2;
           text-align: center;
           box-shadow:
