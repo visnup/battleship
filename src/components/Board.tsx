@@ -2,7 +2,7 @@ import { useMutation } from "convex/react";
 import { type ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { banked, COLOR_NAMES, defaultPolicy, fullSets, type Game, moves, type Move, payable, type Player, rent } from "../game.ts";
+import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, moves, type Move, payable, type Player, rent, size } from "../game.ts";
 import { type Choice, choose, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label } from "./Card";
 
@@ -112,14 +112,24 @@ export function Board({ game, me }: Props) {
 
 function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: string; current: boolean; mine: boolean }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
+  const full = fullColors(game, p).length;
+  const nearest = colors
+    .filter((c) => !fullSets(game, p, c))
+    .map((c) => ({ c, n: count(p, c), of: size(c) }))
+    .sort((a, b) => b.n / b.of - a.n / a.of)[0];
   return (
-    <section className={`rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
-      <h2 className="mb-[0.4em] text-base font-bold">
-        {name}{" "}
-        <small className="font-normal opacity-70">
-          {mine ? "" : `${p.hand.length} in hand · `}${banked(p)}M banked
-        </small>
+    <section className={`grid grid-cols-[7em_1fr] items-center gap-x-[0.8em] gap-y-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
+      <h2 className="col-span-2 text-base font-bold">
+        {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
+      <div className="text-sm">
+        <div className="font-bold">{Math.min(full, 3)} of 3 sets</div>
+        {nearest && full < 3 && (
+          <div className="opacity-70">
+            {colorName(nearest.c)} {nearest.n} of {nearest.of}
+          </div>
+        )}
+      </div>
       <div className="flex flex-wrap gap-[0.6em]">
         {colors.map((c) => (
           <div key={c} className={`flex *:not-first:-ml-[2.8em] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
@@ -136,13 +146,12 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
           </div>
         ))}
       </div>
-      {p.bank.length > 0 && (
-        <div className="mt-[0.4em] flex flex-wrap gap-[0.6em] text-[0.7em]">
-          {p.bank.map((c, i) => (
-            <Card key={i} card={c} />
-          ))}
-        </div>
-      )}
+      <div className="text-sm font-bold">${banked(p)}M banked</div>
+      <div className="flex flex-wrap gap-[0.6em]">
+        {p.bank.map((c, i) => (
+          <Card key={i} card={c} />
+        ))}
+      </div>
     </section>
   );
 }
