@@ -40,7 +40,7 @@ export function Card({ card, color, selected, onClick }: { card: CardType; color
     >
       <span className="h-[1.4em]" style={{ background: band }} />
       <span className="flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold">{label(card)}</span>
-      {card.kind !== "money" && <span className="pb-[0.3em] text-[0.75em] opacity-60">${card.value}M</span>}
+      <span className="pb-[0.3em] text-[0.75em] opacity-60">{card.kind === "money" ? " " : `$${card.value}M`}</span>
     </Tag>
   );
 }
