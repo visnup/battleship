@@ -44,6 +44,11 @@ from photos of one card of each property color and each wild (`rules/properties.
   playout value, as JSONL shards in `dataset/data/` (not committed). `uv run dataset/parquet.py`
   joins them into Parquet, and `dataset/README.md` is the Hugging Face dataset card. Publish with
   `uvx --from huggingface_hub hf upload visnup/monopoly-deal dataset . --repo-type dataset --exclude '*.jsonl' --exclude '*.py'`.
+- `scripts/learn.ts`: the learned player. `extract` and `boards` turn dataset shards into
+  features in `dataset/features/`; `uv run scripts/learn.py` fits trees to `dataset/model.json`,
+  `scripts/learn_mlx.py` a network on the GPU to `dataset/mlp.json`, and
+  `scripts/learn_value.py` a board score to `dataset/value.json` (none committed). `--model`
+  plays one head to head. `playouts`' `candidates` and `leaf` take its rankings and board score.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;

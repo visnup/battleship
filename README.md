@@ -326,6 +326,37 @@ playouts that play each deal to the end:
   would let a Debt Collector through and leave a No against their own action standing, but head
   to head the first is even and never countering a No loses 0.5 to 0.6 points.
 
+### A learned player
+
+Playouts are strong but slow. *`scripts/learn.ts`* turns the dataset (every move of 10,000
+default games at each player count, scored by two-round playouts) into 94 numbers per move, and
+fits a model that predicts each move's playout score. The learned player then makes the move it
+scores highest. It never looks ahead, so it costs about 9 ms of CPU a game.
+
+| player | 2 players (fair 50.0%) | 3 players (fair 33.3%) | 4 players (fair 25.0%) | 5 players (fair 20.0%) |
+| --- | --- | --- | --- | --- |
+| gradient-boosted trees | 56.0% | 42.0% | 33.8% | 29.1% |
+| neural network | 55.5% | 42.6% | 35.2% | 30.7% |
+| quick playouts | 54.1% | 40.8% | 36.0% | 33.7% |
+
+100,000 games each against the default in every other seat. The trees (`learn.py`, 1,000 trees,
+21 minutes on 20 cores) and the network (`learn_mlx.py`, two layers of 512, 6.5 minutes on the
+GPU) are each the first players without lookahead to beat the default, by 6 to 11 points. Both
+beat quick playouts at 2 and 3 players. On games they never saw, their picks score 0.5 to 0.6
+points of win chance a decision above the default's, and they pick something else 35% to 42% of
+the time (the trees) and about 60% (the network).
+
+**Where they overrule the default became two rules.** The model ended its turn by banking a card
+the default would hold, when that emptied its hand, and it held Birthday in the first round. Both
+are now in the default player.
+
+**As a filter it makes playouts stronger.** Playing out only the trees' top 5 moves, with twice
+the shuffles (160), wins 61.2%, 49.9%, 46.4% and 41.8%: 1.3 to 3.1 points more than playouts,
+at 1.2× the time (10,000 games each). It isn't the default `playouts` because it needs a 7 MB
+model. Using the model as the player inside the imagined games instead costs 20× the time and
+wins less. A network trained to judge the table in place of `chance` (`learn_value.py`) is even
+on the top 5 with 160 shuffles.
+
 ## What each card is worth
 
 *From `node scripts/cards.ts`*, which deals each game twice: once as dealt, and once with one copy

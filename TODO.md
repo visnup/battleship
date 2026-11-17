@@ -57,7 +57,7 @@
             `uv`) on the same move features and playout values, and play it head to head. If
             it wins, distill readable rules from it for `STEPS`. Less noisy targets (more deals
             a move) are the other lever.
-- [ ] Close more of the gap to playouts, now 10 to 23 points. Done 2026-11-16, one
+- [ ] Close more of the gap to playouts, now 9 to 19 points. Done 2026-11-16, one
       step at a time on top of the last: adopt banking Forced Deal in the first round at 3+
       players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance` (done), run
       `decisions.ts` with its recheck also cut off at two rounds (done: at 2 players the
@@ -75,7 +75,7 @@
       each Just Say No decision might still find a rule.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
-- [ ] Playouts win 59.8% at 2 players, 10 points over the default; playing to the end, they
+- [ ] Playouts win 59.1% at 2 players, 9 points over the default; playing to the end, they
       tied it. More deals per move still help, about 2 points each time they double: at 80,
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
@@ -148,6 +148,10 @@
             time, and with 160 deals instead of 80, 61.8% and 46.0% (+2.0, +3.2) in the same
             time at 5 players and 1.3× at 2. Top 3 is cheaper and about 1 point worse; top 2
             loses 3 points at 5. Adopting it means committing a model, now 7 MB of trees.
+            Retrained on the new default's dataset (2026-11-17): trees 56.0%, 42.0%, 33.8% and
+            29.1%, the network 55.5%, 42.6%, 35.2% and 30.7% (100,000 games), and the top 5 at
+            160 deals 61.2%, 49.9%, 46.4% and 41.8% against playouts' 59.1%, 48.6%, 43.7% and
+            38.7%, in 1.2× the time (10,000 games). In the README's "A learned player".
       - [x] Rules from where the model overrules the default (2026-11-17, held-out shards,
             by stored value): it ended turns holding a card it wouldn't play, and played
             Birthday in the first round. Banking what's left when that empties the hand (+0.3
