@@ -11,20 +11,12 @@ type Props = { game: Doc<"games"> & { log: Choice[] }; me: Id<"players"> };
 const id = (r: Ref) => `${r.pile}${r.i}`;
 
 function Row({ children }: { children: ReactNode }) {
-  return (
-    <div>
-      {children}
-      <style jsx>{`
-        div {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.4em;
-          padding-top: 0.6em;
-        }
-      `}</style>
-    </div>
-  );
+  return <div className="flex flex-wrap gap-[0.4em] pt-[0.6em]">{children}</div>;
 }
+
+const deck = "box-border flex h-[6.3em] w-[4.5em] shrink-0 flex-col items-center justify-center rounded-[0.4em] px-[0.3em] text-center text-[0.85rem] leading-[1.2]";
+const drawn = "border-[0.3em] border-white bg-[#b8292f] font-extrabold text-white shadow-[2px_2px_0_-1px_white,2px_2px_0_0_rgba(0,0,0,0.3),4px_4px_0_-1px_white,4px_4px_0_0_rgba(0,0,0,0.3)]";
+const empty = "border-2 border-dashed border-white/40";
 
 /** The log with a heading for each turn, and the mover's own lines without their name. */
 function turns(log: string[], who: (n: number) => string) {
@@ -65,13 +57,22 @@ export function Board({ game, me }: Props) {
   const entries = turns(g.log ?? [], who);
   const order = Array.from({ length: g.players.length }, (_, i) => (Math.max(seat, 0) + i) % g.players.length);
   return (
-    <div className="board">
-      <section className="middle">
-        <div className={g.draw.length ? "deck" : "deck empty"}>Draw Pile <span className="count">{g.draw.length}</span></div>
-        {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className="deck empty">Discard</span>}
-        <ul className="log" ref={log}>
+    <div className="mx-auto flex max-w-[60em] flex-col gap-[0.8em] p-[0.8em]">
+      <section className="flex items-start justify-center gap-[1em]">
+        <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
+          Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
+        </div>
+        {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className={`${deck} ${empty}`}>Discard</span>}
+        <ul className="m-0 h-[5.4rem] list-none overflow-y-auto p-0 text-[small] opacity-80" ref={log}>
           {entries.map(({ turn, text }, i) => (
-            <li key={i} className={turn ? "turn" : undefined}>
+            <li
+              key={i}
+              className={
+                turn
+                  ? "mt-[0.3em] flex items-center gap-[0.5em] font-semibold first:mt-0 before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
+                  : undefined
+              }
+            >
               {turn
                 ? text
                 : text
@@ -86,7 +87,7 @@ export function Board({ game, me }: Props) {
       {order.map((n) => (
         <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={n === seat} />
       ))}
-      <section className="prompt">
+      <section className="sticky bottom-0 rounded-[0.6em] bg-black/60 px-[0.8em] py-[0.6em] text-white">
         {result ? (
           <p>{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
         ) : prompt && prompt.seat === seat ? (
@@ -103,93 +104,8 @@ export function Board({ game, me }: Props) {
             )}
           </>
         )}
-        {error && <p className="error">{error}</p>}
+        {error && <p className="text-[#ff8a8a]">{error}</p>}
       </section>
-      <style jsx>{`
-        .board {
-          display: flex;
-          flex-direction: column;
-          gap: 0.8em;
-          padding: 0.8em;
-          max-width: 60em;
-          margin: 0 auto;
-        }
-        .middle {
-          display: flex;
-          justify-content: center;
-          gap: 1em;
-          align-items: flex-start;
-        }
-        .deck {
-          box-sizing: border-box;
-          width: 4.5em;
-          height: 6.3em;
-          flex-shrink: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 0 0.3em;
-          border: 0.3em solid white;
-          border-radius: 0.4em;
-          background: #b8292f;
-          color: white;
-          font-size: 0.85rem;
-          font-weight: 800;
-          line-height: 1.2;
-          text-align: center;
-          box-shadow:
-            2px 2px 0 -1px white,
-            2px 2px 0 0 rgba(0, 0, 0, 0.3),
-            4px 4px 0 -1px white,
-            4px 4px 0 0 rgba(0, 0, 0, 0.3);
-        }
-        .count {
-          color: #d0d0d0;
-        }
-        .empty {
-          border: 2px dashed rgba(255, 255, 255, 0.4);
-          background: none;
-          box-shadow: none;
-          font-weight: normal;
-        }
-        .log {
-          margin: 0;
-          padding: 0;
-          list-style: none;
-          font-size: small;
-          opacity: 0.8;
-          height: 5.4rem;
-          overflow-y: auto;
-        }
-        .turn {
-          display: flex;
-          align-items: center;
-          gap: 0.5em;
-          margin-top: 0.3em;
-          font-weight: 600;
-        }
-        .turn:first-child {
-          margin-top: 0;
-        }
-        .turn::before,
-        .turn::after {
-          content: "";
-          flex: 1;
-          border-top: 1px solid rgba(255, 255, 255, 0.4);
-        }
-        .prompt {
-          position: sticky;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.6);
-          color: white;
-          padding: 0.6em 0.8em;
-          border-radius: 0.6em;
-        }
-        .error {
-          color: #ff8a8a;
-        }
-      `}</style>
     </div>
   );
 }
@@ -197,16 +113,16 @@ export function Board({ game, me }: Props) {
 function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: string; current: boolean; mine: boolean }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   return (
-    <section className={current ? "seat current" : "seat"}>
-      <h2>
+    <section className={`rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
+      <h2 className="mb-[0.4em] text-base font-bold">
         {name}{" "}
-        <small>
+        <small className="font-normal opacity-70">
           {mine ? "" : `${p.hand.length} in hand · `}${banked(p)}M banked
         </small>
       </h2>
-      <div className="row">
+      <div className="flex flex-wrap gap-[0.6em]">
         {colors.map((c) => (
-          <div key={c} className={fullSets(game, p, c) ? "set full" : "set"}>
+          <div key={c} className={`flex *:not-first:-ml-[2.8em] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
             {p.props
               .filter((x) => x.color === c)
               .map((x, i) => (
@@ -221,50 +137,12 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
         ))}
       </div>
       {p.bank.length > 0 && (
-        <div className="row bank">
+        <div className="mt-[0.4em] flex flex-wrap gap-[0.6em] text-[0.7em]">
           {p.bank.map((c, i) => (
             <Card key={i} card={c} />
           ))}
         </div>
       )}
-      <style jsx>{`
-        .seat {
-          background: rgba(0, 0, 0, 0.15);
-          border-radius: 0.6em;
-          padding: 0.5em 0.8em;
-        }
-        .current {
-          outline: 2px solid gold;
-        }
-        h2 {
-          font-size: 1em;
-          margin: 0 0 0.4em;
-        }
-        small {
-          font-weight: normal;
-          opacity: 0.7;
-        }
-        .row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.6em;
-        }
-        .set {
-          display: flex;
-          gap: 0;
-        }
-        .set > :global(*:not(:first-child)) {
-          margin-left: -2.8em;
-        }
-        .full {
-          outline: 2px solid white;
-          border-radius: 0.4em;
-        }
-        .bank {
-          margin-top: 0.4em;
-          font-size: 0.7em;
-        }
-      `}</style>
     </section>
   );
 }

@@ -1,31 +1,39 @@
-html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family: Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;
-  color: white;
-  background: #1d6b4a;
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;
 }
 
-button {
-  font: inherit;
-  padding: 0.3em 0.8em;
-  border-radius: 0.4em;
-  border: none;
-  background: white;
-  color: black;
-  cursor: pointer;
-}
+@layer base {
+  body {
+    background: #1d6b4a;
+    color: white;
+  }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
+  p,
+  ul {
+    margin-block: 1em;
+  }
 
-ul {
-  padding-left: 1.2em;
-}
+  ul {
+    padding-left: 1.2em;
+    list-style: disc;
+  }
 
-li button {
-  margin: 0.15em 0;
+  button {
+    padding: 0.3em 0.8em;
+    border-radius: 0.4em;
+    background: white;
+    color: black;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  li button {
+    margin: 0.15em 0;
+  }
 }

@@ -56,8 +56,8 @@ function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
   }, []);
   const total = players.length + bots;
   return (
-    <section>
-      <h1>Monopoly Deal</h1>
+    <section className="mx-auto my-[1em] max-w-[30em] rounded-[0.6em] bg-black/15 p-[1em]">
+      <h1 className="my-[0.67em] text-[2em] font-bold">Monopoly Deal</h1>
       <p>Share this page&apos;s address to bring people to the table.</p>
       <ul>
         {players.map((p) => (
@@ -73,15 +73,6 @@ function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
       <button disabled={total < 2 || total > 5} onClick={() => start({ table, players: players.map((p) => p._id), bots })}>
         Deal {total} players
       </button>
-      <style jsx>{`
-        section {
-          max-width: 30em;
-          margin: 1em auto;
-          padding: 1em;
-          background: rgba(0, 0, 0, 0.15);
-          border-radius: 0.6em;
-        }
-      `}</style>
     </section>
   );
 }

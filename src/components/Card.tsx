@@ -33,54 +33,14 @@ export function Card({ card, color, selected, onClick }: { card: CardType; color
             : "#e4572e";
   const Tag = onClick ? "button" : "div";
   return (
-    <Tag className={selected ? "selected" : undefined} onClick={onClick} title={label(card)}>
-      <span className="band" style={{ background: band }} />
-      <span className="name">{label(card)}</span>
-      {card.kind !== "money" && <span className="value">${card.value}M</span>}
-      <style jsx>{`
-        button,
-        div {
-          all: unset;
-          box-sizing: border-box;
-          display: inline-flex;
-          flex-direction: column;
-          width: 4.5em;
-          height: 6.3em;
-          border-radius: 0.4em;
-          background: white;
-          color: black;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-          overflow: hidden;
-          font-size: 0.85rem;
-          text-align: center;
-          flex-shrink: 0;
-          transition: transform 0.15s;
-        }
-        button {
-          cursor: pointer;
-        }
-        .selected {
-          transform: translateY(-0.6em);
-          outline: 3px solid gold;
-        }
-        .band {
-          height: 1.4em;
-        }
-        .name {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0 0.2em;
-          font-weight: 800;
-          line-height: 1.1;
-        }
-        .value {
-          font-size: 0.75em;
-          opacity: 0.6;
-          padding-bottom: 0.3em;
-        }
-      `}</style>
+    <Tag
+      className={`m-0 box-border inline-flex h-[6.3em] w-[4.5em] shrink-0 flex-col overflow-hidden rounded-[0.4em] bg-white p-0 text-center text-[0.85rem] text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-[gold]" : ""}`}
+      onClick={onClick}
+      title={label(card)}
+    >
+      <span className="h-[1.4em]" style={{ background: band }} />
+      <span className="flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold">{label(card)}</span>
+      {card.kind !== "money" && <span className="pb-[0.3em] text-[0.75em] opacity-60">${card.value}M</span>}
     </Tag>
   );
 }
