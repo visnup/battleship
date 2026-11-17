@@ -4,7 +4,7 @@ node_modules
 dataset/data
 dataset/data-*
 dataset/pay*
-dataset/features
+dataset/features*
 dataset/model*.json
 dataset/mlp*.json
 /.next/

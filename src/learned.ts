@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { COLORS, type Color, DECK } from "./cards.ts";
-import { COLOR_NAMES, defaultPolicy, type Game, type Move, moves, name, type Player, type Policy, size as sizeOf } from "./game.ts";
+import { COLOR_NAMES, defaultPolicy, type Game, type Move, moves, name, payable, type Player, type Policy, size as sizeOf } from "./game.ts";
+import { payment, payments } from "./paying.ts";
 import { encode, key, observe } from "./replay.ts";
 
 // A move scorer learned from the dataset: gradient-boosted trees (`scripts/learn.py`) over what
@@ -155,6 +156,7 @@ function network({ mean, std, layers }: { mean: number[]; std: number[]; layers:
 }
 
 export const MODEL = new URL("./model.json", import.meta.url).pathname;
+export const PAY = new URL("./pay.json", import.meta.url).pathname;
 const loaded: Record<string, (x: number[]) => number> = {};
 
 function load(file: string) {
@@ -184,8 +186,19 @@ export function ranked(file = MODEL) {
   };
 }
 
-/** The default player, except that every move is the one the model in `file` scores highest. */
-export function learned(file: string): Policy {
+/** The payment the model in `file` (`learn.py` on `paydata.ts`'s features) scores highest, of `payments`' first 24. */
+export function paid(file = PAY): Policy["pay"] {
+  const scorer = (loaded[file] ??= load(file));
+  return (game, p, amount) => {
+    const all = payable(p);
+    const options = payments(game, p, amount, 24);
+    const scores = options.map((o) => scorer(payment(game, p, amount, o.map((j) => all[j]))));
+    return options[scores.indexOf(Math.max(...scores))].map((j) => all[j]);
+  };
+}
+
+/** The default player, except that every move is the one the model in `file` scores highest, and every payment the one `pay` does. */
+export function learned(file: string, pay = PAY): Policy {
   const rank = ranked(file);
-  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0] };
+  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0], pay: pay ? paid(pay) : defaultPolicy.pay };
 }

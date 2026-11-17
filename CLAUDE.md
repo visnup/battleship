@@ -41,16 +41,23 @@ from photos of one card of each property color and each wild (`rules/properties.
   Just Say No decisions, found by replaying the game from its seed (`scripts/midturn.ts`), since
   they come mid-turn and a copy can't play on from there.
 - `scripts/dataset.ts`: every move decision of default games, with each move's two-round
-  playout value, as JSONL shards in `dataset/data/` (not committed). `uv run dataset/parquet.py`
-  joins them into Parquet, and `dataset/README.md` is the Hugging Face dataset card. Publish with
+  playout value, as JSONL shards in `dataset/data/` (not committed), or `--out`. With `--model`
+  the learned player plays the games, and with `--top` only its top moves are played out.
+  `uv run dataset/parquet.py` joins them into Parquet, and `dataset/README.md` is the Hugging
+  Face dataset card. Publish with
   `uvx --from huggingface_hub hf upload visnup/monopoly-deal dataset . --repo-type dataset --include README.md --include 'data/*.parquet'`.
 - `learned.ts`: the learned player, and the features it scores moves by. `scripts/learn.ts
-  extract` turns dataset shards into features in `dataset/features/`; `uv run
-  scripts/learn.py [trees]` fits trees to `src/model.json`, which the `playouts` strategy uses
-  to pick the 5 moves it plays out, and `uv run scripts/learn_mlx.py [width] [epochs]` a
-  network on the GPU to `dataset/mlp.json` (not committed). Both read the features through
-  `scripts/shards.py`. `scripts/learn.ts --model` plays one head to head. Retrain after
-  regenerating the dataset.
+  extract --data --features` turns dataset shards into features; `uv run scripts/learn.py
+  [trees] [out] [features directories…]` fits LightGBM trees (needs `brew install libomp`) to
+  `src/model.json`, which the `playouts` strategy uses to pick the 5 moves it plays out, and
+  `uv run scripts/learn_mlx.py` a network on the GPU. Both read the features through
+  `scripts/shards.py`, holding out the last directory's last 8 shards a player count.
+  `scripts/learn.ts --model` plays one head to head, and `scripts/compare.ts a.json b.json`
+  plays two models on the same deals. Each round of training on stronger play lives in
+  `dataset/data-rN/`, `features-rN/` and `model-rN.json`.
+- `paying.ts`: the ways to pay worth considering, and each as numbers. `scripts/paydata.ts`
+  plays each out (in `dataset/pay/`), `learn.py … dataset/pay` fits `src/pay.json`, and
+  `paid()` in `learned.ts` pays by it, for the learned player and `playouts`.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;

@@ -1,16 +1,22 @@
 """The move features `scripts/learn.ts extract` writes, or the payment features `paydata.ts` does,
-with the last 8 shards of each player count held out, for `learn.py` and `learn_mlx.py`."""
+from one or more directories, with the last 8 shards of each player count in the last directory
+held out, for `learn.py` and `learn_mlx.py`."""
 
 from pathlib import Path
 
 import numpy as np
 
 features = Path(__file__).parent.parent / "dataset" / "features"
-F = 94
 
 
-def load(bases, F=F):
-    """Features, centered values, the default's picks and group sizes, read straight into one array."""
+def width(base):
+    """Features a row, from the sizes of a shard's files."""
+    return base.with_suffix(".x").stat().st_size // (base.with_suffix(".y").stat().st_size // 2)
+
+
+def load(bases):
+    """Features, values less the default's in points, the values, the default's picks and group sizes."""
+    F = width(bases[0])
     sizes = [(b.with_suffix(".x").stat().st_size // 4 // F) for b in bases]
     X = np.empty((sum(sizes), F), np.float32)
     ys, ds, gs, i = [], [], [], 0
@@ -21,17 +27,19 @@ def load(bases, F=F):
         ds.append(y[:, 1])
         gs.append(np.fromfile(b.with_suffix(".g"), np.int32))
         i += n
-    y, g = np.concatenate(ys), np.concatenate(gs)
+    y, d, g = np.concatenate(ys), np.concatenate(ds), np.concatenate(gs)
     starts = np.cumsum(g) - g
-    return X, (y - np.repeat(np.add.reduceat(y, starts) / g, g)) * 100, y, np.concatenate(ds), g
+    return X, (y - np.repeat(np.add.reduceat(y, starts) / g, g)) * 100, y, d, g
 
 
-def split(directory=features, F=F):
-    """Training features and centered values, and the held-out shards by player count."""
-    counts = [k for k in [2, 3, 4, 5] if any(directory.glob(f"{k}p-*.x"))]
-    shards = {k: sorted(directory.glob(f"{k}p-*.x")) for k in counts}
-    held = {k: load([s.with_suffix("") for s in shards[k][-8:]], F) for k in counts}
-    X, Y, *_ = load([s.with_suffix("") for k in counts for s in shards[k][:-8]], F)
+def split(*directories):
+    """Training features and values, and the held-out shards by player count."""
+    directories = [Path(d) for d in directories] or [features]
+    shards = lambda d, k: sorted(d.glob(f"{k}p-*.x"))
+    counts = [k for k in [2, 3, 4, 5] if shards(directories[-1], k)]
+    held = {k: load([s.with_suffix("") for s in shards(directories[-1], k)[-8:]]) for k in counts}
+    train = [s for d in directories for k in counts for s in (shards(d, k)[:-8] if d == directories[-1] else shards(d, k))]
+    X, Y, *_ = load([s.with_suffix("") for s in train])
     return X, Y, held
 
 

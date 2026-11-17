@@ -2,7 +2,8 @@
 # dependencies = ["mlx", "numpy"]
 # ///
 """`learn.py`'s move scorer as a small neural network, trained on the GPU with MLX, on the same
-features and held-out shards. Writes the weights to dataset/mlp.json."""
+features and held-out shards. `uv run scripts/learn_mlx.py [width] [epochs] [out] [features
+directories…]` writes the weights to dataset/mlp.json."""
 
 import json
 import sys
@@ -14,13 +15,14 @@ import mlx.nn as nn
 import mlx.optimizers as optim
 import numpy as np
 
-from shards import F, features, report, split
+from shards import features, report, split
 
 HIDDEN = int(sys.argv[1]) if len(sys.argv) > 1 else 256
 EPOCHS = int(sys.argv[2]) if len(sys.argv) > 2 else 4
 BATCH = 8192
 
-X, Y, held = split()
+X, Y, held = split(*sys.argv[4:])
+F = X.shape[1]
 mean, std = X[:: 97].mean(0), X[:: 97].std(0) + 1e-6
 print(f"{len(X)} moves to train on", flush=True)
 
