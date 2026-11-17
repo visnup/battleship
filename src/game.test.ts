@@ -236,6 +236,18 @@ test("default: never builds; banks houses and hotels", () => {
   assert.deepEqual(choose(game), { type: "bank", card: p.hand[0] });
 });
 
+test("default: Birthday, but not in the first round", () => {
+  const game = setup();
+  const [p, q] = game.players;
+  q.bank.push(money(5));
+  const birthday = action("birthday", 2);
+  p.hand.push(money(1), birthday);
+  game.turns = 1;
+  assert.notEqual(choose(game)?.card, birthday);
+  game.turns = 3;
+  assert.equal(choose(game)?.card, birthday);
+});
+
 test("default: banks what it won't play when that empties the hand", () => {
   const game = setup();
   const [p] = game.players;

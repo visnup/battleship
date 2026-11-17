@@ -240,7 +240,10 @@ export const VARIANTS: Record<string, () => Policy> = {
   "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),
   "Deal Breaker for the best chance": withStep(STEPS.dealBreaker, byChance("dealBreaker")),
   "end the turn holding what it won't play (previous)": () => heuristic(...without(STEPS.emptyHand)),
-  "hold Birthday in the first round": withStep(STEPS.birthday, after(1, STEPS.birthday)),
+  "Birthday in the first round too (previous)": withStep(STEPS.birthday, (game, p) => {
+    const birthday = p.hand.find((c) => isAction(c, "birthday"));
+    return birthday && game.players.some((q) => q !== p && assets(q) > 0) ? { type: "action", card: birthday } : null;
+  }),
   "Deal Breaker and Sly Deal before Pass Go after round 3": () => heuristic(after(3, dealBreaker), after(3, STEPS.slyDeal), ...steps),
   ...Object.fromEntries(
     [5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))]),

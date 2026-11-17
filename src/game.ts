@@ -624,8 +624,12 @@ export const STEPS = {
   rent: charge(inProperty),
   /** Debt Collector on someone who has to pay in property. */
   debtCollector: collect(inProperty),
+  /**
+   * Birthday, but not in the first round, when the others have little to pay with: +0.3 to +0.9
+   * points at 3–5 players, even at 2 (`variants.ts`, 100,000 games).
+   */
   birthday(game, p) {
-    const birthday = p.hand.find((c) => isAction(c, "birthday"));
+    const birthday = game.turns > game.players.length && p.hand.find((c) => isAction(c, "birthday"));
     return birthday && others(game, p).some((q) => assets(q) > 0) ? { type: "action", card: birthday } : null;
   },
   /** Our least-built loose property for one that helps more. */
