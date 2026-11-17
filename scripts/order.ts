@@ -34,7 +34,10 @@ if (import.meta.main) {
   for (let round = 1; ; round++) {
     const candidates = [order, ...neighbors(order)];
     const screened = await score(candidates, Number(args.screen));
-    const top = candidates.map((o, i) => ({ o, s: screened[i] })).sort((a, b) => b.s - a.s).slice(0, 4);
+    const top = candidates
+      .map((o, i) => ({ o, s: screened[i] }))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 4);
     const confirmed = await score([order, ...top.map((t) => t.o)], Number(args.confirm));
     const best = confirmed.slice(1).reduce((b, s, i) => (s > confirmed[b + 1] ? i : b), 0);
     const gain = confirmed[best + 1] - confirmed[0];

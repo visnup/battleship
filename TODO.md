@@ -110,6 +110,9 @@
 - [ ] A staller: a strategy that tries to make the game stall, from the list in the README's
       "Stalled games". Count its stalls at 5 players against the pacifist's 41 in 100,000, and
       see which of its rules matter most.
+- [ ] Online play (Next and Convex, `pnpm dev`): works with default-player bots against a dev
+      deployment. Still to do: a Vercel project and production deployment, choosing wild colors,
+      names, and handling a player who leaves mid-game.
 - [ ] Idea: a page to play against quick playouts in the browser, or the learned player,
       which is stronger at 2 and 3 players and takes about 4 ms a game.
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
@@ -175,8 +178,11 @@
             scored by the pruned playouts, retrain, and repeat while it gains. The current one
             is the default's games scored with the default inside the playouts. About 2.5 hours
             a pass.
-      - [ ] A small model inside the playouts: 1,000 trees there cost 20× the time, 85% of it
-            scoring. Try 50 to 100 trees or a narrow network as everyone's rollout player.
+      - [x] A small model inside the playouts (2026-11-17, quick playouts, 4,000 games, ±1.6 at
+            2 players and ±1.5 at 5): the default there wins 53.2% and 33.5%. 50 trees 54.0% and
+            33.5% at 9–12× the time, 150 trees 54.8% and 33.8% at 13–19×, a network 32 wide
+            53.9% and 31.6% at 15–20×. Featurizing every move costs more than the default's
+            whole decision, so no model this shape pays for itself there.
       - [ ] Learn the other decisions: paying, Just Say No and discarding are still the
             default's rules. Paying is where playouts disagreed most at 5 players; `pay.ts` and
             `sayno.ts` replays give the data.

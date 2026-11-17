@@ -13,11 +13,18 @@ function what(game: Game, p: Player, move: Move): string {
 }
 
 export const search = (players: number, seed: number, n: number) =>
-  searchAt("sayNo", players, seed, n, () => true, (game, p, move, from) => {
-    const mine = defaultPolicy.sayNo(game, p, move, from);
-    const situation = what(game, p, move);
-    return [mine, !mine].map((no) => ({ decide: () => no, label: `${situation}: ${no ? "say no" : "let it go"}` }));
-  });
+  searchAt(
+    "sayNo",
+    players,
+    seed,
+    n,
+    () => true,
+    (game, p, move, from) => {
+      const mine = defaultPolicy.sayNo(game, p, move, from);
+      const situation = what(game, p, move);
+      return [mine, !mine].map((no) => ({ decide: () => no, label: `${situation}: ${no ? "say no" : "let it go"}` }));
+    },
+  );
 
 if (import.meta.main) {
   const { values: args } = parseArgs({ options: { n: { type: "string", default: "512" }, players: { type: "string", default: "5" }, min: { type: "string", default: "10" } } });

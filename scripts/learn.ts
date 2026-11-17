@@ -12,7 +12,9 @@ const FEATURES = new URL("../dataset/features/", import.meta.url);
  * and the default's pick as 0 or 1, and each decision's move count.
  */
 export function extract(players: number, seed: number, _n: number) {
-  const lines = readFileSync(new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, DATA), "utf8").trim().split("\n");
+  const lines = readFileSync(new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, DATA), "utf8")
+    .trim()
+    .split("\n");
   const x: number[] = [];
   const y: number[] = [];
   const groups: number[] = [];
@@ -29,12 +31,14 @@ export function extract(players: number, seed: number, _n: number) {
   writeFileSync(`${base}.x`, new Float32Array(x));
   writeFileSync(`${base}.y`, new Float32Array(y));
   writeFileSync(`${base}.g`, new Int32Array(groups));
-  return [groups.length, x.length / y.length * 2];
+  return [groups.length, (x.length / y.length) * 2];
 }
 
 /** Each decision's `position` for shard `seed` of `players`, and whether the mover won (−1 if the game stalled). */
 export function boards(players: number, seed: number, _n: number) {
-  const lines = readFileSync(new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, DATA), "utf8").trim().split("\n");
+  const lines = readFileSync(new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, DATA), "utf8")
+    .trim()
+    .split("\n");
   const x: number[] = [];
   const won: number[] = [];
   for (const line of lines) {
@@ -51,7 +55,10 @@ export function boards(players: number, seed: number, _n: number) {
 export const play = (model: string, players: number, seed: number, n: number) => headToHead(() => learned(model), players, seed, n);
 
 if (import.meta.main) {
-  const { values: args, positionals } = parseArgs({ allowPositionals: true, options: { n: { type: "string", default: "64" }, players: { type: "string", default: "2,3,4,5" }, model: { type: "string", default: MODEL } } });
+  const { values: args, positionals } = parseArgs({
+    allowPositionals: true,
+    options: { n: { type: "string", default: "64" }, players: { type: "string", default: "2,3,4,5" }, model: { type: "string", default: MODEL } },
+  });
   const counts = args.players.split(",").map(Number);
   if (positionals[0] === "extract" || positionals[0] === "boards") {
     mkdirSync(FEATURES, { recursive: true });

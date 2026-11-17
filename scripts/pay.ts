@@ -28,13 +28,16 @@ function payments(game: Game, p: Player, amount: number, cap = 200): number[][] 
   };
   pick(0, [], 0);
   const mine = defaultPolicy.pay(game, p, amount).map((x) => all.indexOf(x));
-  const key = (o: number[]) => o.map((j) => label1(game, p, all[j])).sort().join();
+  const key = (o: number[]) =>
+    o
+      .map((j) => label1(game, p, all[j]))
+      .sort()
+      .join();
   const seen = new Set<string>();
   return [mine, ...found].filter((o) => !seen.has(key(o)) && seen.add(key(o)));
 }
 
-const label1 = (game: Game, p: Player, x: Piece) =>
-  "kind" in x ? `$${x.value}${x.kind === "money" ? "" : "a"}` : p.built.includes(x) ? "building" : `${x.color}${loose(game, p, x) ? "" : "!"}`;
+const label1 = (game: Game, p: Player, x: Piece) => ("kind" in x ? `$${x.value}${x.kind === "money" ? "" : "a"}` : p.built.includes(x) ? "building" : `${x.color}${loose(game, p, x) ? "" : "!"}`);
 
 /** What kind of payment `o` is: from the bank, loose properties, or a full set. */
 function kind(game: Game, p: Player, o: number[]): string {
@@ -44,9 +47,7 @@ function kind(game: Game, p: Player, o: number[]): string {
 }
 
 export const search = (players: number, seed: number, n: number) =>
-  searchAt("pay", players, seed, n, counts, (game, p, amount) =>
-    payments(game, p, amount).map((o) => ({ decide: (_: Game, q: Player) => o.map((j) => pieces(q)[j]), label: kind(game, p, o) })),
-  );
+  searchAt("pay", players, seed, n, counts, (game, p, amount) => payments(game, p, amount).map((o) => ({ decide: (_: Game, q: Player) => o.map((j) => pieces(q)[j]), label: kind(game, p, o) })));
 
 if (import.meta.main) {
   const { values: args } = parseArgs({ options: { n: { type: "string", default: "256" }, players: { type: "string", default: "5" }, min: { type: "string", default: "10" } } });

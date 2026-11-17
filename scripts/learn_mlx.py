@@ -95,4 +95,4 @@ for epoch in range(EPOCHS):
     evaluate()
 
 layers = [{"w": np.array(l.weight).tolist(), "b": np.array(l.bias).tolist()} for l in model.layers]
-(features.parent / "mlp.json").write_text(json.dumps({"mean": mean.tolist(), "std": std.tolist(), "layers": layers}))
+Path(sys.argv[3] if len(sys.argv) > 3 else features.parent / "mlp.json").write_text(json.dumps({"mean": mean.tolist(), "std": std.tolist(), "layers": layers}))

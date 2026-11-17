@@ -123,7 +123,12 @@ export class Game {
     this.rng = o.rng ?? Math.random;
     this.rules = { ...defaultRules, ...o.rules };
     this.policies = Array.isArray(o.policies) ? o.policies : Array(o.players).fill(o.policies ?? defaultPolicy);
-    this.draw = o.deck ?? shuffle(DECK.map((c) => ({ ...c })), this.rng);
+    this.draw =
+      o.deck ??
+      shuffle(
+        DECK.map((c) => ({ ...c })),
+        this.rng,
+      );
     this.players = Array.from({ length: o.players }, (_, seat) => ({ seat, hand: [], bank: [], props: [], built: [] }));
     for (let i = 0; i < 5; i++) for (const p of this.players) p.hand.push(...this.take(1));
     this.current = o.first ?? Math.floor(this.rng() * o.players);
@@ -385,7 +390,7 @@ export function fullSets(game: Game, p: Player, color: Color): number {
   for (const x of p.props)
     if (x.color === color) {
       n++;
-      real ||= x.card.kind === "property" || x.card.colors !== "any";
+      real ||= x.card.kind !== "wild" || x.card.colors !== "any";
     }
   return real ? Math.floor(n / size(color)) : 0;
 }
@@ -423,8 +428,7 @@ export function progress(game: Game, p: Player, color: Color, extra = 0): number
 }
 
 /** What everything `p` could pay with is worth. */
-export const assets = (p: Player) =>
-  p.bank.reduce((s, c) => s + c.value, 0) + p.props.reduce((s, x) => s + x.card.value, 0) + p.built.reduce((s, x) => s + x.card.value, 0);
+export const assets = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0) + p.props.reduce((s, x) => s + x.card.value, 0) + p.built.reduce((s, x) => s + x.card.value, 0);
 
 /**
  * Moves wilds between colors on `p`'s turn to make the most full sets, then the most progress,
@@ -637,12 +641,8 @@ export const STEPS = {
     const forced = p.hand.find((c) => isAction(c, "forcedDeal"));
     if (!forced) return null;
     const take = stealable(game, p, others(game, p))[0];
-    const give = p.props
-      .filter((x) => loose(game, p, x) && x.color !== take?.x.color && x.card.kind !== "wild")
-      .sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
-    return take && give && gain(game, p, take.x.color) > progress(game, p, give.color)
-      ? { type: "action", card: forced, target: take.q.seat, take: take.x, give }
-      : null;
+    const give = p.props.filter((x) => loose(game, p, x) && x.color !== take?.x.color && x.card.kind !== "wild").sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
+    return take && give && gain(game, p, take.x.color) > progress(game, p, give.color) ? { type: "action", card: forced, target: take.q.seat, take: take.x, give } : null;
   },
   /** Once $10M is banked, a property before more money: +0.8 points (`variants.ts`). */
   placeWhenBanked: (game, p, left) => (banked(p) >= 10 ? layDown(game, p, left) : null),
@@ -725,9 +725,7 @@ export const defaultPolicy: Policy = {
     }
     const paid: (Card | Placed)[] = [...bank];
     let owed = amount - total;
-    const table = [...p.built, ...p.props.filter((x) => x.card.value > 0)].sort(
-      (a, b) => +!loose(game, p, a) - +!loose(game, p, b) || a.card.value - b.card.value,
-    );
+    const table = [...p.built, ...p.props.filter((x) => x.card.value > 0)].sort((a, b) => +!loose(game, p, a) - +!loose(game, p, b) || a.card.value - b.card.value);
     for (const x of table) {
       if (owed <= 0) break;
       paid.push(x);
@@ -739,7 +737,7 @@ export const defaultPolicy: Policy = {
   sayNo(game, p, move, from) {
     if (move.card.kind === "action" && move.card.action === "dealBreaker") return true;
     if (move.type === "rent") return rent(game, game.players[game.current], move.color) * 2 ** move.doubles.length >= 5;
-    if (move.card.kind === "action" && (move.card.action === "slyDeal" || move.card.action === "forcedDeal")) {
+    if (move.type === "action" && move.card.kind === "action" && (move.card.action === "slyDeal" || move.card.action === "forcedDeal")) {
       const victim = game.players[game.current] === p ? from : p;
       return progress(game, victim, move.take!.color) >= 0.5;
     }
@@ -747,8 +745,7 @@ export const defaultPolicy: Policy = {
   },
 
   discard(game, p, n) {
-    const keep = (c: Card) =>
-      c.kind === "property" || c.kind === "wild" ? 3 : isAction(c, "justSayNo") || isAction(c, "dealBreaker") ? 2 : c.kind === "money" ? 1 : 0;
+    const keep = (c: Card) => (c.kind === "property" || c.kind === "wild" ? 3 : isAction(c, "justSayNo") || isAction(c, "dealBreaker") ? 2 : c.kind === "money" ? 1 : 0);
     return [...p.hand].sort((a, b) => keep(a) - keep(b) || a.value - b.value).slice(0, n);
   },
 };
@@ -764,4 +761,58 @@ export function stealable(game: Game, p: Player, others: Player[]) {
     .flatMap((q) => q.props.filter((x) => loose(game, q, x)).map((x) => ({ q, x, helps: Math.max(...colorsOf(x.card).map((c) => gain(game, p, c))) })))
     .filter(({ helps }) => helps > 0)
     .sort((a, b) => b.helps - a.helps || b.x.card.value - a.x.card.value);
+}
+
+/** Every legal move for `p` with `left` plays, one per kind of card in hand. */
+export function moves(game: Game, p: Player, left: number): Move[] {
+  const out: Move[] = [];
+  const others = game.players.filter((q) => q !== p);
+  const doubles = p.hand.filter((c) => isAction(c, "doubleRent"));
+  const seen = new Set<string>();
+  for (const card of p.hand) {
+    const key = JSON.stringify(card);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (card.kind === "money" || card.kind === "action" || card.kind === "rent") out.push({ type: "bank", card });
+    if (card.kind === "property" || card.kind === "wild") {
+      // One color is enough: `arrange` moves wilds to their best color after every play
+      out.push({ type: "place", card, color: colorsOf(card)[0] });
+    } else if (card.kind === "rent") {
+      for (const color of colorsOf(card)) {
+        if (!rent(game, p, color)) continue;
+        for (let d = 0; d <= Math.min(game.rules.doubles, doubles.length, left - 1); d++)
+          for (const target of card.colors === "any" ? others.map((q) => q.seat) : [undefined]) out.push({ type: "rent", card, color, target, doubles: doubles.slice(0, d) });
+      }
+    } else if (card.kind === "action") {
+      out.push(...actions(game, p, card, others));
+    }
+  }
+  return out;
+}
+
+function actions(game: Game, p: Player, card: Card, others: Player[]): Move[] {
+  if (card.kind !== "action") return [];
+  // Identical cards of one player are the same move
+  const looseOf = (q: Player) => [...new Map(q.props.filter((x) => loose(game, q, x)).map((x) => [JSON.stringify(x), x])).values()];
+  const has = (color: string, a: string) => p.built.some((b) => b.color === color && isAction(b.card, a));
+  const sets = fullColors(game, p).filter(buildable);
+  switch (card.action) {
+    case "passGo":
+    case "birthday":
+      return [{ type: "action", card }];
+    case "debtCollector":
+      return others.map((q) => ({ type: "action", card, target: q.seat }));
+    case "slyDeal":
+      return others.flatMap((q) => looseOf(q).map((take) => ({ type: "action", card, target: q.seat, take }) as Move));
+    case "forcedDeal":
+      return others.flatMap((q) => looseOf(q).flatMap((take) => looseOf(p).map((give) => ({ type: "action", card, target: q.seat, take, give }) as Move)));
+    case "dealBreaker":
+      return others.flatMap((q) => fullColors(game, q).map((color) => ({ type: "action", card, target: q.seat, color }) as Move));
+    case "house":
+      return sets.filter((c) => !has(c, "house")).map((color) => ({ type: "place", card, color }));
+    case "hotel":
+      return sets.filter((c) => has(c, "house") && !has(c, "hotel")).map((color) => ({ type: "place", card, color }));
+    default:
+      return [];
+  }
 }

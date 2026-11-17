@@ -8,9 +8,9 @@ import {
   Game,
   heuristic,
   isAction,
-  loose,
   MAX_TURNS,
   type Move,
+  moves,
   mulberry32,
   type Placed,
   type Player,
@@ -21,7 +21,6 @@ import {
   shuffle,
   type Step,
 } from "./game.ts";
-import type { Card } from "./cards.ts";
 import { ranked } from "./learned.ts";
 
 /** `defaultPolicy`'s steps, in its order. */
@@ -56,22 +55,22 @@ export const build: Step = (game, p) => {
 // Whole-game strategies, each a player of its own, compared head to head in `scripts/strategies.ts`.
 export const STRATEGIES: Record<string, (seed: number) => Policy> = {
   /** `defaultPolicy`: complete sets, steal, charge rent, lay down properties, then bank. */
-  "default": () => defaultPolicy,
+  default: () => defaultPolicy,
 
   /** Lays down properties and builds houses and hotels before charging rent, like the first `defaultPolicy`. */
-  "builder": () => heuristic("passGo", "complete", "dealBreaker", "slyDeal", "place", build, "rent", "debtCollector", "birthday", "forcedDeal", "bank", "passGoLast"),
+  builder: () => heuristic("passGo", "complete", "dealBreaker", "slyDeal", "place", build, "rent", "debtCollector", "birthday", "forcedDeal", "bank", "passGoLast"),
 
   /** Banks $10M before anything else, then plays like the default. */
-  "banker": () => heuristic(cushion(10), ...DEFAULT),
+  banker: () => heuristic(cushion(10), ...DEFAULT),
 
   /** Never takes from anyone: lays down properties and banks every action card. */
-  "pacifist": () => heuristic("passGo", "complete", "place", bankAll, "passGoLast"),
+  pacifist: () => heuristic("passGo", "complete", "place", bankAll, "passGoLast"),
 
   /** Plays a legal move at random, or ends the turn. */
-  "random": (seed) => random(seed),
+  random: (seed) => random(seed),
 
   /** Plays out the 5 moves `src/model.json` ranks highest on 160 deals, and makes the one that wins most. */
-  "playouts": (seed) => {
+  playouts: (seed) => {
     const rank = ranked();
     return playouts(160, seed, defaultPolicy, 2, 2, (game, p, left) => rank(game, p, left).slice(0, 5));
   },
@@ -99,61 +98,6 @@ export function headToHead(make: (seed: number) => Policy, players: number, seed
     stalled += +result.stalled;
   }
   return { wins, turns, stalled };
-}
-
-/** Every legal move for `p` with `left` plays, one per kind of card in hand. */
-export function moves(game: Game, p: Player, left: number): Move[] {
-  const out: Move[] = [];
-  const others = game.players.filter((q) => q !== p);
-  const doubles = p.hand.filter((c) => isAction(c, "doubleRent"));
-  const seen = new Set<string>();
-  for (const card of p.hand) {
-    const key = JSON.stringify(card);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    if (card.kind === "money" || card.kind === "action" || card.kind === "rent") out.push({ type: "bank", card });
-    if (card.kind === "property" || card.kind === "wild") {
-      // One color is enough: `arrange` moves wilds to their best color after every play
-      out.push({ type: "place", card, color: colorsOf(card)[0] });
-    } else if (card.kind === "rent") {
-      for (const color of colorsOf(card)) {
-        if (!rent(game, p, color)) continue;
-        for (let d = 0; d <= Math.min(game.rules.doubles, doubles.length, left - 1); d++)
-          for (const target of card.colors === "any" ? others.map((q) => q.seat) : [undefined])
-            out.push({ type: "rent", card, color, target, doubles: doubles.slice(0, d) });
-      }
-    } else if (card.kind === "action") {
-      out.push(...actions(game, p, card, others));
-    }
-  }
-  return out;
-}
-
-function actions(game: Game, p: Player, card: Card, others: Player[]): Move[] {
-  if (card.kind !== "action") return [];
-  // Identical cards of one player are the same move
-  const looseOf = (q: Player) => [...new Map(q.props.filter((x) => loose(game, q, x)).map((x) => [JSON.stringify(x), x])).values()];
-  const has = (color: string, a: string) => p.built.some((b) => b.color === color && isAction(b.card, a));
-  const sets = fullColors(game, p).filter(buildable);
-  switch (card.action) {
-    case "passGo":
-    case "birthday":
-      return [{ type: "action", card }];
-    case "debtCollector":
-      return others.map((q) => ({ type: "action", card, target: q.seat }));
-    case "slyDeal":
-      return others.flatMap((q) => looseOf(q).map((take) => ({ type: "action", card, target: q.seat, take }) as Move));
-    case "forcedDeal":
-      return others.flatMap((q) => looseOf(q).flatMap((take) => looseOf(p).map((give) => ({ type: "action", card, target: q.seat, take, give }) as Move)));
-    case "dealBreaker":
-      return others.flatMap((q) => fullColors(game, q).map((color) => ({ type: "action", card, target: q.seat, color }) as Move));
-    case "house":
-      return sets.filter((c) => !has(c, "house")).map((color) => ({ type: "place", card, color }));
-    case "hotel":
-      return sets.filter((c) => has(c, "house") && !has(c, "hotel")).map((color) => ({ type: "place", card, color }));
-    default:
-      return [];
-  }
 }
 
 /** Plays a legal move at random, or ends the turn. */

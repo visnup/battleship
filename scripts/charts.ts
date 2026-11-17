@@ -15,7 +15,11 @@ function table(first: string, after = ""): Row[] {
   const from = after ? lines.indexOf(after) : 0;
   const start = lines.findIndex((l, i) => i > from && l.startsWith(first ? `| ${first} |` : "| |"));
   if (start < 0) throw new Error(`no table starting with "${first}"`);
-  const cells = (l: string) => l.split("|").slice(1, -1).map((c) => c.trim());
+  const cells = (l: string) =>
+    l
+      .split("|")
+      .slice(1, -1)
+      .map((c) => c.trim());
   const head = cells(lines[start]);
   const rows: Row[] = [];
   for (let i = start + 2; lines[i]?.startsWith("|"); i++) rows.push(Object.fromEntries(cells(lines[i]).map((c, j) => [head[j], c])));
@@ -75,9 +79,7 @@ const diverging = { type: "diverging", scheme: "RdYlGn", pivot: 0 } as const;
 
 // Going first: each seat's share of wins, against a fair share.
 const seats = table("players").flatMap((r) =>
-  ["first", "second", "third", "fourth", "fifth"]
-    .map((seat, i) => ({ players: `${r.players} players`, seat: i + 1, over: num(r[seat]) - fair(+r.players) }))
-    .filter((d) => !Number.isNaN(d.over)),
+  ["first", "second", "third", "fourth", "fifth"].map((seat, i) => ({ players: `${r.players} players`, seat: i + 1, over: num(r[seat]) - fair(+r.players) })).filter((d) => !Number.isNaN(d.over)),
 );
 save("seats", {
   width: 640,
@@ -90,15 +92,16 @@ save("seats", {
     Plot.ruleY([0], dashed),
     Plot.line(seats, { x: "seat", y: "over", stroke: "players", strokeWidth: 2 }),
     Plot.dot(seats, { x: "seat", y: "over", fill: "players", stroke: art.paper, r: 4 }),
-    Plot.text(seats.filter((d) => d.seat === 1), { x: "seat", y: "over", text: (d) => plus(d.over), textAnchor: "end", dx: -8, fontSize: 9, ...halo }),
+    Plot.text(
+      seats.filter((d) => d.seat === 1),
+      { x: "seat", y: "over", text: (d) => plus(d.over), textAnchor: "end", dx: -8, fontSize: 9, ...halo },
+    ),
     Plot.text(seats, Plot.selectLast({ x: "seat", y: "over", z: "players", text: "players", textAnchor: "start", dx: 8, ...halo })),
   ],
 });
 
 // Which strategy wins: each strategy's wins as a multiple of a fair share, by player count.
-const strategies = table("strategy").flatMap((r) =>
-  counts.map((k) => ({ strategy: r.strategy, players: k, shares: num(r[`${k} players (fair ${fair(k).toFixed(1)}%)`]) / fair(k) })),
-);
+const strategies = table("strategy").flatMap((r) => counts.map((k) => ({ strategy: r.strategy, players: k, shares: num(r[`${k} players (fair ${fair(k).toFixed(1)}%)`]) / fair(k) })));
 save("strategies", {
   width: 640,
   height: 360,
@@ -109,7 +112,10 @@ save("strategies", {
     Plot.ruleY([1], dashed),
     Plot.line(strategies, { x: "players", y: "shares", z: "strategy", stroke: (d) => (d.strategy.includes("playouts") ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), strokeWidth: 2 }),
     Plot.dot(strategies, { x: "players", y: "shares", fill: (d) => (d.strategy.includes("playouts") ? art["dark blue"] : d.strategy === "default" ? art.ink : art.gray), stroke: art.paper, r: 4 }),
-    Plot.text(strategies.filter((d) => d.strategy.includes("playouts") || d.strategy === "builder"), { x: "players", y: "shares", text: (d) => d.shares.toFixed(2), dy: -10, fontSize: 9, ...halo }),
+    Plot.text(
+      strategies.filter((d) => d.strategy.includes("playouts") || d.strategy === "builder"),
+      { x: "players", y: "shares", text: (d) => d.shares.toFixed(2), dy: -10, fontSize: 9, ...halo },
+    ),
     // banker and default end within 0.01 of each other, and so do random and pacifist
     ...[-7, 0, 7].map((dy) =>
       Plot.text(
@@ -122,9 +128,7 @@ save("strategies", {
 
 // Playing well: each variant's wins against a fair share, at 2 and 5 players.
 const variantRows = table("variant").filter((r) => r["2 players (fair 50.0%)"]);
-const variants = variantRows.flatMap((r) =>
-  [2, 5].map((k) => ({ variant: r.variant, players: `${k} players`, over: num(r[`${k} players (fair ${fair(k).toFixed(1)}%)`]) - fair(k) })),
-);
+const variants = variantRows.flatMap((r) => [2, 5].map((k) => ({ variant: r.variant, players: `${k} players`, over: num(r[`${k} players (fair ${fair(k).toFixed(1)}%)`]) - fair(k) })));
 const variantOrder = variantRows.map((r) => r.variant);
 save("variants", {
   width: 760,
@@ -165,8 +169,7 @@ save("cards", {
 
 // What each card is worth against what it's worth as money.
 const kinds = { action: art["dark blue"], rent: art.orange, property: art.green, wild: art.pink, money: art.gray };
-const kindOf = (card: string): keyof typeof kinds =>
-  card.startsWith("$") ? "money" : card.startsWith("Rent") ? "rent" : card.startsWith("Property Wild") ? "wild" : card in art ? "property" : "action";
+const kindOf = (card: string): keyof typeof kinds => (card.startsWith("$") ? "money" : card.startsWith("Rent") ? "rent" : card.startsWith("Property Wild") ? "wild" : card in art ? "property" : "action");
 // Cards of a kind with the same $M sit side by side.
 const sameWorth = Map.groupBy(cardRows, (r) => `${kindOf(r.card)} ${r.$M}`);
 const levels = [...new Set(cardRows.map((r) => +r.$M))].sort((a, b) => a - b);
@@ -190,7 +193,10 @@ save("worth", {
   color: playerColor,
   marks: [
     Plot.ruleY([0], dashed),
-    Plot.arrow(spans.filter((s) => Math.abs(s.to - s.from) > 0.8), { x: "x", y1: "from", y2: "to", fy: "kind", stroke: art.gray, strokeWidth: 1.5, headLength: 5, insetStart: 4, insetEnd: 4 }),
+    Plot.arrow(
+      spans.filter((s) => Math.abs(s.to - s.from) > 0.8),
+      { x: "x", y1: "from", y2: "to", fy: "kind", stroke: art.gray, strokeWidth: 1.5, headLength: 5, insetStart: 4, insetEnd: 4 },
+    ),
     Plot.dot(worth, { x: "x", y: "value", fy: "kind", fill: "players", stroke: art.paper, strokeWidth: 0.5, r: 3 }),
     ...[1, -1].map((side) =>
       Plot.text(
@@ -198,9 +204,7 @@ save("worth", {
         { x: "x", y: "hi", fy: "kind", text: (s) => `${s.card} ${plus(s.hi)}`, textAnchor: side > 0 ? "start" : "end", dx: 7 * side, fontSize: 9, ...halo },
       ),
     ),
-    ...[2, 5].map((k) =>
-      Plot.text([k], { frameAnchor: "top-right", fy: ["rent"], ...halo, text: [`● ${k} players`], fill: playerColor.range[k - 2], dx: -4, dy: 4 + 14 * +(k === 5), fontSize: 10, fontWeight: "bold" }),
-    ),
+    ...[2, 5].map((k) => Plot.text([k], { frameAnchor: "top-right", fy: ["rent"], ...halo, text: [`● ${k} players`], fill: playerColor.range[k - 2], dx: -4, dy: 4 + 14 * +(k === 5), fontSize: 10, fontWeight: "bold" })),
   ],
 });
 
@@ -232,7 +236,10 @@ save("strong", {
       { fx: "players", y: "player", x1: (d) => d.x[0], x2: (d) => d.x[1], stroke: art.gray, strokeOpacity: 0.5 },
     ),
     Plot.dot(costs, { fx: "players", y: "player", x: "cost", fill: "field", stroke: art.paper, r: 4 }),
-    Plot.text(costs.filter((d) => d.field === "strong players"), { fx: "players", y: "player", x: "cost", text: (d) => plus(d.cost), dy: -10, fontSize: 9, fill: art["dark blue"], stroke: art.paper }),
+    Plot.text(
+      costs.filter((d) => d.field === "strong players"),
+      { fx: "players", y: "player", x: "cost", text: (d) => plus(d.cost), dy: -10, fontSize: 9, fill: art["dark blue"], stroke: art.paper },
+    ),
     ...["default players", "strong players"].map((field, i) =>
       Plot.text([field], { frameAnchor: "bottom-left", fx: ["5 players"], ...halo, text: [`● ${field}`], fill: i ? art["dark blue"] : art.gray, dx: 4, dy: -4 - 14 * (1 - i), fontSize: 10, fontWeight: "bold" }),
     ),
@@ -284,21 +291,25 @@ save("used", {
 // Which colors to chase: how often each color is a full set in the winner's hand, and a loser's.
 const colorRows = table("color");
 const colors = colorRows.flatMap((r) => counts.map((k) => ({ color: r.color, players: `${k} players`, winners: num(r[`${k} players`]), losers: paren(r[`${k} players`]) })));
-save("colors", {
-  width: 760,
-  height: 300,
-  marginLeft: 80,
-  marginRight: 20,
-  x: { label: "Games ending with it as a full set (%)", grid: true },
-  y: { label: null, domain: colorRows.map((r) => r.color) },
-  fx: { label: null },
-  marks: [
-    Plot.barX(colors, { fx: "players", y: "color", x: "winners", fill: (d) => art[d.color as keyof typeof art], stroke: art.gray, strokeWidth: 0.5, insetTop: 2, insetBottom: 2 }),
-    Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.paper, strokeWidth: 4 }),
-    Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.ink, strokeWidth: 2 }),
-    Plot.text(colors, { fx: "players", y: "color", x: (d) => Math.max(d.winners, d.losers), text: (d) => `${Math.round(d.winners)}`, textAnchor: "start", dx: 5, fontSize: 9, ...halo }),
-  ],
-}, true);
+save(
+  "colors",
+  {
+    width: 760,
+    height: 300,
+    marginLeft: 80,
+    marginRight: 20,
+    x: { label: "Games ending with it as a full set (%)", grid: true },
+    y: { label: null, domain: colorRows.map((r) => r.color) },
+    fx: { label: null },
+    marks: [
+      Plot.barX(colors, { fx: "players", y: "color", x: "winners", fill: (d) => art[d.color as keyof typeof art], stroke: art.gray, strokeWidth: 0.5, insetTop: 2, insetBottom: 2 }),
+      Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.paper, strokeWidth: 4 }),
+      Plot.tickX(colors, { fx: "players", y: "color", x: "losers", stroke: art.ink, strokeWidth: 2 }),
+      Plot.text(colors, { fx: "players", y: "color", x: (d) => Math.max(d.winners, d.losers), text: (d) => `${Math.round(d.winners)}`, textAnchor: "start", dx: 5, fontSize: 9, ...halo }),
+    ],
+  },
+  true,
+);
 
 // When a game is decided: after each round, how often the player ahead wins, and the one furthest behind.
 const decided = table("after round").flatMap((r) =>
@@ -319,8 +330,14 @@ save("decided", {
   y: { label: "Goes on to win (%)", grid: true, domain: [0, 100] },
   color: playerColor,
   marks: [
-    Plot.line(decided.filter((d) => d.who === "ahead"), { x: "round", y: "wins", stroke: "players", strokeWidth: 2 }),
-    Plot.line(decided.filter((d) => d.who === "behind"), { x: "round", y: "wins", stroke: "players", strokeWidth: 2, strokeDasharray: "4,3" }),
+    Plot.line(
+      decided.filter((d) => d.who === "ahead"),
+      { x: "round", y: "wins", stroke: "players", strokeWidth: 2 },
+    ),
+    Plot.line(
+      decided.filter((d) => d.who === "behind"),
+      { x: "round", y: "wins", stroke: "players", strokeWidth: 2, strokeDasharray: "4,3" },
+    ),
     Plot.dot(decided, { x: "round", y: "wins", fill: "players", stroke: art.paper, r: 3 }),
     Plot.text(
       decided.filter((d) => d.round === 3 && d.who === "ahead" && (d.players === "2 players" || d.players === "5 players")),
@@ -333,7 +350,7 @@ save("decided", {
     // 4 and 5 players end a point apart
     ...[-6, 0, 6].map((dy) =>
       Plot.text(
-        decided.filter((d) => d.who === "ahead" && (({ "4 players": -6, "5 players": 6 }) as Record<string, number>)[d.players] === (dy || undefined)),
+        decided.filter((d) => d.who === "ahead" && ({ "4 players": -6, "5 players": 6 } as Record<string, number>)[d.players] === (dy || undefined)),
         Plot.selectLast({ x: "round", y: "wins", z: "players", text: "players", textAnchor: "start", dx: 8, dy, ...halo }),
       ),
     ),
@@ -364,9 +381,7 @@ save("paying", {
 });
 
 // Opening hands: wins in fair shares by how many of each kind of card the opening hand held.
-const openings = (["actions", "properties", "money cards"] as const).flatMap((kind) =>
-  table(kind).flatMap((r) => counts.map((k) => ({ kind, held: +r[kind], players: `${k} players`, shares: num(r[`${k} players`]) }))),
-);
+const openings = (["actions", "properties", "money cards"] as const).flatMap((kind) => table(kind).flatMap((r) => counts.map((k) => ({ kind, held: +r[kind], players: `${k} players`, shares: num(r[`${k} players`]) }))));
 save("openings", {
   width: 760,
   height: 300,
@@ -386,7 +401,10 @@ save("openings", {
         select({ fx: "kind", x: "held", y: "shares", z: (d) => `${d.kind} ${d.players}`, text: (d) => d.shares.toFixed(2), textAnchor: i ? "middle" : "start", dx: i ? 0 : 4, dy: -9, fontSize: 9, ...halo }),
       ),
     ),
-    Plot.text(openings.filter((d) => d.kind === "actions"), Plot.selectLast({ fx: "kind", x: "held", y: "shares", z: "players", text: "players", textAnchor: "start", dx: 8, ...halo })),
+    Plot.text(
+      openings.filter((d) => d.kind === "actions"),
+      Plot.selectLast({ fx: "kind", x: "held", y: "shares", z: "players", text: "players", textAnchor: "start", dx: 8, ...halo }),
+    ),
   ],
 });
 

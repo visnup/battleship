@@ -59,7 +59,7 @@ def tree(nodes, i=0):
 
 # Same shape as LightGBM's dump_model, which `learned.ts` reads
 trees = [{"tree_structure": tree(p[0].nodes)} for p in model._predictors]
-(features.parent.parent / "src" / "model.json").write_text(json.dumps({"tree_info": trees}))
+Path(sys.argv[3] if len(sys.argv) > 3 else features.parent.parent / "src" / "model.json").write_text(json.dumps({"tree_info": trees}))
 
 print("\nheld out, points of win chance a decision against the default's pick (best is noisy, an upper bound):")
 for k, (x, _, y, d, g) in held.items():

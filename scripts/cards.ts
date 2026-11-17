@@ -75,6 +75,5 @@ if (import.meta.main) {
   console.log(`\nThe same, with a copy banked on the player's first play (and played as the default plays it).\n`);
   console.log(`| card | $M | ${counts.map((k) => `${k} players`).join(" | ")} |`);
   console.log(`| --- | --- | ${counts.map(() => "---").join(" | ")} |`);
-  for (const k of order.filter((k) => bankable(KINDS[k])))
-    console.log(`| ${name(KINDS[k])} | ${KINDS[k].value} | ${results.map((r) => `${signed(gain(r, k, r.banked))} (${signed(gain(r, k))})`).join(" | ")} |`);
+  for (const k of order.filter((k) => bankable(KINDS[k]))) console.log(`| ${name(KINDS[k])} | ${KINDS[k].value} | ${results.map((r) => `${signed(gain(r, k, r.banked))} (${signed(gain(r, k))})`).join(" | ")} |`);
 }

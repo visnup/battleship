@@ -43,6 +43,5 @@ if (import.meta.main) {
   console.log(`| after round | ${counts.map((k) => `${k} players`).join(" | ")} |`);
   console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
   const pct = (x: number, of: number) => `${((100 * x) / of).toFixed(0)}%`;
-  for (let r = 0; r < ROUNDS; r++)
-    console.log(`| ${r + 1} | ${results.map((x) => (x.going[r] < n / 100 ? "" : `${pct(x.going[r], n)}: ${pct(x.ahead[r], x.going[r])} (${pct(x.behind[r], x.going[r])})`)).join(" | ")} |`);
+  for (let r = 0; r < ROUNDS; r++) console.log(`| ${r + 1} | ${results.map((x) => (x.going[r] < n / 100 ? "" : `${pct(x.going[r], n)}: ${pct(x.ahead[r], x.going[r])} (${pct(x.behind[r], x.going[r])})`)).join(" | ")} |`);
 }

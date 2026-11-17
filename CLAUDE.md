@@ -61,11 +61,31 @@ from photos of one card of each property color and each wild (`rules/properties.
   chunks across cores, so results don't depend on the core count. Scripts guard their main code
   with `if (import.meta.main)`.
 - `scripts/charts.ts` draws `charts/*.svg` from the tables in `README.md`, with Observable Plot
-  and jsdom, the repo's only (dev) dependencies. Rerun it after updating a table.
-- `node --test` runs `cards.test.ts`, the contents list, and `game.test.ts`, the sheet's rules
-  and the default player's.
+  and jsdom. Rerun it after updating a table.
+- `node --test 'src/*.test.ts'` runs `cards.test.ts`, the contents list, `game.test.ts`, the
+  sheet's rules and the default player's, and `replay.test.ts`. `pnpm test` runs those, then
+  Playwright.
 - `TODO.md` is the plan: checking the model first, then the analysis.
 - `README.md` is what the simulator has shown so far.
+
+## Playing online
+
+A Next.js (pages router) and Convex app laid out like `../poker`: `pnpm dev` runs both, against
+the Convex dev deployment in `.env.local`. `vercel.json` deploys Convex to production as part of
+Vercel's build, so a local `pnpm build` never does. Other players' hands aren't hidden from
+their browsers; it's for friends.
+
+- `replay.ts`: a game is its seed and every decision made in it, and its state is the game
+  replayed through them, stopped at the next decision nobody has made (`Prompt`). Decisions
+  (`Choice`) name cards by position, and a move is only taken if `moves()` lists it. Bots are
+  `defaultPolicy`.
+- `convex/`: `players` is poker's join and ping. `games` holds the seed, first player, seats and
+  the deck as dealt; `decisions` every choice in order, whether a bot made it, and every hand at
+  the time. `games.decide` checks a choice by replaying with it, then plays the bots up to the
+  next person. Clients replay the log themselves.
+- `src/pages/` and `src/components/`: `Game` joins and shows the lobby, `Board` the table and
+  the prompt. Playwright specs sit next to components and need `pnpm dev` running.
+- Prettier is 220 wide, to match the engine.
 
 ## Rules worth knowing
 

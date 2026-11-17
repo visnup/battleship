@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { COLORS, type Color, DECK } from "./cards.ts";
 import { defaultPolicy, Game, type Move, name, type Placed, type Player, type Policy } from "./game.ts";
-import { moves } from "./strategies.ts";
+import { moves } from "./game.ts";
 
 // A move scorer learned from the dataset: gradient-boosted trees (`scripts/learn.py`) over what
 // the mover sees and what each move does, fitted to its two-round playout value.
@@ -24,7 +24,7 @@ export function encode(game: Game, p: Player, m: Move | null) {
 }
 
 // `arrange` recolors a wild after every play, so its color when laid down doesn't matter
-export const key = (m: ReturnType<typeof encode>) => JSON.stringify(m.type === "place" && m.card.startsWith("wild") ? { ...m, color: null } : m);
+export const key = (m: ReturnType<typeof encode>) => JSON.stringify(m.type === "place" && m.card?.startsWith("wild") ? { ...m, color: null } : m);
 
 /** What `p` can see, with players listed from `p` in turn order. */
 export function observe(game: Game, p: Player, left: number) {
@@ -43,7 +43,7 @@ export function observe(game: Game, p: Player, left: number) {
 }
 
 export type Obs = ReturnType<typeof observe>;
-export type Enc =ReturnType<typeof encode>;
+export type Enc = ReturnType<typeof encode>;
 
 const COLOR_NAMES = Object.keys(COLORS) as Color[];
 const ACTIONS = ["dealBreaker", "justSayNo", "slyDeal", "forcedDeal", "debtCollector", "birthday", "doubleRent", "house", "hotel", "passGo"];
@@ -130,14 +130,7 @@ export function move(obs: Obs, m: Enc, isDefault: boolean): number[] {
     [m.give, me],
   ] as const) {
     const c = side?.color;
-    x.push(
-      side ? 1 : 0,
-      side ? value(side.card) : -1,
-      side ? +side.card.startsWith("wild") : -1,
-      c ? ofColor(me.props, c) / size(c) : -1,
-      c && owner ? ofColor(owner.props, c) / size(c) : -1,
-      c ? size(c) : -1,
-    );
+    x.push(side ? 1 : 0, side ? value(side.card) : -1, side ? +side.card.startsWith("wild") : -1, c ? ofColor(me.props, c) / size(c) : -1, c && owner ? ofColor(owner.props, c) / size(c) : -1, c ? size(c) : -1);
   }
   x.push(+isDefault);
   return x;
@@ -228,7 +221,10 @@ export function ranked(file = MODEL) {
       const e = encode(game, p, m);
       return scorer([...b, ...move(obs, e, key(e) === pick)]);
     });
-    return options.map((m, i) => [m, scores[i]] as const).sort((a, b) => b[1] - a[1]).map(([m]) => m);
+    return options
+      .map((m, i) => [m, scores[i]] as const)
+      .sort((a, b) => b[1] - a[1])
+      .map(([m]) => m);
   };
 }
 

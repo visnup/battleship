@@ -14,8 +14,7 @@ function setup(players = 2) {
   return game;
 }
 
-const cards = (game: Game) =>
-  game.draw.length + game.pile.length + game.players.reduce((s, p) => s + p.hand.length + p.bank.length + p.props.length + p.built.length, 0);
+const cards = (game: Game) => game.draw.length + game.pile.length + game.players.reduce((s, p) => s + p.hand.length + p.bank.length + p.props.length + p.built.length, 0);
 
 test("random games end with a winner and keep all 106 cards", () => {
   const rng = mulberry32(42);
@@ -194,9 +193,13 @@ test("default: Deal Breaker takes the highest-rent set of a color it doesn't hav
   const [p, q] = game.players;
   place(q, property("brown"), property("brown"), property("darkBlue", 4), property("darkBlue", 4));
   p.hand.push(action("dealBreaker", 5));
-  assert.equal(choose(game)?.type === "action" && choose(game)?.color, "darkBlue");
+  const color = () => {
+    const m = choose(game);
+    return m?.type === "action" && m.color;
+  };
+  assert.equal(color(), "darkBlue");
   place(p, property("darkBlue", 4), property("darkBlue", 4));
-  assert.equal(choose(game)?.type === "action" && choose(game)?.color, "brown");
+  assert.equal(color(), "brown");
 });
 
 test("default: charges a $1M rent at 2 players, but not $1M in all at 3", () => {

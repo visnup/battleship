@@ -28,27 +28,13 @@ export type Card =
   | { kind: "rent"; colors: Color[] | "any"; value: number }
   | { kind: "action"; action: Action; value: number };
 
-export type Action =
-  | "dealBreaker"
-  | "justSayNo"
-  | "slyDeal"
-  | "forcedDeal"
-  | "debtCollector"
-  | "birthday"
-  | "doubleRent"
-  | "house"
-  | "hotel"
-  | "passGo";
+export type Action = "dealBreaker" | "justSayNo" | "slyDeal" | "forcedDeal" | "debtCollector" | "birthday" | "doubleRent" | "house" | "hotel" | "passGo";
 
 const times = <T>(n: number, card: T): T[] => Array.from({ length: n }, () => card);
 
 export const DECK: readonly Card[] = [
-  ...[1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 10].map(
-    (value) => ({ kind: "money", value }) as const,
-  ),
-  ...(Object.keys(COLORS) as Color[]).flatMap((color) =>
-    times(COLORS[color].rent.length, { kind: "property", color, value: COLORS[color].value } as const),
-  ),
+  ...[1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 10].map((value) => ({ kind: "money", value }) as const),
+  ...(Object.keys(COLORS) as Color[]).flatMap((color) => times(COLORS[color].rent.length, { kind: "property", color, value: COLORS[color].value } as const)),
   ...(
     [
       [["lightBlue", "brown"], 1, 1],
@@ -60,7 +46,7 @@ export const DECK: readonly Card[] = [
       [["railroad", "utility"], 2, 1],
       ["any", 0, 2],
     ] as const
-  ).flatMap(([colors, value, n]) => times(n, { kind: "wild", colors: colors as Color[] | "any", value })),
+  ).flatMap(([colors, value, n]) => times(n, { kind: "wild", colors: colors as Color[] | "any", value } as const)),
   ...(
     [
       [["lightBlue", "brown"], 1, 2],
@@ -70,7 +56,7 @@ export const DECK: readonly Card[] = [
       [["railroad", "utility"], 1, 2],
       ["any", 3, 3],
     ] as const
-  ).flatMap(([colors, value, n]) => times(n, { kind: "rent", colors: colors as Color[] | "any", value })),
+  ).flatMap(([colors, value, n]) => times(n, { kind: "rent", colors: colors as Color[] | "any", value } as const)),
   ...(
     [
       ["dealBreaker", 5, 2],

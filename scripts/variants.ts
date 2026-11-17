@@ -1,8 +1,37 @@
 import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
-import { assets, charge, colorsOf, collect, count, defaultPolicy, fullColors, fullSets, type Game, gain, heuristic, inProperty, isAction, leader, loose, type Move, mulberry32, type Placed, type Player, type Policy, progress, rent, richest, STEPS, stealable, type Step, type Target } from "../src/game.ts";
+import {
+  assets,
+  charge,
+  colorsOf,
+  collect,
+  count,
+  defaultPolicy,
+  fullColors,
+  fullSets,
+  type Game,
+  gain,
+  heuristic,
+  inProperty,
+  isAction,
+  leader,
+  loose,
+  type Move,
+  moves,
+  mulberry32,
+  type Placed,
+  type Player,
+  type Policy,
+  progress,
+  rent,
+  richest,
+  STEPS,
+  stealable,
+  type Step,
+  type Target,
+} from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
-import { build, chance, headToHead, moves, STRATEGIES } from "../src/strategies.ts";
+import { build, chance, headToHead, STRATEGIES } from "../src/strategies.ts";
 
 // Changes to `defaultPolicy`, each from a pattern in `decisions.ts`, played head to head against
 // it. Adopted ones move into `STEPS`, and the rest stay here, so the table shows what each costs.
@@ -93,10 +122,12 @@ const forced =
   (game, p) => {
     const card = p.hand.find((c) => isAction(c, "forcedDeal"));
     if (!card) return null;
-    const take = stealable(game, p, game.players.filter((q) => q !== p))[0];
-    const give = p.props
-      .filter((x) => loose(game, p, x) && x.color !== take?.x.color && (wilds || x.card.kind !== "wild"))
-      .sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
+    const take = stealable(
+      game,
+      p,
+      game.players.filter((q) => q !== p),
+    )[0];
+    const give = p.props.filter((x) => loose(game, p, x) && x.color !== take?.x.color && (wilds || x.card.kind !== "wild")).sort((a, b) => progress(game, p, a.color) - progress(game, p, b.color))[0];
     return take && give && worth(gain(game, p, take.x.color), progress(game, p, give.color)) ? { type: "action", card, target: take.q.seat, take: take.x, give } : null;
   };
 const forcedEarly = (step: Step) => () => heuristic(...without(STEPS.forcedDeal).toSpliced(without(STEPS.forcedDeal).indexOf(STEPS.rent), 0, step));
@@ -156,8 +187,7 @@ const payLooseFirst: Policy["pay"] = (game, p, amount) => {
 };
 
 /** When the bank can't cover it, pays from loose properties before the bank. */
-const payTableFirst: Policy["pay"] = (game, p, amount) =>
-  p.bank.reduce((s, c) => s + c.value, 0) >= amount ? defaultPolicy.pay(game, p, amount) : payLooseFirst(game, p, amount);
+const payTableFirst: Policy["pay"] = (game, p, amount) => (p.bank.reduce((s, c) => s + c.value, 0) >= amount ? defaultPolicy.pay(game, p, amount) : payLooseFirst(game, p, amount));
 
 /** Deal Breaker like the default, but on the leader's sets before anyone else's. */
 const breakLeader: Step = (game, p) => {
@@ -204,29 +234,45 @@ export const VARIANTS: Record<string, () => Policy> = {
   "lay down the highest rent first": placeVariant((game, p, card, color) => COLORS[color].rent[Math.min(count(p, color), size(color) - 1)] + toward(game, p, color) / 10),
   "lay down wilds first": placeVariant((game, p, card, color) => +(card.kind === "wild") + toward(game, p, color) / 10),
   "lay down a property a Rent in hand charges, then charge": () => heuristic(...steps.toSpliced(steps.indexOf(STEPS.rent), 0, placeForRent)),
-  "lay down properties before Debt Collector and Birthday": () =>
-    heuristic(...without(STEPS.debtCollector, STEPS.birthday).toSpliced(-1, 0, STEPS.debtCollector, STEPS.birthday)),
+  "lay down properties before Debt Collector and Birthday": () => heuristic(...without(STEPS.debtCollector, STEPS.birthday).toSpliced(-1, 0, STEPS.debtCollector, STEPS.birthday)),
   "lay down the smallest sets first": placeVariant((game, p, card, color) => -size(color) + toward(game, p, color) / 10),
   "any-color Rent and Debt Collector on the leader (previous)": both(leader),
   "any-color Rent and Debt Collector on the most paid in property": both(mostProperty),
   "any-color Rent on the least banked": () => heuristic(...swap(STEPS.rent, charge(leastBanked))),
   "charge rent worth $2M or more at 2 players (previous)": () => heuristic(...swap(STEPS.rent, charge(inProperty, 2))),
-  "hold the card that completes a set unless it wins": () =>
-    heuristic(...steps.map((s) => (s === complete ? completeToWin : s === place ? placeHolding : s === placeWhenBanked ? placeOnce(10, placeHolding) : s))),
+  "hold the card that completes a set unless it wins": () => heuristic(...steps.map((s) => (s === complete ? completeToWin : s === place ? placeHolding : s === placeWhenBanked ? placeOnce(10, placeHolding) : s))),
   "Just Say No only against Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(Infinity) }),
   "keep one Just Say No for a Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(1) }),
   "keep two Just Say Nos for a Deal Breaker": () => ({ ...defaultPolicy, sayNo: saveNo(2) }),
   "Forced Deal before rent": forcedEarly(STEPS.forcedDeal),
-  "Forced Deal whenever it can": () => heuristic(...swap(STEPS.forcedDeal, forced(() => true))),
-  "Forced Deal giving wilds too": () => heuristic(...swap(STEPS.forcedDeal, forced((a, b) => a > b, true))),
-  "Forced Deal unless it gives more progress than it takes": () => heuristic(...swap(STEPS.forcedDeal, forced((a, b) => a >= b))),
+  "Forced Deal whenever it can": () =>
+    heuristic(
+      ...swap(
+        STEPS.forcedDeal,
+        forced(() => true),
+      ),
+    ),
+  "Forced Deal giving wilds too": () =>
+    heuristic(
+      ...swap(
+        STEPS.forcedDeal,
+        forced((a, b) => a > b, true),
+      ),
+    ),
+  "Forced Deal unless it gives more progress than it takes": () =>
+    heuristic(
+      ...swap(
+        STEPS.forcedDeal,
+        forced((a, b) => a >= b),
+      ),
+    ),
   "Forced Deal whenever it can, before rent": forcedEarly(forced(() => true)),
   "Forced Deal whenever it can, giving wilds too, before rent": forcedEarly(forced(() => true, true)),
   "bank Forced Deal": () => heuristic(bankIt("forcedDeal"), ...without(STEPS.forcedDeal)),
   "bank Sly Deal": () => heuristic(bankIt("slyDeal"), ...without(STEPS.slyDeal)),
   "bank Forced Deal and Sly Deal": () => heuristic(bankIt("forcedDeal", "slyDeal"), ...without(STEPS.forcedDeal, STEPS.slyDeal)),
   "play Forced Deal in the first round (previous)": () => heuristic(...without(STEPS.bankForcedDeal)),
-  "bank Double the Rent":() => heuristic(bankIt("doubleRent"), ...steps),
+  "bank Double the Rent": () => heuristic(bankIt("doubleRent"), ...steps),
   "hold Double the Rent (previous)": () => heuristic(...without(STEPS.bankDoubleRent)),
   "bank Rent cards for colors we have none of": beforeBank(deadRent),
   "Deal Breaker on the leader first": withStep(STEPS.dealBreaker, breakLeader),
@@ -235,7 +281,7 @@ export const VARIANTS: Record<string, () => Policy> = {
   "pay with loose properties before money when the bank can't cover it": () => ({ ...defaultPolicy, pay: payTableFirst }),
   "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),
   "never counter a Just Say No": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => game.players[game.current] !== p && defaultPolicy.sayNo(game, p, move, from) }),
-  "Forced Deal for the best chance":withStep(STEPS.forcedDeal, byChance("forcedDeal")),
+  "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
   "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),
   "Deal Breaker for the best chance": withStep(STEPS.dealBreaker, byChance("dealBreaker")),
@@ -245,9 +291,7 @@ export const VARIANTS: Record<string, () => Policy> = {
     return birthday && game.players.some((q) => q !== p && assets(q) > 0) ? { type: "action", card: birthday } : null;
   }),
   "Deal Breaker and Sly Deal before Pass Go after round 3": () => heuristic(after(3, dealBreaker), after(3, STEPS.slyDeal), ...steps),
-  ...Object.fromEntries(
-    [5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))]),
-  ),
+  ...Object.fromEntries([5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))])),
 };
 
 export const run = (variant: string, players: number, seed: number, n: number) => headToHead(VARIANTS[variant], players, seed, n);

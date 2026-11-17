@@ -1,8 +1,8 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
-import { defaultPolicy, Game, mulberry32, type Policy } from "../src/game.ts";
+import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game.ts";
 import { encode, key, observe } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
-import { moves, playout } from "../src/strategies.ts";
+import { playout } from "../src/strategies.ts";
 
 const OUT = new URL("../dataset/data/", import.meta.url);
 

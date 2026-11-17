@@ -35,10 +35,7 @@ if (import.meta.main) {
   for (const [k, label] of KINDS.entries()) {
     console.log(`| ${{ action: "actions", property: "properties", money: "money cards" }[label]} | ${counts.map((c) => `${c} players`).join(" | ")} |`);
     console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
-    for (let m = 0; m <= 5; m++)
-      console.log(
-        `| ${m} | ${results.map((r, i) => `${((r.wins[k][m] / r.hands[k][m]) * counts[i]).toFixed(2)} (${((100 * r.hands[k][m]) / (n * counts[i])).toFixed(0)}%)`).join(" | ")} |`,
-      );
+    for (let m = 0; m <= 5; m++) console.log(`| ${m} | ${results.map((r, i) => `${((r.wins[k][m] / r.hands[k][m]) * counts[i]).toFixed(2)} (${((100 * r.hands[k][m]) / (n * counts[i])).toFixed(0)}%)`).join(" | ")} |`);
     console.log();
   }
 }

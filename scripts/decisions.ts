@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
-import { defaultPolicy, Game, type Move, mulberry32, name, type Policy } from "../src/game.ts";
+import { defaultPolicy, Game, type Move, moves, mulberry32, name, type Policy } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
-import { moves, playout } from "../src/strategies.ts";
+import { playout } from "../src/strategies.ts";
 
 /** What kind of move `move` is, for grouping. */
 export function label(move: Move | null): string {
@@ -19,8 +19,7 @@ export function label(move: Move | null): string {
   }
 }
 
-const key = (m: Move | null) =>
-  m && JSON.stringify([m.type, m.card, "color" in m && m.color, m.target, m.type === "rent" && m.doubles.length, m.type === "action" && [m.take?.card, m.give?.card]]);
+const key = (m: Move | null) => m && JSON.stringify([m.type, m.card, "color" in m && m.color, m.target, m.type === "rent" && m.doubles.length, m.type === "action" && [m.take?.card, m.give?.card]]);
 
 /**
  * Plays `n` games with the default player everywhere, and at each of seat 0's decisions plays out every
