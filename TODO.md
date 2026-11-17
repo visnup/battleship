@@ -148,6 +148,12 @@
             time, and with 160 deals instead of 80, 61.8% and 46.0% (+2.0, +3.2) in the same
             time at 5 players and 1.3× at 2. Top 3 is cheaper and about 1 point worse; top 2
             loses 3 points at 5. Adopting it means committing a model, now 7 MB of trees.
+      - [x] Rules from where the model overrules the default (2026-11-17, held-out shards,
+            by stored value): it ended turns holding a card it wouldn't play, and played
+            Birthday in the first round. Banking what's left when that empties the hand (+0.3
+            to +0.8 at 2–5 players) and holding Birthday in the first round (+0.3 to +0.9 at
+            3–5) were both adopted. Deal Breaker and Sly Deal before Pass Go after round 3: +0.4
+            at 5, even elsewhere. The rest is whom to hit, as before.
       - [x] A neural network instead of trees (`learn_mlx.py`, MLX on the GPU): 512 wide, 2
             layers, 5 minutes against the trees' 16 on the CPU. Held out, +0.67 to +0.74 a
             decision (trees +0.59 to +0.72). Head to head (100,000 games) 55.2%, 43.1%, 37.1%
