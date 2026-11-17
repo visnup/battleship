@@ -57,7 +57,7 @@
             `uv`) on the same move features and playout values, and play it head to head. If
             it wins, distill readable rules from it for `STEPS`. Less noisy targets (more deals
             a move) are the other lever.
-- [ ] Close more of the gap to playouts, now 10 to 22 points. Done 2026-11-16, one
+- [ ] Close more of the gap to playouts, now 10 to 23 points. Done 2026-11-16, one
       step at a time on top of the last: adopt banking Forced Deal in the first round at 3+
       players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance` (done), run
       `decisions.ts` with its recheck also cut off at two rounds (done: at 2 players the
@@ -90,8 +90,8 @@
       reportedly wins about 75% against a heuristic player.
 - [x] Recheck the findings against strong opponents (`strong.ts`, quick playouts in every other
       seat, 8,000 games): never building, banking before laying down, and playing the card
-      that completes a set all hold. Going first is worth more among strong players at 5
-      (24.6% against 21.7%).
+      that completes a set all hold. Going first is worth about the same among strong players
+      at 5 (24.0% against 23.4%).
 - [ ] Remember what's been played. No player tracks it, so none knows when the Just Say Nos
       and Deal Breakers are gone and a full set is safe. Try it as a variant, and in playouts'
       guesses at the hidden cards.
@@ -103,12 +103,12 @@
       want property only in some spots, and no rule found them. The default's rule stands.
 - [x] When to Just Say No, by playouts at each decision to say it (`sayno.ts`, 2026-11-16). It
       lets Debt Collector through and leaves a No against its own action standing, but
-      head to head the first is even and never countering loses 0.5 to 0.7 points.
+      head to head the first is even and never countering loses 0.5 to 0.6 points.
 - [x] Tests for `STEPS`: a small board per rule (`game.test.ts`), so a refactor can't
       quietly change the default player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
 - [ ] A staller: a strategy that tries to make the game stall, from the list in the README's
-      "Stalled games". Count its stalls at 5 players against the pacifist's 48 in 100,000, and
+      "Stalled games". Count its stalls at 5 players against the pacifist's 41 in 100,000, and
       see which of its rules matter most.
 - [ ] Idea: a page to play against quick playouts in the browser.
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
@@ -145,13 +145,13 @@
 - [x] How long games last, and how often the draw pile runs out.
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
 - [x] How much is luck: playouts win 1.20 fair shares against the default at 2 players and
-      2.10 at 5, so skill counts for more at big tables.
+      2.14 at 5, so skill counts for more at big tables.
 - [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 72% at 2
       players and 46% at 5. Comebacks last at 2 players and run out at 5.
 - [x] Played or banked (`cards.ts`): every action card is worth far more played, except
       Forced Deal early at 3+ players. Holding one unplayed isn't measured: no player here
       reads another's hand, so a held card can't deter.
 - [x] Paying (`payments.ts`): at 5 players the bank is down to $8.4M when charged, one payment
-      in five costs property, and 65% of losers pay in property at least once.
+      in five costs property, and 66% of losers pay in property at least once.
 - [x] Opening hands (`openings.ts`): action cards make a hand, and it matters more at big
       tables (0.59 to 1.38 fair shares at 5 players). The sheet has no mulligan.

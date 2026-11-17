@@ -60,7 +60,7 @@ same 32 deals:
 `value` is the mean of the 32 scores and `se` its standard error. The 32 deals are shared by
 every move of a decision, so the difference between two moves is less noisy than their `se`s
 suggest. In the simulator, picking the move with the highest value this way (with up to 80 deals)
-beats the default player by 10 to 22 points.
+beats the default player by 10 to 23 points.
 
 The values are estimates for a particular rollout player and scoring function, not the game's
 true values. They're good at ranking moves within one decision, but they don't judge the
