@@ -11,9 +11,10 @@ import { chance, playout } from "../src/strategies.ts";
  * what the mover sees, each legal move's two-round playout value on `deals` shared deals, the
  * default's pick, and whether the mover went on to win. With `model`, the learned player plays
  * the games, and with `top` too, only its `top` moves, the default's pick and one other at random
- * are played out. With `pay`, the mover pays as `src/pay.json` says in the playouts.
+ * are played out, and with `label` only that fraction of decisions is. With `pay`, the mover
+ * pays as `src/pay.json` says in the playouts.
  */
-export function shard(players: number, deals: number, model: string, top: number, pay: boolean, out: string, seed: number, n: number) {
+export function shard(players: number, deals: number, model: string, top: number, pay: boolean, label: number, out: string, seed: number, n: number) {
   const rng = mulberry32(seed);
   const rank = model ? ranked(model) : null;
   const rollout = pay ? { ...defaultPolicy, pay: paid() } : defaultPolicy;
@@ -43,7 +44,7 @@ export function shard(players: number, deals: number, model: string, top: number
           options = kept.map((j) => options[j]);
           pick = kept.indexOf(pick);
         }
-        if (options.length > 1) {
+        if (options.length > 1 && (label >= 1 || rng() < label)) {
           const seeds = Array.from({ length: deals }, () => Math.floor(rng() * 2 ** 32));
           const values = options.map((m) => seeds.map((s) => playout(game, p, m, [s], rollout, 2 * players, chance, defaultPolicy)));
           rows.push({
@@ -80,6 +81,7 @@ if (import.meta.main) {
       model: { type: "string", default: "" },
       top: { type: "string", default: "0" },
       pay: { type: "boolean", default: false },
+      label: { type: "string", default: "1" },
       players: { type: "string", default: "2,3,4,5" },
       out: { type: "string", default: "dataset/data" },
     },
@@ -88,7 +90,7 @@ if (import.meta.main) {
   const out = new URL(args.out, `file://${process.cwd()}/`).pathname;
   for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();
-    const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.model, Number(args.top), args.pay, out], Number(args.games));
+    const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.model, Number(args.top), args.pay, Number(args.label), out], Number(args.games));
     console.log(`${players} players: ${args.games} games, ${decisions} decisions, ${((performance.now() - t) / 60000).toFixed(1)} min`);
   }
 }
