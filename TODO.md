@@ -136,7 +136,10 @@
             numbers per move, 300 trees on 16 shards of each player count. Held out, +0.4
             points of win chance a decision over the default's pick. Head to head it's the
             first player to beat the default: 54.9% at 2 players and 26.4% at 5 (10,000
-            games). Next: more data and trees, 3 and 4 players, then inside playouts.
+            games). On all 248 training shards with 1,000 trees (16 minutes on 20 cores, not
+            yet early-stopped): +0.6 to +0.7 a decision held out, and 56.3%, 42.8%, 35.2% and
+            30.3% at 2–5 players (100,000 games), level with quick playouts at 2 and 3 players
+            at 9 ms of CPU a game. Next: inside playouts.
       - [ ] Tune racing offline: how close each decision's top moves are says how many deals
             and what `z` it needs.
 
