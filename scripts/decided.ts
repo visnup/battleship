@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { Game, MAX_TURNS, mulberry32 } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 import { chance } from "../src/strategies.ts";
 
 const ROUNDS = 8;
@@ -40,8 +41,7 @@ if (import.meta.main) {
   const results = [];
   for (const players of counts) results.push(await parallel<ReturnType<typeof decided>>(import.meta.url, "decided", [players], n));
   console.log(`${n} games each. After each round, the games still going, and of those, how often the player ahead wins (and the one furthest behind).\n`);
-  console.log(`| after round | ${counts.map((k) => `${k} players`).join(" | ")} |`);
-  console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+  header(["after round"], counts);
   const pct = (x: number, of: number) => `${((100 * x) / of).toFixed(0)}%`;
   for (let r = 0; r < ROUNDS; r++) console.log(`| ${r + 1} | ${results.map((x) => (x.going[r] < n / 100 ? "" : `${pct(x.going[r], n)}: ${pct(x.ahead[r], x.going[r])} (${pct(x.behind[r], x.going[r])})`)).join(" | ")} |`);
 }

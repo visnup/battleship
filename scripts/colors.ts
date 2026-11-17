@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { COLOR_NAMES, fullColors, Game, mulberry32 } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 
 /** At the end of `n` games, which colors the winner's sets were, and the full sets losers held. */
 export function colors(players: number, seed: number, n: number) {
@@ -28,8 +29,7 @@ if (import.meta.main) {
   const results = [];
   for (const players of counts) results.push(await parallel<ReturnType<typeof colors>>(import.meta.url, "colors", [players], n));
   console.log(`${n} games each: how often each color is one of the winner's full sets, and (in parentheses) a loser's at the end.\n`);
-  console.log(`| color | ${counts.map((k) => `${k} players`).join(" | ")} |`);
-  console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+  header(["color"], counts);
   const pct = (x: number, of: number) => `${((100 * x) / of).toFixed(0)}%`;
   COLOR_NAMES.forEach((c, i) => console.log(`| ${c} | ${results.map((r) => `${pct(r.won[i], n)} (${pct(r.lost[i], r.losers)})`).join(" | ")} |`));
 }

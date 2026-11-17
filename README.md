@@ -357,7 +357,7 @@ are now in the default player.
 the shuffles (160), wins 1.3 to 3.1 points more than playing out every move on 80 (59.1%,
 48.6%, 43.7% and 38.7%), at 1.2× the time (10,000 games each). That's now `playouts`, with the
 trees in `src/model.json`. Using the model as the player inside the imagined games instead
-costs 20× the time and wins less. A network trained to judge the table in place of `chance` (`learn_value.py`) is even
+costs 20× the time and wins less. A network trained to judge the table in place of `chance` is even
 on the top 5 with 160 shuffles.
 
 ## What each card is worth

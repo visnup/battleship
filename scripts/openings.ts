@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32 } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 
 const KINDS = ["action", "property", "money"] as const;
 /** What a card counts as in an opening hand: Rent cards are actions, and wilds properties. */
@@ -33,8 +34,7 @@ if (import.meta.main) {
   for (const players of counts) results.push(await parallel<ReturnType<typeof openings>>(import.meta.url, "openings", [players], n));
   console.log(`${n} games each: a player's wins, in fair shares, by how many of its 5 opening cards are of each kind, and (in parentheses) how many hands that is.\n`);
   for (const [k, label] of KINDS.entries()) {
-    console.log(`| ${{ action: "actions", property: "properties", money: "money cards" }[label]} | ${counts.map((c) => `${c} players`).join(" | ")} |`);
-    console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+    header([{ action: "actions", property: "properties", money: "money cards" }[label]], counts);
     for (let m = 0; m <= 5; m++) console.log(`| ${m} | ${results.map((r, i) => `${((r.wins[k][m] / r.hands[k][m]) * counts[i]).toFixed(2)} (${((100 * r.hands[k][m]) / (n * counts[i])).toFixed(0)}%)`).join(" | ")} |`);
     console.log();
   }

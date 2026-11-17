@@ -1,56 +1,19 @@
 import { readFileSync } from "node:fs";
 import { COLORS, type Color, DECK } from "./cards.ts";
-import { defaultPolicy, Game, type Move, name, type Placed, type Player, type Policy } from "./game.ts";
-import { moves } from "./game.ts";
+import { COLOR_NAMES, defaultPolicy, type Game, type Move, moves, name, type Player, type Policy, size as sizeOf } from "./game.ts";
+import { encode, key, observe } from "./replay.ts";
 
 // A move scorer learned from the dataset: gradient-boosted trees (`scripts/learn.py`) over what
 // the mover sees and what each move does, fitted to its two-round playout value.
 
-const placed = (x: Placed) => ({ card: name(x.card), color: x.color });
-
-/** `m` from the mover's seat: targets count seats after the mover, 1 being the next to play. */
-export function encode(game: Game, p: Player, m: Move | null) {
-  const rel = (seat?: number) => (seat === undefined ? null : (seat - p.seat + game.players.length) % game.players.length);
-  if (!m) return { type: "end", card: null, color: null, target: null, doubles: 0, take: null, give: null };
-  return {
-    type: m.type,
-    card: name(m.card),
-    color: ("color" in m && m.color) || null,
-    target: rel("target" in m ? m.target : undefined),
-    doubles: m.type === "rent" ? m.doubles.length : 0,
-    take: (m.type === "action" && m.take && placed(m.take)) || null,
-    give: (m.type === "action" && m.give && placed(m.give)) || null,
-  };
-}
-
-// `arrange` recolors a wild after every play, so its color when laid down doesn't matter
-export const key = (m: ReturnType<typeof encode>) => JSON.stringify(m.type === "place" && m.card?.startsWith("wild") ? { ...m, color: null } : m);
-
-/** What `p` can see, with players listed from `p` in turn order. */
-export function observe(game: Game, p: Player, left: number) {
-  const n = game.players.length;
-  return {
-    turn: game.turns,
-    plays_left: left,
-    hand: p.hand.map(name),
-    table: Array.from({ length: n }, (_, i) => {
-      const q = game.players[(p.seat + i) % n];
-      return { hand_size: q.hand.length, bank: q.bank.map(name), props: q.props.map(placed), built: q.built.map(placed) };
-    }),
-    draw_size: game.draw.length,
-    pile: game.pile.map(name),
-  };
-}
-
 export type Obs = ReturnType<typeof observe>;
 export type Enc = ReturnType<typeof encode>;
 
-const COLOR_NAMES = Object.keys(COLORS) as Color[];
 const ACTIONS = ["dealBreaker", "justSayNo", "slyDeal", "forcedDeal", "debtCollector", "birthday", "doubleRent", "house", "hotel", "passGo"];
 const KINDS = ["money", "property", "wild", "rent", "action"];
 const TYPES = ["end", "bank", "place", "rent", "action"];
 const CARDS = new Map(DECK.map((c) => [name(c), c]));
-const size = (c: string) => COLORS[c as Color].rent.length;
+const size = (c: string) => sizeOf(c as Color);
 const value = (card: string) => CARDS.get(card)!.value;
 const kind = (card: string) => CARDS.get(card)!.kind;
 
@@ -136,13 +99,6 @@ export function move(obs: Obs, m: Enc, isDefault: boolean): number[] {
   return x;
 }
 
-/** The board as the mover sees it, every player in turn order from the mover, padded to 5. */
-export function position(players: number, obs: Obs): number[] {
-  const seat = (q: Obs["table"][number] | undefined) =>
-    q ? [1, ...COLOR_NAMES.map((c) => ofColor(q.props, c) / size(c)), fulls(q.props), banked(q.bank), q.bank.length, q.hand_size, q.built.length] : new Array(16).fill(0);
-  return [...board(players, obs).slice(0, 5 + KINDS.length + ACTIONS.length + 1), ...Array.from({ length: 5 }, (_, i) => seat(obs.table[i])).flat()];
-}
-
 type Node = { split_feature?: number; threshold?: number; left_child?: Node; right_child?: Node; leaf_value?: number };
 /** Every tree's nodes in flat arrays, a leaf marked by feature −1 with its value as the threshold. */
 type Forest = { roots: number[]; feature: Int32Array; threshold: Float64Array; left: Int32Array; right: Int32Array };
@@ -226,12 +182,6 @@ export function ranked(file = MODEL) {
       .sort((a, b) => b[1] - a[1])
       .map(([m]) => m);
   };
-}
-
-/** `learn_value.py`'s board score, in place of `chance`: `seat`'s chance of winning `game`. */
-export function boardScore(file: string) {
-  const net = (loaded[file] ??= load(file));
-  return (game: Game, seat: number) => 1 / (1 + Math.exp(-net(position(game.players.length, observe(game, game.players[seat], 3)))));
 }
 
 /** The default player, except that every move is the one the model in `file` scores highest. */

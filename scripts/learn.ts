@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { board, type Enc, learned, MODEL, move, position } from "../src/learned.ts";
+import { board, type Enc, learned, MODEL, move } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { headToHead } from "../src/strategies.ts";
 
@@ -11,7 +11,7 @@ const FEATURES = new URL("../dataset/features/", import.meta.url);
  * Features for shard `seed` of `players`, for `learn.py`: rows of floats, then each row's value
  * and the default's pick as 0 or 1, and each decision's move count.
  */
-export function extract(players: number, seed: number, _n: number) {
+export function extract(players: number, seed: number) {
   const lines = readFileSync(new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, DATA), "utf8")
     .trim()
     .split("\n");
@@ -34,24 +34,6 @@ export function extract(players: number, seed: number, _n: number) {
   return [groups.length, (x.length / y.length) * 2];
 }
 
-/** Each decision's `position` for shard `seed` of `players`, and whether the mover won (−1 if the game stalled). */
-export function boards(players: number, seed: number, _n: number) {
-  const lines = readFileSync(new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, DATA), "utf8")
-    .trim()
-    .split("\n");
-  const x: number[] = [];
-  const won: number[] = [];
-  for (const line of lines) {
-    const r = JSON.parse(line);
-    x.push(...position(players, r));
-    won.push(r.won === null ? -1 : +r.won);
-  }
-  const base = new URL(`${players}p-${String(seed).padStart(3, "0")}`, FEATURES).pathname;
-  writeFileSync(`${base}.b`, new Float32Array(x));
-  writeFileSync(`${base}.w`, new Int8Array(won));
-  return [won.length, x.length / won.length];
-}
-
 export const play = (model: string, players: number, seed: number, n: number) => headToHead(() => learned(model), players, seed, n);
 
 if (import.meta.main) {
@@ -60,10 +42,10 @@ if (import.meta.main) {
     options: { n: { type: "string", default: "64" }, players: { type: "string", default: "2,3,4,5" }, model: { type: "string", default: MODEL } },
   });
   const counts = args.players.split(",").map(Number);
-  if (positionals[0] === "extract" || positionals[0] === "boards") {
+  if (positionals[0] === "extract") {
     mkdirSync(FEATURES, { recursive: true });
     for (const players of counts) {
-      const [decisions, features] = await parallel<number[]>(import.meta.url, positionals[0], [players], Number(args.n), (a, b) => [a[0] + b[0], b[1]]);
+      const [decisions, features] = await parallel<number[]>(import.meta.url, "extract", [players], Number(args.n), (a, b) => [a[0] + b[0], b[1]]);
       console.log(`${players} players: ${decisions} decisions from ${args.n} shards, ${features} features`);
     }
   } else {

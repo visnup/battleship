@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, mulberry32, type Policy } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 
 /**
  * In `n` default-player games, every payment: how many there are, how many cost properties, and
@@ -49,8 +50,7 @@ if (import.meta.main) {
   const results = [];
   for (const players of counts) results.push(await parallel<ReturnType<typeof payments>>(import.meta.url, "payments", [players], n));
   console.log(`${n} games each of default players.\n`);
-  console.log(`| | ${counts.map((k) => `${k} players`).join(" | ")} |`);
-  console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+  header([""], counts);
   const row = (label: string, f: (r: (typeof results)[number], k: number) => string) => console.log(`| ${label} | ${results.map((r, i) => f(r, counts[i])).join(" | ")} |`);
   row("payments a game", (r) => (r.count / r.games).toFixed(1));
   row("bank when charged", (r) => `$${(r.bankWhenCharged / r.count).toFixed(1)}M`);

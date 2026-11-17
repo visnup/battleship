@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 import { headToHead, STRATEGIES } from "../src/strategies.ts";
 
 export const run = (strategy: string, players: number, seed: number, n: number) => headToHead(STRATEGIES[strategy], players, seed, n);
@@ -16,8 +17,7 @@ if (import.meta.main) {
   const counts = args.players.split(",").map(Number);
   const names = args.only ? args.only.split(",") : Object.keys(STRATEGIES).filter((s) => !s.includes("playouts"));
   console.log(`${n} games each: one player's wins against the default player in every other seat, by player count.\n`);
-  console.log(`| strategy | ${counts.map((k) => `${k} players (fair ${(100 / k).toFixed(1)}%)`).join(" | ")} |`);
-  console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+  header(["strategy"], counts, true);
   for (const name of names) {
     const cells = [];
     for (const players of counts) {

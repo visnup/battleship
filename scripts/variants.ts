@@ -2,6 +2,7 @@ import { parseArgs } from "node:util";
 import { type Card, type Color, COLORS } from "../src/cards.ts";
 import {
   assets,
+  banked,
   charge,
   colorsOf,
   collect,
@@ -25,13 +26,15 @@ import {
   progress,
   rent,
   richest,
+  size,
   STEPS,
   stealable,
   type Step,
   type Target,
 } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
-import { build, chance, headToHead, STRATEGIES } from "../src/strategies.ts";
+import { header } from "./table.ts";
+import { build, chance, headToHead, STRATEGIES, translate } from "../src/strategies.ts";
 
 // Changes to `defaultPolicy`, each from a pattern in `decisions.ts`, played head to head against
 // it. Adopted ones move into `STEPS`, and the rest stay here, so the table shows what each costs.
@@ -44,8 +47,7 @@ const bankIt =
     return card ? { type: "bank", card } : null;
   };
 
-const mostBanked: Target = (game, p) => game.players.filter((q) => q !== p).reduce((a, b) => (sum(b.bank) > sum(a.bank) ? b : a));
-const sum = (cards: { value: number }[]) => cards.reduce((s, c) => s + c.value, 0);
+const mostBanked: Target = (game, p) => game.players.filter((q) => q !== p).reduce((a, b) => (banked(b) > banked(a) ? b : a));
 
 /** Lays down a wild before anything but completing a set. */
 const placeWild: Step = (game, p) => {
@@ -57,7 +59,7 @@ const placeWild: Step = (game, p) => {
 const placeOnce =
   (amount: number, step: Step = STEPS.place): Step =>
   (game, p, left) =>
-    sum(p.bank) >= amount ? step(game, p, left) : null;
+    banked(p) >= amount ? step(game, p, left) : null;
 
 /** Lays down the property and color that score highest, instead of the first one in hand. */
 const placeBy = (score: (game: Game, p: Player, card: Card, color: Color) => number): Step => {
@@ -74,9 +76,6 @@ const placeBy = (score: (game: Game, p: Player, card: Card, color: Color) => num
   };
   return step;
 };
-const size = (color: Color) => COLORS[color].rent.length;
-/** How far one more card of `color` gets toward a set, or 0 past a full one. */
-const toward = (game: Game, p: Player, color: Color) => (count(p, color) % size(color) === 0 && count(p, color) ? 0 : progress(game, p, color, 1));
 const placeVariant = (score: Parameters<typeof placeBy>[0]) => {
   const step = placeBy(score);
   return () => heuristic(...swap(place, step).map((s) => (s === placeWhenBanked ? placeOnce(10, step) : s)));
@@ -92,10 +91,10 @@ const placeForRent: Step = (game, p, left) => {
 
 const mostProperty: Target = (game, p, amount) => {
   const top = leader(game, p, amount);
-  const score = (q: Player) => Math.min(assets(q), amount) - Math.min(sum(q.bank), amount) + +(q === top) / 2;
+  const score = (q: Player) => Math.min(assets(q), amount) - Math.min(banked(q), amount) + +(q === top) / 2;
   return game.players.filter((q) => q !== p).reduce((a, b) => (score(b) > score(a) ? b : a));
 };
-const leastBanked: Target = (game, p) => game.players.filter((q) => q !== p).reduce((a, b) => (sum(b.bank) < sum(a.bank) ? b : a));
+const leastBanked: Target = (game, p) => game.players.filter((q) => q !== p).reduce((a, b) => (banked(b) < banked(a) ? b : a));
 const both = (target: Target) => () => heuristic(...swap(STEPS.rent, charge(target)).map((s) => (s === STEPS.debtCollector ? collect(target) : s)));
 
 /** A property that completes a set only when that set wins the game. */
@@ -104,7 +103,7 @@ const completeToWin: Step = (game, p, left) => (fullColors(game, p).length >= 2 
 const placeHolding: Step = (game, p) => {
   for (const card of p.hand) {
     if (card.kind !== "property" && !(card.kind === "wild" && (card.colors !== "any" || p.props.length))) continue;
-    const color = colorsOf(card).reduce((a, b) => (toward(game, p, b) > toward(game, p, a) ? b : a));
+    const color = colorsOf(card).reduce((a, b) => (gain(game, p, b) > gain(game, p, a) ? b : a));
     if (count(p, color) + 1 === size(color) && fullColors(game, p).length < 2) continue;
     return { type: "place", card, color };
   }
@@ -145,10 +144,7 @@ const byChance =
       const g = game.clone();
       g.rng = mulberry32(1);
       g.policies = g.players.map(() => ({ ...defaultPolicy, sayNo: () => false }));
-      if (move?.type === "action") {
-        const copy = (x: Placed, seat: number) => g.players[seat].props[game.players[seat].props.indexOf(x)];
-        g.play(g.players[p.seat], { ...move, take: move.take && copy(move.take, move.target!), give: move.give && copy(move.give, p.seat) });
-      }
+      if (move) g.play(g.players[p.seat], translate(move, game, g));
       return chance(g, p.seat);
     };
     let best: Move | null = null;
@@ -187,7 +183,7 @@ const payLooseFirst: Policy["pay"] = (game, p, amount) => {
 };
 
 /** When the bank can't cover it, pays from loose properties before the bank. */
-const payTableFirst: Policy["pay"] = (game, p, amount) => (p.bank.reduce((s, c) => s + c.value, 0) >= amount ? defaultPolicy.pay(game, p, amount) : payLooseFirst(game, p, amount));
+const payTableFirst: Policy["pay"] = (game, p, amount) => (banked(p) >= amount ? defaultPolicy.pay(game, p, amount) : payLooseFirst(game, p, amount));
 
 /** Deal Breaker like the default, but on the leader's sets before anyone else's. */
 const breakLeader: Step = (game, p) => {
@@ -226,16 +222,16 @@ export const VARIANTS: Record<string, () => Policy> = {
   "Debt Collector on the most money banked": () => heuristic(...swap(STEPS.debtCollector, collect(mostBanked))),
   "any-color Rent on the most money banked": () => heuristic(...swap(STEPS.rent, charge(mostBanked))),
   "lay down wilds before charging": () => heuristic(...steps.toSpliced(steps.indexOf(complete) + 1, 0, placeWild)),
-  "lay down the most progress first": placeVariant((game, p, card, color) => toward(game, p, color)),
-  "lay down the least progress first": placeVariant((game, p, card, color) => -toward(game, p, color) + (toward(game, p, color) ? 0 : -9)),
-  "lay down the most progress first, wilds last": placeVariant((game, p, card, color) => toward(game, p, color) - +(card.kind === "wild")),
-  "lay down the cheapest first": placeVariant((game, p, card, color) => -card.value + toward(game, p, color) / 10),
-  "lay down the dearest first": placeVariant((game, p, card, color) => card.value + toward(game, p, color) / 10),
-  "lay down the highest rent first": placeVariant((game, p, card, color) => COLORS[color].rent[Math.min(count(p, color), size(color) - 1)] + toward(game, p, color) / 10),
-  "lay down wilds first": placeVariant((game, p, card, color) => +(card.kind === "wild") + toward(game, p, color) / 10),
+  "lay down the most progress first": placeVariant((game, p, card, color) => gain(game, p, color)),
+  "lay down the least progress first": placeVariant((game, p, card, color) => -gain(game, p, color) + (gain(game, p, color) ? 0 : -9)),
+  "lay down the most progress first, wilds last": placeVariant((game, p, card, color) => gain(game, p, color) - +(card.kind === "wild")),
+  "lay down the cheapest first": placeVariant((game, p, card, color) => -card.value + gain(game, p, color) / 10),
+  "lay down the dearest first": placeVariant((game, p, card, color) => card.value + gain(game, p, color) / 10),
+  "lay down the highest rent first": placeVariant((game, p, card, color) => COLORS[color].rent[Math.min(count(p, color), size(color) - 1)] + gain(game, p, color) / 10),
+  "lay down wilds first": placeVariant((game, p, card, color) => +(card.kind === "wild") + gain(game, p, color) / 10),
   "lay down a property a Rent in hand charges, then charge": () => heuristic(...steps.toSpliced(steps.indexOf(STEPS.rent), 0, placeForRent)),
   "lay down properties before Debt Collector and Birthday": () => heuristic(...without(STEPS.debtCollector, STEPS.birthday).toSpliced(-1, 0, STEPS.debtCollector, STEPS.birthday)),
-  "lay down the smallest sets first": placeVariant((game, p, card, color) => -size(color) + toward(game, p, color) / 10),
+  "lay down the smallest sets first": placeVariant((game, p, card, color) => -size(color) + gain(game, p, color) / 10),
   "any-color Rent and Debt Collector on the leader (previous)": both(leader),
   "any-color Rent and Debt Collector on the most paid in property": both(mostProperty),
   "any-color Rent on the least banked": () => heuristic(...swap(STEPS.rent, charge(leastBanked))),
@@ -303,8 +299,7 @@ if (import.meta.main) {
   const n = Number(args.n);
   const counts = args.players.split(",").map(Number);
   console.log(`${n} games each: one player's wins against the default player in every other seat.\n`);
-  console.log(`| variant | ${counts.map((k) => `${k} players (fair ${(100 / k).toFixed(1)}%)`).join(" | ")} |`);
-  console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+  header(["variant"], counts, true);
   for (const name of Object.keys(VARIANTS).filter((v) => !args.only || v.startsWith(args.only))) {
     const cells = [];
     for (const players of counts) cells.push(`${((100 * (await parallel<ReturnType<typeof run>>(import.meta.url, "run", [name, players], n)).wins) / n).toFixed(1)}%`);

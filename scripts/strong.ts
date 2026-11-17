@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32 } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 import { headToHead, STRATEGIES } from "../src/strategies.ts";
 import { VARIANTS } from "./variants.ts";
 
@@ -39,8 +40,7 @@ if (import.meta.main) {
     }
   } else {
     console.log(`${n} games each: one player's wins against quick playouts in every other seat.\n`);
-    console.log(`| player | ${counts.map((k) => `${k} players (fair ${(100 / k).toFixed(1)}%)`).join(" | ")} |`);
-    console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+    header(["player"], counts, true);
     for (const name of names) {
       const cells = [];
       for (const k of counts) cells.push(`${((100 * (await parallel<ReturnType<typeof run>>(import.meta.url, "run", [name, k], n)).wins) / n).toFixed(1)}%`);

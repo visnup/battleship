@@ -38,6 +38,20 @@ test("people's decisions replay the same game, and it waits for each", () => {
   }
 });
 
+test("a property can't be laid down as another color", () => {
+  const seed = [1, 2, 3, 4, 5, 6, 7, 8].find((s) => {
+    const { game, prompt } = replay(setup(2, s, false), []);
+    return game.players[prompt!.seat].hand.some((c) => c.kind === "property");
+  })!;
+  const { game, prompt } = replay(setup(2, seed, false), []);
+  const p = game.players[prompt!.seat];
+  const card = p.hand.findIndex((c) => c.kind === "property");
+  const own = (p.hand[card] as { color: string }).color;
+  const as = (color: string) => replay(setup(2, seed, false), [{ kind: "move", seat: p.seat, move: { type: "place", card, color } }]);
+  assert.throws(() => as(own === "brown" ? "darkBlue" : "brown"), /can't place/);
+  assert.equal(as(own).game.players[p.seat].props[0].color, own);
+});
+
 test("an illegal decision is refused", () => {
   const { prompt } = replay(setup(2, 1, false), []);
   assert.equal(prompt?.kind, "move");

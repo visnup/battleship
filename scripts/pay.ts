@@ -1,20 +1,19 @@
 import { parseArgs } from "node:util";
-import { type Card, defaultPolicy, type Game, loose, type Placed, type Player } from "../src/game.ts";
+import type { Card } from "../src/cards.ts";
+import { defaultPolicy, type Game, loose, payable, type Placed, type Player } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
-import { report, search as searchAt } from "./replay.ts";
+import { report, search as searchAt } from "./midturn.ts";
 
-// What to pay with, by playouts at each of the default player's payments (`replay.ts`).
+// What to pay with, by playouts at each of the default player's payments (`midturn.ts`).
 
 type Piece = Card | Placed;
 
-/** Everything `p` could pay with, in a fixed order, so a payment can be named by indices. */
-const pieces = (p: Player): Piece[] => [...p.bank, ...p.built, ...p.props.filter((x) => x.card.value > 0)];
 const value = (x: Piece) => ("kind" in x ? x.value : x.card.value);
-const counts = (_: Game, p: Player, amount: number) => pieces(p).reduce((s, x) => s + value(x), 0) > amount;
+const counts = (_: Game, p: Player, amount: number) => payable(p).reduce((s, x) => s + value(x), 0) > amount;
 
-/** The payments where no piece could be left out, plus the default's, as indices into `pieces`. */
+/** The payments where no piece could be left out, plus the default's, as indices into `payable`. */
 function payments(game: Game, p: Player, amount: number, cap = 200): number[][] {
-  const all = pieces(p);
+  const all = payable(p);
   const found: number[][] = [];
   const pick = (i: number, chosen: number[], sum: number) => {
     if (found.length >= cap) return;
@@ -41,13 +40,13 @@ const label1 = (game: Game, p: Player, x: Piece) => ("kind" in x ? `$${x.value}$
 
 /** What kind of payment `o` is: from the bank, loose properties, or a full set. */
 function kind(game: Game, p: Player, o: number[]): string {
-  const all = pieces(p);
+  const all = payable(p);
   const parts = new Set(o.map((j) => all[j]).map((x) => ("kind" in x ? "bank" : p.built.includes(x) ? "building" : loose(game, p, x) ? "loose property" : "set property")));
   return ["bank", "building", "loose property", "set property"].filter((k) => parts.has(k)).join(" + ") || "nothing";
 }
 
 export const search = (players: number, seed: number, n: number) =>
-  searchAt("pay", players, seed, n, counts, (game, p, amount) => payments(game, p, amount).map((o) => ({ decide: (_: Game, q: Player) => o.map((j) => pieces(q)[j]), label: kind(game, p, o) })));
+  searchAt("pay", players, seed, n, counts, (game, p, amount) => payments(game, p, amount).map((o) => ({ decide: (_: Game, q: Player) => o.map((j) => payable(q)[j]), label: kind(game, p, o) })));
 
 if (import.meta.main) {
   const { values: args } = parseArgs({ options: { n: { type: "string", default: "256" }, players: { type: "string", default: "5" }, min: { type: "string", default: "10" } } });

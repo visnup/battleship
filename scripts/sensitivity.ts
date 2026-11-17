@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32, type Rules } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 
 /** Each unsettled rule read the other way from `defaultRules`. */
 const READINGS: [string, Partial<Rules>][] = [
@@ -40,8 +41,7 @@ if (import.meta.main) {
   };
   const counts = [2, 3, 4, 5];
   console.log(`${n} games each. Games whose winner changes; then the change in the first player's wins and in turns per game.\n`);
-  console.log(`| reading | ${counts.map((k) => `${k} players`).join(" | ")} |`);
-  console.log(`| --- | ${counts.map(() => "---").join(" | ")} |`);
+  header(["reading"], counts);
   for (const [label, rules] of READINGS) {
     const cells = [];
     for (const players of counts) {

@@ -1,7 +1,8 @@
 import { BIRTHDAY, type Card, type Color, COLORS, DEBT, DECK, HOTEL_RENT, HOUSE_RENT } from "./cards.ts";
 
 export const COLOR_NAMES = Object.keys(COLORS) as Color[];
-const size = (color: Color) => COLORS[color].rent.length;
+/** How many cards make a full set of `color`. */
+export const size = (color: Color) => COLORS[color].rent.length;
 const INDEX = Object.fromEntries(COLOR_NAMES.map((c, i) => [c, i])) as Record<Color, number>;
 const SIZES = COLOR_NAMES.map(size);
 export const buildable = (color: Color) => color !== "railroad" && color !== "utility";
@@ -398,7 +399,7 @@ export function fullSets(game: Game, p: Player, color: Color): number {
 export const fullColors = (game: Game, p: Player) => COLOR_NAMES.filter((c) => fullSets(game, p, c) > 0);
 
 /** The cards of one full set of `color`, real properties first. */
-export function setOf(game: Game, p: Player, color: Color): Placed[] {
+function setOf(game: Game, p: Player, color: Color): Placed[] {
   const cards = p.props.filter((x) => x.color === color);
   return cards.sort((a, b) => +(a.card.kind === "wild") - +(b.card.kind === "wild")).slice(0, size(color));
 }
@@ -428,7 +429,10 @@ export function progress(game: Game, p: Player, color: Color, extra = 0): number
 }
 
 /** What everything `p` could pay with is worth. */
-export const assets = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0) + p.props.reduce((s, x) => s + x.card.value, 0) + p.built.reduce((s, x) => s + x.card.value, 0);
+export const assets = (p: Player) => banked(p) + p.props.reduce((s, x) => s + x.card.value, 0) + p.built.reduce((s, x) => s + x.card.value, 0);
+export const banked = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0);
+/** Everything `p` could pay with: the bank, houses and hotels, then properties worth something. */
+export const payable = (p: Player): (Card | Placed)[] => [...p.bank, ...p.built, ...p.props.filter((x) => x.card.value > 0)];
 
 /**
  * Moves wilds between colors on `p`'s turn to make the most full sets, then the most progress,
@@ -530,7 +534,6 @@ function most<T>(xs: T[], score: (x: T) => number): T {
   const s = xs.map(score);
   return xs[s.indexOf(Math.max(...s))];
 }
-const banked = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0);
 /**
  * Someone whose bank can't cover the charge, so they pay in property, which comes to us. Then
  * whoever pays the most, then the leader.
@@ -706,7 +709,7 @@ export const defaultPolicy: Policy = {
 
   pay(game, p, amount) {
     const bank = [...p.bank].sort((a, b) => a.value - b.value);
-    const total = bank.reduce((s, c) => s + c.value, 0);
+    const total = banked(p);
     if (total >= amount) {
       // The fewest cards with the least change, over sums of subsets
       type Picked = { card?: Card; length: number; rest?: Picked };

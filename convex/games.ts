@@ -1,9 +1,8 @@
 import { v } from "convex/values";
-import { type Choice, deal, replay } from "../src/replay.ts";
+import { shuffle } from "../src/game.ts";
+import { type Choice, deal, replay, setup } from "../src/replay.ts";
 import type { Doc, Id } from "./_generated/dataModel";
-import { type MutationCtx, mutation, query } from "./_generated/server.js";
-
-const setup = (game: Doc<"games">) => ({ players: game.seats.length, seed: game.seed, first: game.first, bots: game.seats.map((s) => "bot" in s) });
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server.js";
 
 async function play(db: MutationCtx["db"], game: Doc<"games">, log: Choice[], made: Choice[]) {
   const { result, decisions } = replay(setup(game), [...log, ...made]);
@@ -11,15 +10,19 @@ async function play(db: MutationCtx["db"], game: Doc<"games">, log: Choice[], ma
   if (result) await db.patch("games", game._id, { winner: result.winner });
 }
 
+const log = async (db: QueryCtx["db"], game: Id<"games">) =>
+  (
+    await db
+      .query("decisions")
+      .withIndex("byGame", (q) => q.eq("game", game))
+      .collect()
+  ).map((d) => d.choice as Choice);
+
 export const start = mutation({
   args: { table: v.string(), players: v.array(v.id("players")), bots: v.number() },
   handler: async ({ db }, { table, players, bots }) => {
-    const seats = [...players.map((player) => ({ player })), ...Array.from({ length: bots }, () => ({ bot: "default" as const }))];
+    const seats = shuffle([...players.map((player) => ({ player })), ...Array.from({ length: bots }, () => ({ bot: "default" as const }))], Math.random);
     if (seats.length < 2 || seats.length > 5) throw new Error("2 to 5 players");
-    for (let i = seats.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [seats[i], seats[j]] = [seats[j], seats[i]];
-    }
     const seed = Math.floor(Math.random() * 2 ** 32);
     const first = Math.floor(Math.random() * seats.length);
     const id = await db.insert("games", { table, seed, first, seats, deck: deal(seed) });
@@ -39,14 +42,6 @@ export const decide = mutation({
   },
 });
 
-const log = async (db: MutationCtx["db"], game: Id<"games">) =>
-  (
-    await db
-      .query("decisions")
-      .withIndex("byGame", (q) => q.eq("game", game))
-      .collect()
-  ).map((d) => d.choice as Choice);
-
 export const get = query({
   args: { table: v.string() },
   handler: async ({ db }, { table }) => {
@@ -55,11 +50,6 @@ export const get = query({
       .withIndex("byTable", (q) => q.eq("table", table))
       .order("desc")
       .first();
-    if (!game) return null;
-    const decisions = await db
-      .query("decisions")
-      .withIndex("byGame", (q) => q.eq("game", game._id))
-      .collect();
-    return { ...game, log: decisions.map((d) => d.choice as Choice) };
+    return game && { ...game, log: await log(db, game._id) };
   },
 });

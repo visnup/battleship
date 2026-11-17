@@ -1,8 +1,44 @@
 import { type Card, DECK } from "./cards.ts";
-import { defaultPolicy, Game, type GameResult, moves, mulberry32, name, type Move, type Placed, type Player, type Policy, shuffle } from "./game.ts";
+import { defaultPolicy, Game, type GameResult, moves, mulberry32, name, type Move, payable, type Placed, type Player, type Policy, shuffle } from "./game.ts";
 
 // A game played by people is its seed and every decision made in it. The state is the game
 // replayed from the seed through those decisions, stopped at the next one nobody has made.
+
+const placed = (x: Placed) => ({ card: name(x.card), color: x.color });
+
+/** `m` from the mover's seat: targets count seats after the mover, 1 being the next to play. */
+export function encode(game: Game, p: Player, m: Move | null) {
+  const rel = (seat?: number) => (seat === undefined ? null : (seat - p.seat + game.players.length) % game.players.length);
+  if (!m) return { type: "end", card: null, color: null, target: null, doubles: 0, take: null, give: null };
+  return {
+    type: m.type,
+    card: name(m.card),
+    color: ("color" in m && m.color) || null,
+    target: rel("target" in m ? m.target : undefined),
+    doubles: m.type === "rent" ? m.doubles.length : 0,
+    take: (m.type === "action" && m.take && placed(m.take)) || null,
+    give: (m.type === "action" && m.give && placed(m.give)) || null,
+  };
+}
+
+// `arrange` recolors a wild after every play, so its color when laid down doesn't matter
+export const key = (m: ReturnType<typeof encode>) => JSON.stringify(m.type === "place" && m.card?.startsWith("wild") ? { ...m, color: null } : m);
+
+/** What `p` can see, with players listed from `p` in turn order. */
+export function observe(game: Game, p: Player, left: number) {
+  const n = game.players.length;
+  return {
+    turn: game.turns,
+    plays_left: left,
+    hand: p.hand.map(name),
+    table: Array.from({ length: n }, (_, i) => {
+      const q = game.players[(p.seat + i) % n];
+      return { hand_size: q.hand.length, bank: q.bank.map(name), props: q.props.map(placed), built: q.built.map(placed) };
+    }),
+    draw_size: game.draw.length,
+    pile: game.pile.map(name),
+  };
+}
 
 /** A card by where it is: `i` into one of a player's piles. */
 export type Ref = { pile: "bank" | "props" | "built"; i: number };
@@ -21,6 +57,12 @@ export type Decision = { choice: Choice; bot: boolean; hands: string[][] };
 
 export type Setup = { players: number; seed: number; first: number; bots: boolean[] };
 
+/** A saved game's setup, from its seats: a player's or a bot's. */
+export const setup = ({ seats, seed, first }: { seats: object[]; seed: number; first: number }): Setup => ({ players: seats.length, seed, first, bots: seats.map((s) => "bot" in s) });
+
+/** Where `x`, something `p` pays with, is. */
+export const ref = (p: Player, x: Card | Placed): Ref => ("kind" in x ? { pile: "bank", i: p.bank.indexOf(x) } : p.built.includes(x) ? { pile: "built", i: p.built.indexOf(x) } : { pile: "props", i: p.props.indexOf(x) });
+
 /** The deck as dealt from, top first. */
 export const deal = (seed: number) =>
   shuffle(
@@ -34,17 +76,6 @@ class Waiting {
     this.prompt = prompt;
   }
 }
-
-const canon = (m: Move) =>
-  JSON.stringify([
-    m.type,
-    name(m.card),
-    m.type === "place" && m.card.kind !== "action" ? null : "color" in m ? (m.color ?? null) : null,
-    "target" in m ? (m.target ?? null) : null,
-    m.type === "rent" ? m.doubles.length : 0,
-    m.type === "action" && m.take ? [name(m.take.card), m.take.color] : null,
-    m.type === "action" && m.give ? [name(m.give.card), m.give.color] : null,
-  ]);
 
 /** `m` as positions in `game`, for `p` to make. */
 export function choose(game: Game, p: Player, m: Move | null): MoveChoice | null {
@@ -68,10 +99,11 @@ export function resolve(game: Game, p: Player, left: number, c: MoveChoice | nul
   const give = c.give === undefined ? undefined : p.props[c.give];
   const doubles = (c.doubles ?? []).map((i) => p.hand[i]);
   if (new Set([c.card, ...(c.doubles ?? [])]).size !== 1 + doubles.length || doubles.some((d) => d?.kind !== "action" || d.action !== "doubleRent")) throw new Error("bad Double the Rent");
-  const move = { ...c, card, target: c.target, doubles, take, give } as Move;
-  if (move.type !== "rent") delete (move as { doubles?: unknown }).doubles;
-  if (!moves(game, p, left).some((m) => canon(m) === canon(move))) throw new Error(`can't ${c.type} ${name(card)}`);
-  return move;
+  const wanted = key(encode(game, p, { ...c, card, doubles, take, give } as Move));
+  const listed = moves(game, p, left).find((m) => key(encode(game, p, m)) === wanted);
+  if (!listed) throw new Error(`can't ${c.type} ${name(card)}`);
+  // moves() lists one of identical cards, and lays wilds down as their first color
+  return { ...listed, card, ...(listed.type === "rent" && { doubles }), ...(listed.type === "action" && { take, give }) } as Move;
 }
 
 function paying(p: Player, amount: number, paid: Ref[]): (Card | Placed)[] {
@@ -80,9 +112,8 @@ function paying(p: Player, amount: number, paid: Ref[]): (Card | Placed)[] {
   if (cards.some((x) => !x)) throw new Error("no such card");
   const value = (x: Card | Placed) => ("kind" in x ? x : x.card).value;
   if (paid.some((r, i) => r.pile === "props" && value(cards[i]) === 0)) throw new Error("a multicolored wild can't pay");
-  const payable = [...p.bank, ...p.built, ...p.props.filter((x) => x.card.value > 0)];
   const total = cards.reduce((s, x) => s + value(x), 0);
-  if (total < amount && cards.length < payable.length) throw new Error(`$${total}M is short of $${amount}M`);
+  if (total < amount && cards.length < payable(p).length) throw new Error(`$${total}M is short of $${amount}M`);
   return cards;
 }
 
@@ -117,9 +148,7 @@ export function replay(setup: Setup, log: Choice[]) {
       const c = decide(game, { kind: "pay", seat: p.seat, amount, to: game.current }, () => ({
         kind: "pay",
         seat: p.seat,
-        paid: defaultPolicy
-          .pay(game, p, amount)
-          .map((x): Ref => ("kind" in x ? { pile: "bank", i: p.bank.indexOf(x) } : p.built.includes(x) ? { pile: "built", i: p.built.indexOf(x) } : { pile: "props", i: p.props.indexOf(x) })),
+        paid: defaultPolicy.pay(game, p, amount).map((x) => ref(p, x)),
       }));
       return paying(p, amount, c.paid);
     },

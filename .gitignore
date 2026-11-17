@@ -5,7 +5,6 @@ dataset/data
 dataset/features
 dataset/model*.json
 dataset/mlp*.json
-dataset/value*.json
 /.next/
 .env*.local
 .vercel

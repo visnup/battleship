@@ -1,9 +1,9 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, type Game, type Move, name, type Player, rent } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
-import { report, search as searchAt } from "./replay.ts";
+import { report, search as searchAt } from "./midturn.ts";
 
-// When to Just Say No, by playouts at each of the default player's chances to say it (`replay.ts`).
+// When to Just Say No, by playouts at each of the default player's chances to say it (`midturn.ts`).
 
 /** What a Just Say No would cancel: the action and, for rent, how much it charges. */
 function what(game: Game, p: Player, move: Move): string {

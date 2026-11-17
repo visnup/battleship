@@ -10,7 +10,7 @@
 - [x] Whole-game strategies head to head (`strategies.ts`).
 - [x] A better `defaultPolicy`, from playouts (`decisions.ts`, `variants.ts`, `order.ts`):
       charge, then bank, then lay properties down; never build; aim one-player charges at whoever
-      has to pay in property. Against it, the first one wins 10 points less at 2 players and more
+      has to pay in property. Against it, the first one wins 11 points less at 2 players and more
       than a third fewer games at 5.
 - [x] Speed up playouts until the strategies table's playouts row is good to ±1 point in 15
       minutes (30 at most). That's about 32,000 playouts games: 6,400 at 5 players, 10,000 at
@@ -43,20 +43,14 @@
             and a stronger player, not a weaker one. By regret on the richer `chance`
             (2026-11-16, ±2 SE), 0.73 ± 0.12 points a decision against 1.21 ± 0.17 at 5
             players, and 0.54 ± 0.08 against 1.03 ± 0.14 at 2; paired on the same decisions,
-            −0.48 ± 0.19 and −0.49 ± 0.16. One round was faster again but worse (0.88, 0.92). The row now takes 21.5 minutes, and playouts win 8 to 10 points more.
+            −0.48 ± 0.19 and −0.49 ± 0.16. One round was faster again but worse (0.88, 0.92).
+            The row now takes 21.5 minutes, and playouts win 8 to 10 points more.
       - Comparing playouts and the default on the same deals doesn't help: it cut variance
         2.3× for banker at 2 players, but made it worse for builder, which, like playouts,
         plays very differently from the default.
-- [ ] Learn a player from playouts. Tried 2026-11-16, not committed: a linear scorer over
-      each move's kind and how it changes `features` for us and for opponents, fitted to
-      two-round playout values (40 deals a move) at every decision of 4,000 default games.
-      It lost to the default, 48.1% at 2 players and 17.4% at 5 (10,000 games). With a
-      feature for "the default's move", so it only learns corrections, 47.5% and 18.4%
-      (4,000 games). Four times the data didn't help, so the model is the limit.
-      - [ ] Fit a nonlinear model (gradient-boosted trees or a small network, in Python via
-            `uv`) on the same move features and playout values, and play it head to head. If
-            it wins, distill readable rules from it for `STEPS`. Less noisy targets (more deals
-            a move) are the other lever.
+- [x] Learn a player from playouts. A linear scorer (2026-11-16, not committed) lost to the
+      default, 48.1% at 2 players and 17.4% at 5, even with a feature for the default's move.
+      Gradient-boosted trees beat it, and are now `playouts`' filter: see "Use the dataset".
 - [ ] Close more of the gap to playouts, now 11 to 22 points with the model-pruned playouts. Done 2026-11-16, one
       step at a time on top of the last: adopt banking Forced Deal in the first round at 3+
       players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance` (done), run
@@ -75,18 +69,18 @@
       each Just Say No decision might still find a rule.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
-- [ ] Playouts of every move won 59.1% at 2 players, 9 points over the default (61.2% now, pruned by the model); playing to the end, they
-      tied it. More deals per move still help, about 2 points each time they double: at 80,
+- [ ] Playouts of every move won 59.1% at 2 players, 9 points over the default (61.2% now,
+      pruned by the model); playing to the end, they tied it. More deals per move still help, about 2 points each time they double: at 80,
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
       (at 16, one round 36.6% at 5 players, two 31.7%, three 26.4%), and stopping at the end of
       the turn is worse than the default at 2 players. Retuned on the richer `chance`
       (2026-11-16, 8,000 games, ±1.5): nothing beats 80 deals and two rounds within the
       30-minute row. One round at 160 deals is 0.6× the time and +1.3 at 5 players but −2.5 at
-      2; two rounds at 160 is +1.7 and +1.5 at 1.5× the time; z = 1.5 gains nothing. A richer `chance` (sets half done, rent
-      cards, cash and properties in hand) added 1.9 points at 2 players and 1.2 at 5. Still to
-      try: more of that, and a better rollout player. A counterfactual-regret agent on a cut-down 2-player
-      game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
+      2; two rounds at 160 is +1.7 and +1.5 at 1.5× the time; z = 1.5 gains nothing. A richer
+      `chance` (sets half done, rent cards, cash and properties in hand) added 1.9 points at 2
+      players and 1.2 at 5. Still to try: more of that. A counterfactual-regret agent on a
+      cut-down 2-player game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
 - [x] Recheck the findings against strong opponents (`strong.ts`, quick playouts in every other
       seat, 8,000 games): never building, banking before laying down, and playing the card
@@ -98,8 +92,8 @@
 - [x] What to pay with, by playouts (`pay.ts`, 2026-11-16). At 5 players it paid with a loose
       property where the default paid money in 904 of 3,251 payments, +0.8 points each by its
       two-round score. Head to head that loses 10 to 26 points; paying from loose properties
-      before the bank only when the bank can't cover it is even. Not because `chance` overvalues the bank: halving its weight left quick playouts
-      unchanged and zeroing it lost 3 points at 5 players (4,000 games). More likely playouts
+      before the bank only when the bank can't cover it is even. Not because `chance` overvalues
+      the bank: halving its weight left quick playouts unchanged and zeroing it lost 3 points at 5 players (4,000 games). More likely playouts
       want property only in some spots, and no rule found them. The default's rule stands.
 - [x] When to Just Say No, by playouts at each decision to say it (`sayno.ts`, 2026-11-16). It
       lets Debt Collector through and leaves a No against its own action standing, but
@@ -112,9 +106,8 @@
       see which of its rules matter most.
 - [ ] Online play (Next and Convex, `pnpm dev`): works with default-player bots against a dev
       deployment. Still to do: a Vercel project and production deployment, choosing wild colors,
-      names, and handling a player who leaves mid-game.
-- [ ] Idea: a page to play against quick playouts in the browser, or the learned player,
-      which is stronger at 2 and 3 players and takes about 4 ms a game.
+      names, handling a player who leaves mid-game, and harder bots: the learned player is
+      stronger at 2 and 3 players than quick playouts and takes about 4 ms a game.
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
       move decision of 10,000 default games at each player count, with each move's two-round
       playout value. It goes stale whenever the default player or `chance` changes, so
@@ -132,18 +125,15 @@
             as placeholders), run a candidate rule, and score its pick with the stored values.
             Only what passes gets the 100,000-game check, since offline gains have failed head
             to head before (paying).
-      - [ ] A learned board score in place of `chance`, from 2.7 million boards labeled with
-            who won, on what the mover can see.
-      - [ ] A learned rollout player: a model that predicts playouts' pick, played inside
-            playouts in place of the default. This is also the nonlinear model above.
-            First fit (2026-11-16, `learn.ts` and `learn.py`): gradient-boosted trees over 94
+      - [x] A learned move scorer: a model that predicts playouts' pick, adopted as `playouts`'
+            filter. First fit (2026-11-16, `learn.ts` and `learn.py`): gradient-boosted trees over 94
             numbers per move, 300 trees on 16 shards of each player count. Held out, +0.4
             points of win chance a decision over the default's pick. Head to head it's the
             first player to beat the default: 54.9% at 2 players and 26.4% at 5 (10,000
             games). On all 248 training shards with 1,000 trees (16 minutes on 20 cores, not
             yet early-stopped): +0.6 to +0.7 a decision held out, and 56.3%, 42.8%, 35.2% and
             30.3% at 2–5 players (100,000 games), level with quick playouts at 2 and 3 players
-            at 9 ms of CPU a game. Inside quick playouts as everyone's rollout player, 53.5% at
+            at about 4 ms of CPU a game. Inside quick playouts as everyone's rollout player, 53.5% at
             2 players and 38.1% at 5 (1,000 games, ±3), against 55.6% and 36.1% with the
             default, at about 20× the time: 1,000 trees are 85% of it even from flat arrays.
             Full playouts with the default cost less and win 42.8% at 5.
@@ -167,11 +157,11 @@
             decision (trees +0.59 to +0.72). Head to head (100,000 games) 55.2%, 43.1%, 37.1%
             and 32.9% at 2–5 players: −1.1 at 2 against the trees, +1.9 and +2.6 at 4 and 5.
             Ranking playouts' top 5 with it instead of the trees is even.
-      - [x] A learned board score (`learn_value.py`, `position` in `learned.ts`): the mover's
-            chance of winning from what they see, fitted to who won (overfits after 5 epochs:
-            about 37,000 games behind 2.7 million boards). In place of `chance` on the top 3
-            and 80 deals: +1.7 at 5 players, even at 2; on the top 5 and 160 deals, even at
-            both, at 1.2–1.7× the time.
+      - [x] A learned board score (`learn_value.py`, removed after a536e7e): the mover's chance
+            of winning from what they see, fitted to who won (overfits after 5 epochs: about
+            37,000 games behind 2.7 million boards). In place of `chance` on the top 3 and 80
+            deals: +1.7 at 5 players, even at 2; on the top 5 and 160 deals, even at both, at
+            1.2–1.7× the time.
       - [ ] Tune racing offline: how close each decision's top moves are says how many deals
             and what `z` it needs.
       - [ ] Retrain on stronger search: regenerate the dataset from the learned player's games,
@@ -197,8 +187,8 @@
 - [x] Which colors to chase (`colors.ts`): the 2-card sets, especially dark blue.
 - [x] How long games last, and how often the draw pile runs out.
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
-- [x] How much is luck: playouts win 1.20 fair shares against the default at 2 players and
-      2.14 at 5, so skill counts for more at big tables.
+- [x] How much is luck: playouts win 1.22 fair shares against the default at 2 players and
+      2.09 at 5, so skill counts for more at big tables.
 - [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 72% at 2
       players and 46% at 5. Comebacks last at 2 players and run out at 5.
 - [x] Played or banked (`cards.ts`): every action card is worth far more played, except

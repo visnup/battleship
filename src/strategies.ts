@@ -1,6 +1,6 @@
 import {
   assets,
-  buildable,
+  banked,
   COLOR_NAMES,
   colorsOf,
   defaultPolicy,
@@ -31,7 +31,7 @@ const cushion =
   (amount: number): Step =>
   (game, p) => {
     const money = p.hand.find((c) => c.kind === "money");
-    return money && p.bank.reduce((s, c) => s + c.value, 0) < amount ? { type: "bank", card: money } : null;
+    return money && banked(p) < amount ? { type: "bank", card: money } : null;
   };
 
 /** Banks any action or rent card. */
@@ -41,16 +41,7 @@ const bankAll: Step = (game, p) => {
 };
 
 /** A house or hotel on a full set that can take it. */
-export const build: Step = (game, p) => {
-  for (const c of p.hand.filter((c) => isAction(c, "house") || isAction(c, "hotel"))) {
-    const has = (color: string, a: string) => p.built.some((b) => b.color === color && isAction(b.card, a));
-    const color = fullColors(game, p)
-      .filter(buildable)
-      .find((color) => (isAction(c, "house") ? !has(color, "house") : has(color, "house") && !has(color, "hotel")));
-    if (color) return { type: "place", card: c, color };
-  }
-  return null;
-};
+export const build: Step = (game, p, left) => moves(game, p, left).find((m) => m.type === "place" && m.card.kind === "action") ?? null;
 
 // Whole-game strategies, each a player of its own, compared head to head in `scripts/strategies.ts`.
 export const STRATEGIES: Record<string, (seed: number) => Policy> = {
@@ -175,7 +166,7 @@ export function features(game: Game, q: Player): number[] {
     if (x < 1) [progress, nearest] = [progress + x, Math.max(nearest, x)];
   }
   const full = fullColors(game, q).length;
-  const bank = q.bank.reduce((s, c) => s + c.value, 0);
+  const bank = banked(q);
   const held = (...actions: string[]) => q.hand.filter((c) => actions.some((a) => isAction(c, a))).length;
   return [
     +(full === 1),
@@ -226,7 +217,7 @@ function sample(game: Game, p: Player, rng: () => number, rollout: Policy): Game
 }
 
 /** `move` with its properties on the table swapped for their copies in `g`. */
-function translate(move: Move, game: Game, g: Game): Move {
+export function translate(move: Move, game: Game, g: Game): Move {
   if (move.type !== "action") return move;
   const copy = (x: Placed, seat: number) => g.players[seat].props[game.players[seat].props.indexOf(x)];
   return {

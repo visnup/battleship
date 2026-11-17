@@ -1,17 +1,35 @@
 import { useMutation } from "convex/react";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { COLOR_NAMES, defaultPolicy, fullSets, type Game, moves, type Move, type Player, rent } from "../game.ts";
-import { type Choice, choose, type Ref, replay } from "../replay.ts";
+import { banked, COLOR_NAMES, defaultPolicy, fullSets, type Game, moves, type Move, payable, type Player, rent } from "../game.ts";
+import { type Choice, choose, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label } from "./Card";
 
 type Props = { game: Doc<"games"> & { log: Choice[] }; me: Id<"players"> };
 
+const id = (r: Ref) => `${r.pile}${r.i}`;
+
+function Row({ children }: { children: ReactNode }) {
+  return (
+    <div>
+      {children}
+      <style jsx>{`
+        div {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4em;
+          padding-top: 0.6em;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export function Board({ game, me }: Props) {
   const decide = useMutation(api.games.decide);
   const [error, setError] = useState<string>();
-  const state = useMemo(() => replay({ players: game.seats.length, seed: game.seed, first: game.first, bots: game.seats.map((s) => "bot" in s) }, game.log), [game]);
+  const state = useMemo(() => replay(setup(game), game.log), [game]);
   const seat = game.seats.findIndex((s) => "player" in s && s.player === me);
   const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : `Player ${n + 1}`);
   const send = (choice: Choice) => {
@@ -46,16 +64,16 @@ export function Board({ game, me }: Props) {
         {result ? (
           <p>{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
         ) : prompt && prompt.seat === seat ? (
-          <Ask game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} />
+          <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} />
         ) : (
           <>
             <p>Waiting for {prompt ? who(prompt.seat) : "…"}</p>
             {seat >= 0 && (
-              <div className="hand">
+              <Row>
                 {g.players[seat].hand.map((c, i) => (
                   <Card key={i} card={c} />
                 ))}
-              </div>
+              </Row>
             )}
           </>
         )}
@@ -108,11 +126,6 @@ export function Board({ game, me }: Props) {
         .error {
           color: #ff8a8a;
         }
-        .hand {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.4em;
-        }
       `}</style>
     </div>
   );
@@ -120,13 +133,12 @@ export function Board({ game, me }: Props) {
 
 function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: string; current: boolean; mine: boolean }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
-  const banked = p.bank.reduce((s, c) => s + c.value, 0);
   return (
     <section className={current ? "seat current" : "seat"}>
       <h2>
         {name}{" "}
         <small>
-          {mine ? "" : `${p.hand.length} in hand · `}${banked}M banked
+          {mine ? "" : `${p.hand.length} in hand · `}${banked(p)}M banked
         </small>
       </h2>
       <div className="row">
@@ -224,32 +236,18 @@ function describe(game: Game, p: Player, m: Move, who: (n: number) => string): s
 
 function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: NonNullable<ReturnType<typeof replay>["prompt"]>; who: (n: number) => string; send: (c: Choice) => void }) {
   const [picked, setPicked] = useState<number>();
-  const payable: Ref[] = [
-    ...p.bank.map((_, i) => ({ pile: "bank" as const, i })),
-    ...p.built.map((_, i) => ({ pile: "built" as const, i })),
-    ...p.props.flatMap((x, i) => (x.card.value > 0 ? [{ pile: "props" as const, i }] : [])),
-  ];
-  const suggested = useMemo(() => {
-    if (prompt.kind === "pay") return defaultPolicy.pay(game, p, prompt.amount).map((x) => ("kind" in x ? `bank${p.bank.indexOf(x)}` : p.built.includes(x) ? `built${p.built.indexOf(x)}` : `props${p.props.indexOf(x)}`));
-    if (prompt.kind === "discard") return defaultPolicy.discard(game, p, prompt.n).map((c) => `hand${p.hand.indexOf(c)}`);
-    return [];
-  }, [game, p, prompt]);
-  const [chosen, setChosen] = useState<Set<string>>(() => new Set(suggested));
+  const [chosen, setChosen] = useState<Set<string>>(() => {
+    if (prompt.kind === "pay") return new Set(defaultPolicy.pay(game, p, prompt.amount).map((x) => id(ref(p, x))));
+    if (prompt.kind === "discard") return new Set(defaultPolicy.discard(game, p, prompt.n).map((c) => `hand${p.hand.indexOf(c)}`));
+    return new Set();
+  });
   const toggle = (k: string) => setChosen((s) => (s.has(k) ? new Set([...s].filter((x) => x !== k)) : new Set([...s, k])));
   const hand = (onClick: (i: number) => void, selected: (i: number) => boolean) => (
-    <div className="hand">
+    <Row>
       {p.hand.map((c, i) => (
         <Card key={i} card={c} selected={selected(i)} onClick={() => onClick(i)} />
       ))}
-      <style jsx>{`
-        .hand {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.4em;
-          padding-top: 0.6em;
-        }
-      `}</style>
-    </div>
+    </Row>
   );
   if (prompt.kind === "move") {
     // moves() lists one of each identical card, so match the picked card by what it is
@@ -288,32 +286,23 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     );
   }
   if (prompt.kind === "pay") {
-    const picks = payable.filter((r) => chosen.has(`${r.pile}${r.i}`));
-    const value = (r: Ref) => (r.pile === "bank" ? p.bank[r.i].value : p[r.pile][r.i].card.value);
-    const total = picks.reduce((s, r) => s + value(r), 0);
-    const enough = total >= prompt.amount || picks.length === payable.length;
+    const all = payable(p);
+    const picks = all.filter((x) => chosen.has(id(ref(p, x))));
+    const total = picks.reduce((s, x) => s + ("kind" in x ? x : x.card).value, 0);
     return (
       <div>
         <p>
           You owe {who(prompt.to)} ${prompt.amount}M. Picked ${total}M.{" "}
-          <button disabled={!enough} onClick={() => send({ kind: "pay", seat: p.seat, paid: picks })}>
+          <button disabled={total < prompt.amount && picks.length < all.length} onClick={() => send({ kind: "pay", seat: p.seat, paid: picks.map((x) => ref(p, x)) })}>
             Pay
           </button>
         </p>
-        <div className="cards">
-          {payable.map((r) => {
-            const card = r.pile === "bank" ? p.bank[r.i] : p[r.pile][r.i].card;
-            return <Card key={`${r.pile}${r.i}`} card={card} color={r.pile === "props" ? p.props[r.i].color : undefined} selected={chosen.has(`${r.pile}${r.i}`)} onClick={() => toggle(`${r.pile}${r.i}`)} />;
+        <Row>
+          {all.map((x) => {
+            const k = id(ref(p, x));
+            return "kind" in x ? <Card key={k} card={x} selected={chosen.has(k)} onClick={() => toggle(k)} /> : <Card key={k} card={x.card} color={x.color} selected={chosen.has(k)} onClick={() => toggle(k)} />;
           })}
-        </div>
-        <style jsx>{`
-          .cards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4em;
-            padding-top: 0.6em;
-          }
-        `}</style>
+        </Row>
       </div>
     );
   }

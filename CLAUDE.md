@@ -17,9 +17,9 @@ from photos of one card of each property color and each wild (`rules/properties.
   sheet leaves open. `clone()` and `run(move)` let a player play a move out on a copy.
 - `strategies.ts`: whole-game strategies in `STRATEGIES`, like magical-athlete's `RACERS`: each
   has a comment saying how it plays and a short definition, mostly `STEPS` in another order.
-  `builder` plays roughly like the first `defaultPolicy`. `moves` lists every legal move, for `random` and
-  `playouts`, which plays each one out on copies with the cards it can't see reshuffled, for two
-  rounds, then scores the board with `chance`. `scripts/chance.ts` fits `chance`'s weights to
+  `builder` plays roughly like the first `defaultPolicy`. `playouts` plays moves out on copies
+  with the cards it can't see reshuffled, for two rounds, then scores the board with `chance`.
+  `moves` in `game.ts` lists every legal move. `scripts/chance.ts` fits `chance`'s weights to
   default-player games; refit them after changing `defaultPolicy`.
   `headToHead` seats one player against `defaultPolicy` everywhere else.
 - Improving `defaultPolicy`, like magical-athlete's "Finding better choices":
@@ -38,18 +38,18 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `scripts/payments.ts` and `scripts/openings.ts`: who pays what, and wins by opening hand.
 - `scripts/strong.ts`: findings rechecked against quick playouts in every other seat.
 - `scripts/pay.ts` and `scripts/sayno.ts`: playouts at each of the default player's payments and
-  Just Say No decisions, found by replaying the game from its seed (`scripts/replay.ts`), since
+  Just Say No decisions, found by replaying the game from its seed (`scripts/midturn.ts`), since
   they come mid-turn and a copy can't play on from there.
 - `scripts/dataset.ts`: every move decision of default games, with each move's two-round
   playout value, as JSONL shards in `dataset/data/` (not committed). `uv run dataset/parquet.py`
   joins them into Parquet, and `dataset/README.md` is the Hugging Face dataset card. Publish with
-  `uvx --from huggingface_hub hf upload visnup/monopoly-deal dataset . --repo-type dataset --exclude '*.jsonl' --exclude '*.py'`.
+  `uvx --from huggingface_hub hf upload visnup/monopoly-deal dataset . --repo-type dataset --include README.md --include 'data/*.parquet'`.
 - `learned.ts`: the learned player, and the features it scores moves by. `scripts/learn.ts
-  extract` and `boards` turn dataset shards into features in `dataset/features/`;
-  `uv run scripts/learn.py` fits trees to `src/model.json`, which the `playouts` strategy uses
-  to pick the 5 moves it plays out. `scripts/learn_mlx.py`
-  fits a network on the GPU to `dataset/mlp.json`, and `scripts/learn_value.py` a board score
-  to `dataset/value.json` (neither committed). `--model` plays one head to head. Retrain after
+  extract` turns dataset shards into features in `dataset/features/`; `uv run
+  scripts/learn.py [trees]` fits trees to `src/model.json`, which the `playouts` strategy uses
+  to pick the 5 moves it plays out, and `uv run scripts/learn_mlx.py [width] [epochs]` a
+  network on the GPU to `dataset/mlp.json` (not committed). Both read the features through
+  `scripts/shards.py`. `scripts/learn.ts --model` plays one head to head. Retrain after
   regenerating the dataset.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.

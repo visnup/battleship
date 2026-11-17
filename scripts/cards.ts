@@ -2,6 +2,7 @@ import { parseArgs } from "node:util";
 import { type Card, DECK } from "../src/cards.ts";
 import { defaultPolicy, Game, mulberry32, name, type Policy } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { header } from "./table.ts";
 
 const KINDS = [...new Map(DECK.map((c) => [JSON.stringify(c), c])).values()];
 const bankable = (c: Card) => c.kind === "action" || c.kind === "rent";
@@ -69,11 +70,9 @@ if (import.meta.main) {
   const gain = (r: (typeof results)[number], k: number, wins = r.wins) => (100 * (wins[k] - r.baseWins[k])) / r.deals[k];
   const order = KINDS.map((_, k) => k).sort((a, b) => gain(results[2], b) - gain(results[2], a));
   console.log(`${n} deals each: how many more games a player wins, in points, with one extra card in its opening hand.\n`);
-  console.log(`| card | $M | ${counts.map((k) => `${k} players`).join(" | ")} |`);
-  console.log(`| --- | --- | ${counts.map(() => "---").join(" | ")} |`);
+  header(["card", "$M"], counts);
   for (const k of order) console.log(`| ${name(KINDS[k])} | ${KINDS[k].value} | ${results.map((r) => signed(gain(r, k))).join(" | ")} |`);
   console.log(`\nThe same, with a copy banked on the player's first play (and played as the default plays it).\n`);
-  console.log(`| card | $M | ${counts.map((k) => `${k} players`).join(" | ")} |`);
-  console.log(`| --- | --- | ${counts.map(() => "---").join(" | ")} |`);
+  header(["card", "$M"], counts);
   for (const k of order.filter((k) => bankable(KINDS[k]))) console.log(`| ${name(KINDS[k])} | ${KINDS[k].value} | ${results.map((r) => `${signed(gain(r, k, r.banked))} (${signed(gain(r, k))})`).join(" | ")} |`);
 }

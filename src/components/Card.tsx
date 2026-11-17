@@ -1,7 +1,7 @@
 import type { Card as CardType, Color } from "../cards.ts";
 import { colorsOf } from "../game.ts";
 
-export const PAINT: Record<Color, string> = {
+const PAINT: Record<Color, string> = {
   brown: "#8b5a2b",
   lightBlue: "#7cc8ec",
   pink: "#d6409f",
@@ -14,11 +14,10 @@ export const PAINT: Record<Color, string> = {
   utility: "#a8c5a0",
 };
 
-const words = (s: string) => s.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
+/** `darkBlue` as "Dark Blue". */
+export const colorName = (s: string) => s.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
 
-export const label = (c: CardType) => (c.kind === "money" ? `$${c.value}M` : c.kind === "property" ? words(c.color) : c.kind === "wild" ? "Wild" : c.kind === "rent" ? "Rent" : words(c.action));
-
-export const colorName = (c: string) => words(c);
+export const label = (c: CardType) => (c.kind === "money" ? `$${c.value}M` : c.kind === "property" ? colorName(c.color) : c.kind === "wild" ? "Wild" : c.kind === "rent" ? "Rent" : colorName(c.action));
 
 export function Card({ card, color, selected, onClick }: { card: CardType; color?: Color; selected?: boolean; onClick?: () => void }) {
   const colors = color && card.kind === "wild" ? [color] : colorsOf(card);
