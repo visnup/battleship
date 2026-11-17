@@ -1,7 +1,7 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game.ts";
-import { ranked } from "../src/learned.ts";
+import { paid, ranked } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { encode, key, observe } from "../src/replay.ts";
 import { playout } from "../src/strategies.ts";
@@ -11,11 +11,12 @@ import { playout } from "../src/strategies.ts";
  * what the mover sees, each legal move's two-round playout value on `deals` shared deals, the
  * default's pick, and whether the mover went on to win. With `model`, the learned player plays
  * the games, and with `top` too, only its `top` moves, the default's pick and one other at random
- * are played out.
+ * are played out. With `pay`, the playouts pay as `src/pay.json` says.
  */
-export function shard(players: number, deals: number, model: string, top: number, out: string, seed: number, n: number) {
+export function shard(players: number, deals: number, model: string, top: number, pay: boolean, out: string, seed: number, n: number) {
   const rng = mulberry32(seed);
   const rank = model ? ranked(model) : null;
+  const rollout = pay ? { ...defaultPolicy, pay: paid() } : defaultPolicy;
   const file = `${out}/${players}p-${String(seed).padStart(3, "0")}.jsonl`;
   writeFileSync(file, "");
   let decisions = 0;
@@ -44,7 +45,7 @@ export function shard(players: number, deals: number, model: string, top: number
         }
         if (options.length > 1) {
           const seeds = Array.from({ length: deals }, () => Math.floor(rng() * 2 ** 32));
-          const values = options.map((m) => seeds.map((s) => playout(game, p, m, [s], defaultPolicy, 2 * players)));
+          const values = options.map((m) => seeds.map((s) => playout(game, p, m, [s], rollout, 2 * players)));
           rows.push({
             game: `${players}p-${seed}-${i}`,
             game_seed: gameSeed,
@@ -78,6 +79,7 @@ if (import.meta.main) {
       deals: { type: "string", default: "32" },
       model: { type: "string", default: "" },
       top: { type: "string", default: "0" },
+      pay: { type: "boolean", default: false },
       out: { type: "string", default: "dataset/data" },
     },
   });
@@ -85,7 +87,7 @@ if (import.meta.main) {
   const out = new URL(args.out, `file://${process.cwd()}/`).pathname;
   for (const players of [2, 3, 4, 5]) {
     const t = performance.now();
-    const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.model, Number(args.top), out], Number(args.games));
+    const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.model, Number(args.top), args.pay, out], Number(args.games));
     console.log(`${players} players: ${args.games} games, ${decisions} decisions, ${((performance.now() - t) / 60000).toFixed(1)} min`);
   }
 }

@@ -168,6 +168,16 @@
             scored by the pruned playouts, retrain, and repeat while it gains. The current one
             is the default's games scored with the default inside the playouts. About 2.5 hours
             a pass.
+            Round 1 (2026-11-17, 10,000 learned-player games a count): the learned player
+            56.8%, 43.1%, 35.6% and 30.7% (+0.8 to +1.8), playouts ranked by it 61.1%, 50.3%,
+            46.5% and 42.4% (even, ±1). Adopted. From round 2 a pass is quicker: 2,500 new
+            games a count, only the model's top 6 moves, the default's and one at random played
+            out (6.6 moves a decision instead of 10.6 at 5 players), LightGBM over the last three
+            rounds (6 minutes, against 21 for scikit-learn's at the same held-out gain), and
+            `compare.ts` on the same deals, which gets ±0.15–0.3 from 50,000 deals in under a
+            minute for the learned player. Values are centered on each decision's mean:
+            centering on the default's pick instead halved the held-out gain (+0.17 against
+            +0.39 at 2 players), since the default's row is then always exactly 0.
       - [x] A small model inside the playouts (2026-11-17, quick playouts, 4,000 games, ±1.6 at
             2 players and ±1.5 at 5): the default there wins 53.2% and 33.5%. 50 trees 54.0% and
             33.5% at 9–12× the time, 150 trees 54.8% and 33.8% at 13–19×, a network 32 wide
@@ -184,8 +194,10 @@
             at 5 players a loose property instead of money in a fifth of payments, and from the
             bank, fewer and bigger cards ($3M for a $2M Birthday). Neither part is a rule:
             paying the fewest bank cards with the least change ties the default, and with the
-            most change loses 2.3 to 3.3 points (`variants.ts`). Still to do: wire it into
-            `src/` and into the learned player and `playouts`.
+            most change loses 2.3 to 3.3 points (`variants.ts`). Wired in as `paid()`
+            (`src/pay.json`): on the same deals (`compare.ts`-style, 50,000), +1.1 to +2.2 for
+            the learned player, and +0.4 ± 0.5 and +0.6 ± 1.3 for `playouts` at 2 and 5 players
+            (4,000).
       - [ ] Mine the retrained model for rules again, as was done for `emptyHand` and Birthday.
 
 ## Analysis

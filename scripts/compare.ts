@@ -12,7 +12,7 @@ const player = (strategy: string, model: string, seed: number): Policy => {
 
 /**
  * Two models, as `strategy`, each in the same seat of the same deals against the default player:
- * wins for each and the squared differences, so the gap's error is the paired one.
+ * wins for each and the squared differences, so the gap (`b` less `a`) has the paired error.
  */
 export function pair(strategy: string, a: string, b: string, players: number, seed: number, n: number) {
   const seeds = mulberry32(seed);
@@ -45,7 +45,7 @@ if (import.meta.main) {
   for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();
     const { wa, wb, sq } = await parallel<ReturnType<typeof pair>>(import.meta.url, "pair", [args.strategy, a, b, players], n);
-    const d = (wa - wb) / n;
+    const d = (wb - wa) / n;
     const se = Math.sqrt((sq / n - d * d) / n);
     const name = (f: string) => f.split("/").pop();
     console.log(
