@@ -26,6 +26,20 @@ function Row({ children }: { children: ReactNode }) {
   );
 }
 
+/** The log with a heading for each turn, and the mover's own lines without their name. */
+function turns(log: string[], who: (n: number) => string) {
+  const entries: { turn: boolean; text: string }[] = [];
+  let mover = -1;
+  for (const line of log) {
+    const t = line.match(/^turn (\d+): P(\d) (.*)/);
+    if (t) {
+      mover = Number(t[2]);
+      entries.push({ turn: true, text: `Turn ${t[1]}: ${who(mover)}` }, { turn: false, text: t[3] });
+    } else entries.push({ turn: false, text: line.startsWith(`P${mover} `) ? line.slice(3) : line });
+  }
+  return entries;
+}
+
 export function Board({ game, me }: Props) {
   const decide = useMutation(api.games.decide);
   const [error, setError] = useState<string>();
@@ -48,6 +62,7 @@ export function Board({ game, me }: Props) {
   };
   const { prompt, result } = state;
   const g = state.game;
+  const entries = turns(g.log ?? [], who);
   const order = Array.from({ length: g.players.length }, (_, i) => (Math.max(seat, 0) + i) % g.players.length);
   return (
     <div className="board">
@@ -55,13 +70,15 @@ export function Board({ game, me }: Props) {
         <div className={g.draw.length ? "deck" : "deck empty"}>Draw Pile ({g.draw.length})</div>
         {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className="deck empty">Discard</span>}
         <ul className="log" ref={log}>
-          {(g.log ?? []).map((line, i) => (
-            <li key={i} className={i > 0 && line.startsWith("turn ") ? "turn" : undefined}>
-              {line
-                .replace(/^turn \d+: /, "")
-                .replace(/P(\d)/g, (_, n) => who(Number(n)))
-                .replace(/\bYou (\w+)s\b/g, "You $1")
-                .replace(/\b[a-z]+[A-Z]\w*/g, colorName)}
+          {entries.map(({ turn, text }, i) => (
+            <li key={i} className={turn ? "turn" : undefined}>
+              {turn
+                ? text
+                : text
+                    .replace(/P(\d)/g, (_, n) => who(Number(n)))
+                    .replace(/\bYou (\w+)s\b/g, "You $1")
+                    .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
+                    .replace(/^./, (c) => c.toUpperCase())}
             </li>
           ))}
         </ul>
@@ -142,9 +159,20 @@ export function Board({ game, me }: Props) {
           overflow-y: auto;
         }
         .turn {
-          border-top: 1px solid rgba(255, 255, 255, 0.4);
+          display: flex;
+          align-items: center;
+          gap: 0.5em;
           margin-top: 0.3em;
-          padding-top: 0.3em;
+          font-weight: 600;
+        }
+        .turn:first-child {
+          margin-top: 0;
+        }
+        .turn::before,
+        .turn::after {
+          content: "";
+          flex: 1;
+          border-top: 1px solid rgba(255, 255, 255, 0.4);
         }
         .prompt {
           position: sticky;
