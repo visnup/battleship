@@ -46,7 +46,10 @@ function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
   const start = useMutation(api.games.start);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 5e3) * 5e3);
   const [bots, setBots] = useState(1);
-  const players = useQuery(api.players.active, { table, now }) ?? [];
+  // each new `now` is a new query, so keep showing the last list while it loads
+  const active = useQuery(api.players.active, { table, now });
+  const [players, setPlayers] = useState<NonNullable<typeof active>>([]);
+  if (active && active !== players) setPlayers(active);
   useEffect(() => {
     const interval = setInterval(() => setNow(Math.floor(Date.now() / 5e3) * 5e3), 5e3);
     return () => clearInterval(interval);

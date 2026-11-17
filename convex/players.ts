@@ -33,9 +33,11 @@ export const ping = mutation({
 
 export const active = query({
   args: { table: v.string(), now: v.number() },
-  handler: ({ db }, { table, now }) =>
-    db
-      .query("players")
-      .withIndex("byLastSeen", (q) => q.eq("table", table).gt("lastSeen", now - window))
-      .collect(),
+  handler: async ({ db }, { table, now }) =>
+    (
+      await db
+        .query("players")
+        .withIndex("byLastSeen", (q) => q.eq("table", table).gt("lastSeen", now - window))
+        .collect()
+    ).sort((a, b) => a.seat - b.seat),
 });
