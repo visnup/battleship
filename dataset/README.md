@@ -25,7 +25,7 @@ configs:
 # Monopoly Deal move values
 
 Every decision about what to play next in 40,000 simulated games of Monopoly Deal, 10,000 at
-each of 2 to 5 players: 2,684,161 decisions, from 473,525 at 2 players to 846,531 at 5. Each
+each of 2 to 5 players: 2,688,521 decisions, from 473,525 at 2 players to 846,649 at 5. Each
 row has what the player to move can see, every legal move, each move's estimated chance of
 winning, the simulator's hand-written player's pick, and whether the player to move went on to
 win.
