@@ -138,6 +138,29 @@ export function extract(players: number, seed: number, _n: number) {
   return [groups.length, x.length / y.length * 2];
 }
 
+/** The board as the mover sees it, every player in turn order from the mover, padded to 5. */
+export function position(players: number, obs: Obs): number[] {
+  const seat = (q: Obs["table"][number] | undefined) =>
+    q ? [1, ...COLOR_NAMES.map((c) => ofColor(q.props, c) / size(c)), fulls(q.props), banked(q.bank), q.bank.length, q.hand_size, q.built.length] : new Array(16).fill(0);
+  return [...board(players, obs).slice(0, 5 + KINDS.length + ACTIONS.length + 1), ...Array.from({ length: 5 }, (_, i) => seat(obs.table[i])).flat()];
+}
+
+/** Each decision's `position` for shard `seed` of `players`, and whether the mover won (−1 if the game stalled). */
+export function boards(players: number, seed: number, _n: number) {
+  const lines = readFileSync(new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, DATA), "utf8").trim().split("\n");
+  const x: number[] = [];
+  const won: number[] = [];
+  for (const line of lines) {
+    const r = JSON.parse(line);
+    x.push(...position(players, r));
+    won.push(r.won === null ? -1 : +r.won);
+  }
+  const base = new URL(`${players}p-${String(seed).padStart(3, "0")}`, FEATURES).pathname;
+  writeFileSync(`${base}.b`, new Float32Array(x));
+  writeFileSync(`${base}.w`, new Int8Array(won));
+  return [won.length, x.length / won.length];
+}
+
 type Node = { split_feature?: number; threshold?: number; left_child?: Node; right_child?: Node; leaf_value?: number };
 /** Every tree's nodes in flat arrays, a leaf marked by feature −1 with its value as the threshold. */
 type Forest = { roots: number[]; feature: Int32Array; threshold: Float64Array; left: Int32Array; right: Int32Array };
@@ -219,6 +242,12 @@ export function ranked(file: string) {
   };
 }
 
+/** `learn_value.py`'s board score, in place of `chance`: `seat`'s chance of winning `game`. */
+export function boardScore(file: string) {
+  const net = (loaded[file] ??= load(file));
+  return (game: Game, seat: number) => 1 / (1 + Math.exp(-net(position(game.players.length, observe(game, game.players[seat], 3)))));
+}
+
 /** The default player, except that every move is the one the model in `file` scores highest. */
 export function learned(file: string): Policy {
   const rank = ranked(file);
@@ -231,10 +260,10 @@ export const play = (model: string, players: number, seed: number, n: number) =>
 if (import.meta.main) {
   const { values: args, positionals } = parseArgs({ allowPositionals: true, options: { n: { type: "string", default: "64" }, players: { type: "string", default: "2,3,4,5" }, model: { type: "string", default: MODEL } } });
   const counts = args.players.split(",").map(Number);
-  if (positionals[0] === "extract") {
+  if (positionals[0] === "extract" || positionals[0] === "boards") {
     mkdirSync(FEATURES, { recursive: true });
     for (const players of counts) {
-      const [decisions, features] = await parallel<number[]>(import.meta.url, "extract", [players], Number(args.n), (a, b) => [a[0] + b[0], b[1]]);
+      const [decisions, features] = await parallel<number[]>(import.meta.url, positionals[0], [players], Number(args.n), (a, b) => [a[0] + b[0], b[1]]);
       console.log(`${players} players: ${decisions} decisions from ${args.n} shards, ${features} features`);
     }
   } else {
