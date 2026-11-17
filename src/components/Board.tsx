@@ -31,8 +31,15 @@ export function Board({ game, me }: Props) {
   const [error, setError] = useState<string>();
   const state = useMemo(() => replay(setup(game), game.log), [game]);
   const log = useRef<HTMLUListElement>(null);
+  const height = useRef(0);
   const lines = state.game.log?.length;
-  useLayoutEffect(() => log.current?.scrollTo({ top: log.current.scrollHeight }), [lines]);
+  // follow new lines only when already at the bottom, so scrolling back through it stays put
+  useLayoutEffect(() => {
+    const ul = log.current;
+    if (!ul) return;
+    if (ul.scrollTop + ul.clientHeight >= height.current - 4) ul.scrollTo({ top: ul.scrollHeight });
+    height.current = ul.scrollHeight;
+  }, [lines]);
   const seat = game.seats.findIndex((s) => "player" in s && s.player === me);
   const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : `Player ${n + 1}`);
   const send = (choice: Choice) => {
