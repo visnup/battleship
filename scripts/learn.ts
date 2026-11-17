@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { COLORS, type Color, DECK } from "../src/cards.ts";
-import { defaultPolicy, Game, mulberry32, name, type Policy } from "../src/game.ts";
+import { defaultPolicy, Game, type Move, mulberry32, name, type Player, type Policy } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { headToHead, moves } from "../src/strategies.ts";
 import { encode, key, observe } from "./dataset.ts";
@@ -169,38 +169,67 @@ function score({ roots, feature, threshold, left, right }: Forest, x: number[]) 
   return s;
 }
 
-const loaded: Record<string, Forest> = {};
+type Layer = { w: number[][]; b: number[] };
 
-/** The default player, except that every move is the one the trees in `file` score highest. */
-export function learned(file: string): Policy {
-  const trees = (loaded[file] ??= flatten(JSON.parse(readFileSync(file, "utf8")).tree_info.map((t: { tree_structure: Node }) => t.tree_structure)));
-  return {
-    ...defaultPolicy,
-    move(game, p, left) {
-      const choice = defaultPolicy.move(game, p, left);
-      const options = [null, ...moves(game, p, left)];
-      if (options.length === 1) return choice;
-      const obs = observe(game, p, left);
-      const b = board(game.players.length, obs);
-      const pick = key(encode(game, p, choice));
-      let best = choice;
-      let top = -Infinity;
-      for (const m of options) {
-        const e = encode(game, p, m);
-        const x = [...b, ...move(obs, e, key(e) === pick)];
-        const v = score(trees, x);
-        if (v > top) [best, top] = [m, v];
+/** `learn_mlx.py`'s network: standardize, then ReLU layers, with weights as [out][in]. */
+function network({ mean, std, layers }: { mean: number[]; std: number[]; layers: Layer[] }) {
+  const ws = layers.map((l) => Float32Array.from(l.w.flat()));
+  const bs = layers.map((l) => Float32Array.from(l.b));
+  const acts = layers.map((l) => new Float32Array(l.b.length));
+  const input = new Float32Array(mean.length);
+  return (x: number[]) => {
+    for (let i = 0; i < input.length; i++) input[i] = (x[i] - mean[i]) / std[i];
+    let a = input;
+    for (let l = 0; l < ws.length; l++) {
+      const [w, b, out, n] = [ws[l], bs[l], acts[l], a.length];
+      for (let o = 0; o < out.length; o++) {
+        let s = b[o];
+        for (let i = 0, k = o * n; i < n; i++, k++) s += w[k] * a[i];
+        out[o] = l < ws.length - 1 && s < 0 ? 0 : s;
       }
-      return best;
-    },
+      a = out;
+    }
+    return a[0];
   };
 }
 
+const loaded: Record<string, (x: number[]) => number> = {};
+
+function load(file: string) {
+  const json = JSON.parse(readFileSync(file, "utf8"));
+  if (json.layers) return network(json);
+  const trees = flatten(json.tree_info.map((t: { tree_structure: Node }) => t.tree_structure));
+  return (x: number[]) => score(trees, x);
+}
+
+/** Every legal move, best first by the model in `file`: `learn.py`'s trees or `learn_mlx.py`'s network. */
+export function ranked(file: string) {
+  const scorer = (loaded[file] ??= load(file));
+  return (game: Game, p: Player, left: number): (Move | null)[] => {
+    const options = [null, ...moves(game, p, left)];
+    if (options.length === 1) return options;
+    const obs = observe(game, p, left);
+    const b = board(game.players.length, obs);
+    const pick = key(encode(game, p, defaultPolicy.move(game, p, left)));
+    const scores = options.map((m) => {
+      const e = encode(game, p, m);
+      return scorer([...b, ...move(obs, e, key(e) === pick)]);
+    });
+    return options.map((m, i) => [m, scores[i]] as const).sort((a, b) => b[1] - a[1]).map(([m]) => m);
+  };
+}
+
+/** The default player, except that every move is the one the model in `file` scores highest. */
+export function learned(file: string): Policy {
+  const rank = ranked(file);
+  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0] };
+}
+
 const MODEL = new URL("../dataset/model.json", import.meta.url).pathname;
-export const play = (players: number, seed: number, n: number) => headToHead(() => learned(MODEL), players, seed, n);
+export const play = (model: string, players: number, seed: number, n: number) => headToHead(() => learned(model), players, seed, n);
 
 if (import.meta.main) {
-  const { values: args, positionals } = parseArgs({ allowPositionals: true, options: { n: { type: "string", default: "64" }, players: { type: "string", default: "2,3,4,5" } } });
+  const { values: args, positionals } = parseArgs({ allowPositionals: true, options: { n: { type: "string", default: "64" }, players: { type: "string", default: "2,3,4,5" }, model: { type: "string", default: MODEL } } });
   const counts = args.players.split(",").map(Number);
   if (positionals[0] === "extract") {
     mkdirSync(FEATURES, { recursive: true });
@@ -211,7 +240,7 @@ if (import.meta.main) {
   } else {
     const n = Number(args.n);
     for (const players of counts) {
-      const r = await parallel<{ wins: number }>(import.meta.url, "play", [players], n);
+      const r = await parallel<{ wins: number }>(import.meta.url, "play", [args.model, players], n);
       console.log(`learned, ${players} players: ${((100 * r.wins) / n).toFixed(1)}% of ${n}`);
     }
   }

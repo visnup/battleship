@@ -178,14 +178,14 @@ export function random(seed = 1): Policy {
  * quality at 5 players on two thirds of the playouts, and a little at 2 on four fifths. Halving,
  * dropping the worse half after 8 deals, then 16, and so on, only matched it at equal cost.
  */
-export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, rounds = 2): Policy {
+export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, rounds = 2, candidates = (game: Game, p: Player, left: number): (Move | null)[] => [null, ...moves(game, p, left)]): Policy {
   const rng = mulberry32(seed);
   const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
   return {
     ...defaultPolicy,
     move(game, p, left) {
-      const options = [null, ...moves(game, p, left)];
-      if (options.length === 1) return null;
+      const options = candidates(game, p, left);
+      if (options.length === 1) return options[0];
       const wins = options.map(() => [] as number[]);
       let alive = options.map((_, i) => i);
       for (let dealt = 0; dealt < n && alive.length > 1; dealt += 8) {
