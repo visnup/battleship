@@ -5,8 +5,8 @@ const PAINT: Record<Color, string> = {
   brown: "#8b5a2b",
   lightBlue: "#7cc8ec",
   pink: "#d6409f",
-  orange: "#f08c2a",
-  red: "#d7263d",
+  orange: "#f5821f",
+  red: "#c8102e",
   yellow: "#f2c94c",
   green: "#2e8b57",
   darkBlue: "#1f3a93",
@@ -23,14 +23,14 @@ export function Card({ card, color, selected, onClick }: { card: CardType; color
   const colors = color && card.kind === "wild" ? [color] : colorsOf(card);
   const band =
     colors.length > 2
-      ? "linear-gradient(90deg, #d7263d, #f2c94c, #2e8b57, #1f3a93)"
+      ? `linear-gradient(90deg, ${PAINT.red}, ${PAINT.yellow}, ${PAINT.green}, ${PAINT.darkBlue})`
       : colors.length === 2
         ? `linear-gradient(90deg, ${PAINT[colors[0]]} 50%, ${PAINT[colors[1]]} 50%)`
         : colors.length
           ? PAINT[colors[0]]
           : card.kind === "money"
             ? "#c9b458"
-            : "#e4572e";
+            : "#7a4ea0";
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
