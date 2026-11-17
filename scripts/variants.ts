@@ -169,12 +169,6 @@ const breakLeader: Step = (game, p) => {
   return pick ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
 };
 
-/** When the plays left can empty the hand, banks what's left, for 5 cards next turn instead of 2. */
-const emptyHand: Step = (game, p, left) => {
-  const card = p.hand.length <= left && p.hand.find((c) => c.kind !== "property" && c.kind !== "wild");
-  return card ? { type: "bank", card } : null;
-};
-
 /** `step`, only after the first `rounds` rounds. */
 const after =
   (rounds: number, step: Step): Step =>
@@ -245,7 +239,7 @@ export const VARIANTS: Record<string, () => Policy> = {
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
   "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),
   "Deal Breaker for the best chance": withStep(STEPS.dealBreaker, byChance("dealBreaker")),
-  "empty the hand when the plays left can": () => heuristic(...steps, emptyHand),
+  "end the turn holding what it won't play (previous)": () => heuristic(...without(STEPS.emptyHand)),
   "hold Birthday in the first round": withStep(STEPS.birthday, after(1, STEPS.birthday)),
   "Deal Breaker and Sly Deal before Pass Go after round 3": () => heuristic(after(3, dealBreaker), after(3, STEPS.slyDeal), ...steps),
   ...Object.fromEntries(

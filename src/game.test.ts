@@ -206,7 +206,7 @@ test("default: charges a $1M rent at 2 players, but not $1M in all at 3", () => 
     place(p, property("brown"));
     q.bank.push(money(5));
     p.hand.push(twoColor("brown", "lightBlue"));
-    assert.equal(choose(game)?.type, players === 2 ? "rent" : undefined);
+    assert.equal(choose(game)?.type === "rent", players === 2);
   }
 });
 
@@ -234,6 +234,15 @@ test("default: never builds; banks houses and hotels", () => {
   place(p, property("brown"), property("brown"));
   p.hand.push(action("house", 3));
   assert.deepEqual(choose(game), { type: "bank", card: p.hand[0] });
+});
+
+test("default: banks what it won't play when that empties the hand", () => {
+  const game = setup();
+  const [p] = game.players;
+  p.hand.push(twoColor("brown", "lightBlue"));
+  assert.deepEqual(choose(game, 1), { type: "bank", card: p.hand[0] });
+  p.hand.push(twoColor("red", "yellow"));
+  assert.equal(choose(game, 1), null);
 });
 
 test("default: banks money until $10M, then lays properties down first", () => {

@@ -667,6 +667,15 @@ export const STEPS = {
     const c = p.hand.find((c) => isAction(c, "passGo"));
     return c ? { type: "action", card: c } : null;
   },
+  /**
+   * When the plays left can empty the hand, what's left as money, so the next turn draws 5
+   * instead of 2: +0.3 to +0.8 points at 2–5 players (`variants.ts`, 100,000 games). Found where
+   * `learn.ts`'s model overrules the default.
+   */
+  emptyHand(game, p, left) {
+    const c = p.hand.length <= left && p.hand.find((c) => c.kind !== "property" && c.kind !== "wild");
+    return c ? { type: "bank", card: c } : null;
+  },
 } satisfies Record<string, Step>;
 
 /**
