@@ -58,7 +58,7 @@ export function Board({ game, me }: Props) {
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[60em] flex-col gap-[0.8em] p-[0.8em]">
-      <section className="flex items-start justify-center gap-[1em]">
+      <section className="sticky top-0 z-10 flex items-start justify-center gap-[1em] rounded-[0.6em] bg-[#123f2c] px-[0.8em] py-[0.6em] shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>
@@ -87,7 +87,7 @@ export function Board({ game, me }: Props) {
       {others.map((n) => (
         <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={false} />
       ))}
-      <section className="sticky bottom-0 rounded-[0.6em] bg-[#123f2c] shadow-[0_-4px_12px_rgba(0,0,0,0.3)] px-[0.8em] py-[0.6em] text-white">
+      <section className="sticky bottom-0 z-10 rounded-[0.6em] bg-[#123f2c] shadow-[0_-4px_12px_rgba(0,0,0,0.3)] px-[0.8em] py-[0.6em] text-white">
         {seat >= 0 && <Seat game={g} p={g.players[seat]} name={who(seat)} current={!result && g.current === seat} mine />}
         {result ? (
           <p>{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
