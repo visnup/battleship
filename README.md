@@ -669,8 +669,8 @@ only 2 multicolored wilds and 2 Double the Rents in the deck, and the default ba
 Rent when there's no rent to double.
 
 **No reshuffle breaks 4- and 5-player games.** At 5 players the draw pile runs out in more than a
-third of games. Without a reshuffle, nearly 3 in 10 games end with no winner after 200 turns. A
-no-reshuffle house rule needs its own ending.
+third of games. Without a reshuffle, nearly 3 in 10 games end with no winner after 200 turns.
+Neither sheet says what happens then, so reshuffling is our house rule.
 
 ## Stalled games
 
@@ -681,7 +681,7 @@ draw, the cards left in hand can't finish anyone's third set, and the game never
 
 **Players who bank their action cards cause it.** Default players alone never stalled in 400,000
 games. One pacifist, which banks every action card, stalls 10 games in 100,000 at 4 players and
-41 at 5. Without the reshuffle the draw pile empties for good, and a quarter of 5-player games
+41 at 5. Without the reshuffle the draw pile empties for good, and nearly 3 in 10 5-player games
 stall ("Rules questions").
 
 **A player out to stall the game would, untested:**

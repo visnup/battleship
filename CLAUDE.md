@@ -130,4 +130,5 @@ measured both ways in `README.md`.
   take one of those.
 - A set of only multicolored wilds isn't full (`Rules.wildOnlySets`).
 - When the draw pile runs out, the play pile is shuffled into a new one (`Rules.reshuffle`).
+  Neither sheet says; it's our house rule, and without it a third of 5-player games run dry.
 - A game with no winner after 200 turns counts as `stalled`.
