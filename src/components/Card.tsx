@@ -19,7 +19,9 @@ export const colorName = (s: string) => s.replace(/([A-Z])/g, " $1").replace(/^.
 
 export const label = (c: CardType) => (c.kind === "money" ? `$${c.value}M` : c.kind === "property" ? colorName(c.color) : c.kind === "wild" ? "Wild" : c.kind === "rent" ? "Rent" : colorName(c.action));
 
-export function Card({ card, color, selected, onClick }: { card: CardType; color?: Color; selected?: boolean; onClick?: () => void }) {
+/** A card; `banked` grays its name and darkens its value, which is all it's worth in a bank. */
+export function Card({ card, color, selected, banked, onClick }: { card: CardType; color?: Color; selected?: boolean; banked?: boolean; onClick?: () => void }) {
+  const cash = banked && card.kind !== "money";
   const colors = color && card.kind === "wild" ? [color] : colorsOf(card);
   const band =
     colors.length > 2
@@ -39,8 +41,8 @@ export function Card({ card, color, selected, onClick }: { card: CardType; color
       title={label(card)}
     >
       <span className="h-[1.4em]" style={{ background: band }} />
-      <span className="flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold">{label(card)}</span>
-      <span className="pb-[0.3em] text-[0.75em] opacity-60">{card.kind === "money" ? " " : `$${card.value}M`}</span>
+      <span className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold ${cash ? "text-gray-400" : ""}`}>{label(card)}</span>
+      <span className={`pb-[0.3em] text-[0.75em] ${cash ? "font-extrabold" : "opacity-60"}`}>{card.kind === "money" ? " " : `$${card.value}M`}</span>
     </Tag>
   );
 }

@@ -152,7 +152,7 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
       <div className="text-sm font-bold">${banked(p)}M banked</div>
       <div className="flex flex-wrap gap-[0.6em]">
         {p.bank.map((c, i) => (
-          <Card key={i} card={c} />
+          <Card key={i} card={c} banked />
         ))}
       </div>
     </section>
@@ -253,7 +253,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
         <Row>
           {all.map((x) => {
             const k = id(ref(p, x));
-            return "kind" in x ? <Card key={k} card={x} selected={chosen.has(k)} onClick={() => toggle(k)} /> : <Card key={k} card={x.card} color={x.color} selected={chosen.has(k)} onClick={() => toggle(k)} />;
+            return "kind" in x ? <Card key={k} card={x} banked selected={chosen.has(k)} onClick={() => toggle(k)} /> : <Card key={k} card={x.card} color={x.color} selected={chosen.has(k)} onClick={() => toggle(k)} />;
           })}
         </Row>
       </div>
