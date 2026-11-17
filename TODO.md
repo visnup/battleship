@@ -105,9 +105,14 @@
       "Stalled games". Count its stalls at 5 players against the pacifist's 41 in 100,000, and
       see which of its rules matter most.
 - [ ] Online play (Next and Convex, `pnpm dev`): works with default-player bots against a dev
-      deployment. Still to do: a Vercel project and production deployment, choosing wild colors,
-      names, handling a player who leaves mid-game, and harder bots: the learned player is
-      stronger at 2 and 3 players than quick playouts and takes about 4 ms a game.
+      deployment. Still to do: a Vercel project and production deployment, names, handling a
+      player who leaves mid-game, and harder bots: the learned player is stronger at 2 and 3
+      players than quick playouts and takes about 4 ms a game.
+      - [ ] Pick a wild's color when laying it down, and move it on your own turn without using
+            a play. Today `moves()` lists one place move per wild (its first color), and
+            `arrange` then moves every wild to its best color after each play, for people as
+            well as bots: a lone railroad/utility wild always goes to utility. People's wilds
+            should skip `arrange`. Games in progress may replay differently once this ships.
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
       move decision of 10,000 default games at each player count, with each move's two-round
       playout value. It goes stale whenever the default player or `chance` changes, so
