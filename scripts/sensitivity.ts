@@ -6,8 +6,11 @@ import { header } from "./table.ts";
 /** Each unsettled rule read the other way from `defaultRules`. */
 const READINGS: [string, Partial<Rules>][] = [
   ["One Double the Rent per Rent card", { doubles: 1 }],
-  ["Just Say No on your turn is a play", { noIsPlay: true }],
-  ["A broken set's house and hotel go to the bank", { strandedToBank: true }],
+  ["Just Say No on your turn isn't a play (B0965)", { noIsPlay: false }],
+  ["A broken set's house and hotel stay (B0965)", { stranded: "stay" }],
+  ["A broken set's house and hotel go to the bank", { stranded: "bank" }],
+  ["Cards past 7 in hand go under the draw pile (B0965)", { overflowToPile: false }],
+  ["All three of B0965's (2014) readings", { noIsPlay: false, stranded: "stay", overflowToPile: false }],
   ["Deal Breaker leaves the house and hotel", { breakerTakesBuildings: false }],
   ["A set of only multicolored wilds is full", { wildOnlySets: true }],
   ["No reshuffle", { reshuffle: false }],
