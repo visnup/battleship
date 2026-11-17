@@ -1,8 +1,8 @@
 # /// script
 # dependencies = ["scikit-learn", "numpy"]
 # ///
-"""Fits `learn.ts`'s move scorer to the dataset's features, holding out the last 8 shards of each
-player count, and writes the trees to dataset/model.json."""
+"""Fits `src/learned.ts`'s move scorer to the dataset's features, holding out the last 8 shards of each
+player count, and writes the trees to src/model.json, which `playouts` ranks moves with."""
 
 import json
 import sys
@@ -57,9 +57,9 @@ def tree(nodes, i=0):
     }
 
 
-# Same shape as LightGBM's dump_model, which `learn.ts` reads
+# Same shape as LightGBM's dump_model, which `learned.ts` reads
 trees = [{"tree_structure": tree(p[0].nodes)} for p in model._predictors]
-(features.parent / "model.json").write_text(json.dumps({"tree_info": trees}))
+(features.parent.parent / "src" / "model.json").write_text(json.dumps({"tree_info": trees}))
 
 print("\nheld out, points of win chance a decision against the default's pick (best is noisy, an upper bound):")
 for k, (x, _, y, d, g) in held.items():

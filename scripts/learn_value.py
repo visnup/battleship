@@ -1,9 +1,9 @@
 # /// script
 # dependencies = ["mlx", "numpy"]
 # ///
-"""A board score like `chance`: the mover's chance of winning from `learn.ts`'s `position`, fitted on
+"""A board score like `chance`: the mover's chance of winning from `learned.ts`'s `position`, fitted on
 the GPU with MLX to who won each dataset game, holding out the last 8 shards of each player count.
-Writes the weights to dataset/value.json, which `learn.ts` reads like `learn_mlx.py`'s."""
+Writes the weights to dataset/value.json, which `learned.ts` reads like `learn_mlx.py`'s."""
 
 import json
 import sys

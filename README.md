@@ -108,7 +108,7 @@ slow, so they play 10,000 games per cell, which is good to about ±1 point.
 | banker | 49.6% | 33.2% | 24.9% | 19.9% (1 stalled) |
 | pacifist | 10.3% | 1.9% (3 stalled) | 0.3% (10 stalled) | 0.0% (41 stalled) |
 | random | 5.6% | 1.8% | 0.6% | 0.3% |
-| playouts | 59.1% | 48.6% | 43.7% | 38.7% |
+| playouts | 61.2% | 49.9% | 46.4% | 41.8% |
 | quick playouts | 54.1% | 40.8% | 36.0% | 33.7% |
 
 **Builder** plays the way the default player first did. It lays down properties as soon as it
@@ -126,14 +126,15 @@ game of taking.
 **Playouts** has no rules of its own. It tries each option by imagining how it turns out, the way
 a chess player thinks a few moves ahead, except by trial instead of reasoning. Before every play
 it lists everything it could do: each card it could bank, lay down or play, at each target, or
-ending its turn. For each option it plays the game forward many times on a copy of the table,
+ending its turn, and keeps the 5 a model trained on earlier playouts likes best ("A learned
+player" below). For each it plays the game forward many times on a copy of the table,
 with the default player making every choice from there, and it picks the option that came out
 ahead most often.
 
 It can't see the other hands or the draw pile, so each time it imagines them by shuffling the
 cards it can't see and dealing them out again. It doesn't peek: it only knows what a player at
 the table would. Different shuffles turn out differently, so it tries each option on 8 shuffles
-at a time, drops any option that's clearly behind, and keeps going with the rest, up to 80
+at a time, drops any option that's clearly behind, and keeps going with the rest, up to 160
 shuffles. This is a Monte Carlo search; the name comes from the casino, since it learns by
 rolling the dice.
 
@@ -142,16 +143,17 @@ two more turns, and judges the table instead: a formula fitted to thousands of g
 full sets, progress toward more, money and the cards in hand into each player's chance to win
 (`scripts/chance.ts`). That's faster, and it plays better. Playing every imagined game to the end,
 it won 50.3%, 39.5%, 36.4% and 33.7%, probably because the further ahead it looks, the more each
-result depends on the draw and on the default player's weaker choices than on the option tried. It wins 9 to 19 points more than the default, so there is still a lot
+result depends on the draw and on the default player's weaker choices than on the option tried. It wins 11 to 22 points more than the default, so there is still a lot
 to find.
 
-**Quick playouts** is the same with less imagining: 16 shuffles an option, one round ahead.
-It's about 5 times faster (the row took 4 minutes on 20 cores, against 22) and still wins 4 to 14
-points more than the default: a strong opponent that's cheap enough to play against.
+**Quick playouts** is the same with less imagining and no model: every option, 16 shuffles each,
+one round ahead. It's about 6 times faster (the row took 4 minutes on 20 cores, against 26) and
+still wins 4 to 14 points more than the default: a strong opponent that's cheap enough to play
+against.
 
-**Skill counts for more at big tables.** Against the default, playouts win 1.18 fair shares at
-2 players and 1.94 at 5. At 2 players the weaker player still wins nearly 4 games in 10; at 5,
-the four default players together win only 61%.
+**Skill counts for more at big tables.** Against the default, playouts win 1.22 fair shares at
+2 players and 2.09 at 5. At 2 players the weaker player still wins nearly 4 games in 10; at 5,
+the four default players together win only 58%.
 
 ## Playing well
 
@@ -238,7 +240,7 @@ cards for colors you have none of loses badly: 6 points at 5 players, where thos
 everyone.
 
 **Empty your hand when you can, and hold Birthday in the first round.** Both came from where a
-model trained on the dataset (`scripts/learn.ts`) overrules the default. When the plays
+model trained on the dataset (`src/learned.ts`) overrules the default. When the plays
 left can empty the hand, banking what the default wouldn't play draws 5 cards next turn instead
 of 2: +0.3 to +0.8 points at 2–5 players. In the first round nobody has much to pay a Birthday
 with, and holding it gains 0.3 to 0.9 points at 3–5 players (100,000 games each).
@@ -295,7 +297,7 @@ the first player wins 55.8% at 2 players, against the default's 57.1%, and 24.0%
 
 ### How good could the choices be?
 
-Playouts still beat the default by 9 to 19 points. What's left at 5 players, found with
+Playouts still beat the default by 11 to 22 points. What's left at 5 players, found with
 playouts that play each deal to the end:
 
 - **Forced Deal.** At 5 players, the best Forced Deal by playouts, rechecked on fresh deals, beats
@@ -331,7 +333,8 @@ playouts that play each deal to the end:
 Playouts are strong but slow. *`scripts/learn.ts`* turns the dataset (every move of 10,000
 default games at each player count, scored by two-round playouts) into 94 numbers per move, and
 fits a model that predicts each move's playout score. The learned player then makes the move it
-scores highest. It never looks ahead, so it costs about 9 ms of CPU a game.
+scores highest. It never looks ahead, so a game with one learned player takes about 4 ms of CPU
+with the trees and 60 ms with the network.
 
 | player | 2 players (fair 50.0%) | 3 players (fair 33.3%) | 4 players (fair 25.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- | --- | --- |
@@ -351,10 +354,10 @@ the default would hold, when that emptied its hand, and it held Birthday in the 
 are now in the default player.
 
 **As a filter it makes playouts stronger.** Playing out only the trees' top 5 moves, with twice
-the shuffles (160), wins 61.2%, 49.9%, 46.4% and 41.8%: 1.3 to 3.1 points more than playouts,
-at 1.2× the time (10,000 games each). It isn't the default `playouts` because it needs a 7 MB
-model. Using the model as the player inside the imagined games instead costs 20× the time and
-wins less. A network trained to judge the table in place of `chance` (`learn_value.py`) is even
+the shuffles (160), wins 1.3 to 3.1 points more than playing out every move on 80 (59.1%,
+48.6%, 43.7% and 38.7%), at 1.2× the time (10,000 games each). That's now `playouts`, with the
+trees in `src/model.json`. Using the model as the player inside the imagined games instead
+costs 20× the time and wins less. A network trained to judge the table in place of `chance` (`learn_value.py`) is even
 on the top 5 with 160 shuffles.
 
 ## What each card is worth

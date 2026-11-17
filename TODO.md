@@ -57,7 +57,7 @@
             `uv`) on the same move features and playout values, and play it head to head. If
             it wins, distill readable rules from it for `STEPS`. Less noisy targets (more deals
             a move) are the other lever.
-- [ ] Close more of the gap to playouts, now 9 to 19 points. Done 2026-11-16, one
+- [ ] Close more of the gap to playouts, now 11 to 22 points with the model-pruned playouts. Done 2026-11-16, one
       step at a time on top of the last: adopt banking Forced Deal in the first round at 3+
       players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance` (done), run
       `decisions.ts` with its recheck also cut off at two rounds (done: at 2 players the
@@ -75,7 +75,7 @@
       each Just Say No decision might still find a rule.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
-- [ ] Playouts win 59.1% at 2 players, 9 points over the default; playing to the end, they
+- [ ] Playouts of every move won 59.1% at 2 players, 9 points over the default (61.2% now, pruned by the model); playing to the end, they
       tied it. More deals per move still help, about 2 points each time they double: at 80,
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
@@ -110,7 +110,8 @@
 - [ ] A staller: a strategy that tries to make the game stall, from the list in the README's
       "Stalled games". Count its stalls at 5 players against the pacifist's 41 in 100,000, and
       see which of its rules matter most.
-- [ ] Idea: a page to play against quick playouts in the browser.
+- [ ] Idea: a page to play against quick playouts in the browser, or the learned player,
+      which is stronger at 2 and 3 players and takes about 4 ms a game.
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
       move decision of 10,000 default games at each player count, with each move's two-round
       playout value. It goes stale whenever the default player or `chance` changes, so
@@ -163,13 +164,23 @@
             decision (trees +0.59 to +0.72). Head to head (100,000 games) 55.2%, 43.1%, 37.1%
             and 32.9% at 2–5 players: −1.1 at 2 against the trees, +1.9 and +2.6 at 4 and 5.
             Ranking playouts' top 5 with it instead of the trees is even.
-      - [x] A learned board score (`learn_value.py`, `position` in `learn.ts`): the mover's
+      - [x] A learned board score (`learn_value.py`, `position` in `learned.ts`): the mover's
             chance of winning from what they see, fitted to who won (overfits after 5 epochs:
             about 37,000 games behind 2.7 million boards). In place of `chance` on the top 3
             and 80 deals: +1.7 at 5 players, even at 2; on the top 5 and 160 deals, even at
             both, at 1.2–1.7× the time.
       - [ ] Tune racing offline: how close each decision's top moves are says how many deals
             and what `z` it needs.
+      - [ ] Retrain on stronger search: regenerate the dataset from the learned player's games,
+            scored by the pruned playouts, retrain, and repeat while it gains. The current one
+            is the default's games scored with the default inside the playouts. About 2.5 hours
+            a pass.
+      - [ ] A small model inside the playouts: 1,000 trees there cost 20× the time, 85% of it
+            scoring. Try 50 to 100 trees or a narrow network as everyone's rollout player.
+      - [ ] Learn the other decisions: paying, Just Say No and discarding are still the
+            default's rules. Paying is where playouts disagreed most at 5 players; `pay.ts` and
+            `sayno.ts` replays give the data.
+      - [ ] Mine the retrained model for rules again, as was done for `emptyHand` and Birthday.
 
 ## Analysis
 
