@@ -1,5 +1,5 @@
 import { useMutation } from "convex/react";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { banked, COLOR_NAMES, defaultPolicy, fullSets, type Game, moves, type Move, payable, type Player, rent } from "../game.ts";
@@ -30,6 +30,9 @@ export function Board({ game, me }: Props) {
   const decide = useMutation(api.games.decide);
   const [error, setError] = useState<string>();
   const state = useMemo(() => replay(setup(game), game.log), [game]);
+  const log = useRef<HTMLUListElement>(null);
+  const lines = state.game.log?.length;
+  useLayoutEffect(() => log.current?.scrollTo({ top: log.current.scrollHeight }), [lines]);
   const seat = game.seats.findIndex((s) => "player" in s && s.player === me);
   const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : `Player ${n + 1}`);
   const send = (choice: Choice) => {
@@ -44,10 +47,11 @@ export function Board({ game, me }: Props) {
       <section className="middle">
         <div className={g.draw.length ? "deck" : "deck empty"}>Draw Pile ({g.draw.length})</div>
         {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className="deck empty">Discard</span>}
-        <ul className="log">
-          {(g.log ?? []).slice(-6).map((line, i) => (
-            <li key={i}>
+        <ul className="log" ref={log}>
+          {(g.log ?? []).map((line, i) => (
+            <li key={i} className={i > 0 && line.startsWith("turn ") ? "turn" : undefined}>
               {line
+                .replace(/^turn \d+: /, "")
                 .replace(/P(\d)/g, (_, n) => who(Number(n)))
                 .replace(/\bYou (\w+)s\b/g, "You $1")
                 .replace(/\b[a-z]+[A-Z]\w*/g, colorName)}
@@ -127,6 +131,13 @@ export function Board({ game, me }: Props) {
           list-style: none;
           font-size: small;
           opacity: 0.8;
+          height: 5.4rem;
+          overflow-y: auto;
+        }
+        .turn {
+          border-top: 1px solid rgba(255, 255, 255, 0.4);
+          margin-top: 0.3em;
+          padding-top: 0.3em;
         }
         .prompt {
           position: sticky;
