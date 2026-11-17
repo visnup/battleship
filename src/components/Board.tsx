@@ -55,7 +55,7 @@ export function Board({ game, me }: Props) {
   const { prompt, result } = state;
   const g = state.game;
   const entries = turns(g.log ?? [], who);
-  const order = Array.from({ length: g.players.length }, (_, i) => (Math.max(seat, 0) + i) % g.players.length);
+  const order = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length);
   return (
     <div className="mx-auto flex max-w-[60em] flex-col gap-[0.8em] p-[0.8em]">
       <section className="flex items-start justify-center gap-[1em]">
