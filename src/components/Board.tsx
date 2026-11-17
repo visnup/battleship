@@ -207,7 +207,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     const list = picked === undefined ? [] : moves(game, p, prompt.left).filter((m) => JSON.stringify(m.card) === JSON.stringify(p.hand[picked]));
     return (
       <div>
-        <p>
+        <p className="flex items-center justify-between">
           Your turn: {prompt.left} play{prompt.left === 1 ? "" : "s"} left. <button onClick={() => send({ kind: "move", seat: p.seat, move: null })}>End turn</button>
         </p>
         {hand(
