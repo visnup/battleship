@@ -64,7 +64,7 @@ export function Card({ card, color, selected, banked, onClick }: { card: CardTyp
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
-      className={`m-0 box-border inline-flex h-[6.3em] w-[4.5em] shrink-0 flex-col overflow-hidden rounded-[0.4em] bg-white p-0 text-center text-[0.85rem] text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-[gold]" : ""}`}
+      className={`relative m-0 box-border inline-flex h-[6.3em] w-[4.5em] shrink-0 flex-col overflow-hidden rounded-[0.4em] bg-white p-0 text-center text-[0.85rem] text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-[gold]" : ""}`}
       onClick={onClick}
       title={explain(card)}
     >

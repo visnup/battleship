@@ -135,11 +135,11 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
       </div>
       <div className="flex flex-wrap gap-[0.6em]">
         {colors.map((c) => (
-          <div key={c} className={`flex *:not-first:-ml-[2.8em] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
+          <div key={c} className={`flex flex-col self-start *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
             {p.props
               .filter((x) => x.color === c)
               .map((x, i) => (
-                <Card key={i} card={x.card} color={x.color} />
+                <Card key={i} card={x.card} />
               ))}
             {p.built
               .filter((x) => x.color === c)
