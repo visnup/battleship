@@ -139,13 +139,41 @@ export function extract(players: number, seed: number, _n: number) {
 }
 
 type Node = { split_feature?: number; threshold?: number; left_child?: Node; right_child?: Node; leaf_value?: number };
-const leaf = (t: Node, x: number[]): number => (t.leaf_value !== undefined ? t.leaf_value : leaf(x[t.split_feature!] <= t.threshold! ? t.left_child! : t.right_child!, x));
+/** Every tree's nodes in flat arrays, a leaf marked by feature −1 with its value as the threshold. */
+type Forest = { roots: number[]; feature: Int32Array; threshold: Float64Array; left: Int32Array; right: Int32Array };
 
-const loaded: Record<string, Node[]> = {};
+function flatten(trees: Node[]): Forest {
+  const feature: number[] = [];
+  const threshold: number[] = [];
+  const left: number[] = [];
+  const right: number[] = [];
+  const add = (t: Node): number => {
+    const i = feature.length;
+    feature.push(t.leaf_value !== undefined ? -1 : t.split_feature!);
+    threshold.push(t.leaf_value ?? t.threshold!);
+    left.push(0);
+    right.push(0);
+    if (t.leaf_value === undefined) [left[i], right[i]] = [add(t.left_child!), add(t.right_child!)];
+    return i;
+  };
+  const roots = trees.map(add);
+  return { roots, feature: Int32Array.from(feature), threshold: Float64Array.from(threshold), left: Int32Array.from(left), right: Int32Array.from(right) };
+}
+
+function score({ roots, feature, threshold, left, right }: Forest, x: number[]) {
+  let s = 0;
+  for (let i of roots) {
+    for (let f = feature[i]; f >= 0; f = feature[i]) i = x[f] <= threshold[i] ? left[i] : right[i];
+    s += threshold[i];
+  }
+  return s;
+}
+
+const loaded: Record<string, Forest> = {};
 
 /** The default player, except that every move is the one the trees in `file` score highest. */
 export function learned(file: string): Policy {
-  const trees = (loaded[file] ??= JSON.parse(readFileSync(file, "utf8")).tree_info.map((t: { tree_structure: Node }) => t.tree_structure));
+  const trees = (loaded[file] ??= flatten(JSON.parse(readFileSync(file, "utf8")).tree_info.map((t: { tree_structure: Node }) => t.tree_structure)));
   return {
     ...defaultPolicy,
     move(game, p, left) {
@@ -160,8 +188,8 @@ export function learned(file: string): Policy {
       for (const m of options) {
         const e = encode(game, p, m);
         const x = [...b, ...move(obs, e, key(e) === pick)];
-        const score = trees.reduce((s, t) => s + leaf(t, x), 0);
-        if (score > top) [best, top] = [m, score];
+        const v = score(trees, x);
+        if (v > top) [best, top] = [m, v];
       }
       return best;
     },
