@@ -42,10 +42,8 @@ export function Board({ game, me }: Props) {
   return (
     <div className="board">
       <section className="middle">
-        <div className="pile">
-          <span>Draw {g.draw.length}</span>
-          {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className="empty">Discard</span>}
-        </div>
+        <div className={g.draw.length ? "deck" : "deck empty"}>Draw Pile ({g.draw.length})</div>
+        {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className="deck empty">Discard</span>}
         <ol className="log">
           {(g.log ?? []).slice(-6).map((line, i) => (
             <li key={i}>
@@ -90,24 +88,38 @@ export function Board({ game, me }: Props) {
         }
         .middle {
           display: flex;
+          justify-content: center;
           gap: 1em;
           align-items: flex-start;
         }
-        .pile {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.3em;
-          font-size: small;
-        }
-        .empty {
+        .deck {
+          box-sizing: border-box;
           width: 4.5em;
           height: 6.3em;
-          border: 2px dashed rgba(255, 255, 255, 0.4);
-          border-radius: 0.4em;
+          flex-shrink: 0;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 0 0.3em;
+          border: 0.3em solid white;
+          border-radius: 0.4em;
+          background: #b8292f;
+          color: white;
+          font-size: 0.85rem;
+          font-weight: 600;
+          line-height: 1.2;
+          text-align: center;
+          box-shadow:
+            2px 2px 0 -1px white,
+            2px 2px 0 0 rgba(0, 0, 0, 0.3),
+            4px 4px 0 -1px white,
+            4px 4px 0 0 rgba(0, 0, 0, 0.3);
+        }
+        .empty {
+          border: 2px dashed rgba(255, 255, 255, 0.4);
+          background: none;
+          box-shadow: none;
+          font-weight: normal;
         }
         .log {
           margin: 0;
