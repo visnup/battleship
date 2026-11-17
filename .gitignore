@@ -2,6 +2,8 @@ rules/*.jpg
 node_modules
 .DS_Store
 dataset/data
+dataset/data-*
+dataset/pay*
 dataset/features
 dataset/model*.json
 dataset/mlp*.json
@@ -11,3 +13,4 @@ dataset/mlp*.json
 *.tsbuildinfo
 next-env.d.ts
 test-results
+__pycache__

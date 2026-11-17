@@ -185,6 +185,27 @@ const payLooseFirst: Policy["pay"] = (game, p, amount) => {
 /** When the bank can't cover it, pays from loose properties before the bank. */
 const payTableFirst: Policy["pay"] = (game, p, amount) => (banked(p) >= amount ? defaultPolicy.pay(game, p, amount) : payLooseFirst(game, p, amount));
 
+/** When the bank covers it, the fewest cards, then the least change, or with `most`, the most. */
+const payFewest =
+  (most: boolean): Policy["pay"] =>
+  (game, p, amount) => {
+    if (banked(p) < amount) return defaultPolicy.pay(game, p, amount);
+    let best: Card[] | undefined;
+    const sum = (cs: Card[]) => cs.reduce((s, c) => s + c.value, 0);
+    const better = (a: Card[], b: Card[]) => a.length < b.length || (a.length === b.length && (most ? sum(a) > sum(b) : sum(a) < sum(b)));
+    const go = (i: number, chosen: Card[], s: number) => {
+      if (s >= amount) {
+        if (!best || better(chosen, best)) best = [...chosen];
+        return;
+      }
+      if (i === p.bank.length || (best && chosen.length >= best.length)) return;
+      go(i + 1, [...chosen, p.bank[i]], s + p.bank[i].value);
+      go(i + 1, chosen, s);
+    };
+    go(0, [], 0);
+    return best!;
+  };
+
 /** Deal Breaker like the default, but on the leader's sets before anyone else's. */
 const breakLeader: Step = (game, p) => {
   const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
@@ -275,6 +296,8 @@ export const VARIANTS: Record<string, () => Policy> = {
   "pay with one loose property when it covers the charge": () => ({ ...defaultPolicy, pay: payOneLoose }),
   "pay with loose properties before money": () => ({ ...defaultPolicy, pay: payLooseFirst }),
   "pay with loose properties before money when the bank can't cover it": () => ({ ...defaultPolicy, pay: payTableFirst }),
+  "pay from the bank with the fewest cards, then the least change": () => ({ ...defaultPolicy, pay: payFewest(false) }),
+  "pay from the bank with the fewest cards, then the most change": () => ({ ...defaultPolicy, pay: payFewest(true) }),
   "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),
   "never counter a Just Say No": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => game.players[game.current] !== p && defaultPolicy.sayNo(game, p, move, from) }),
   "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),

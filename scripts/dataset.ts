@@ -1,5 +1,6 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game.ts";
+import { learned } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { encode, key, observe } from "../src/replay.ts";
 import { playout } from "../src/strategies.ts";
@@ -7,12 +8,13 @@ import { playout } from "../src/strategies.ts";
 const OUT = new URL("../dataset/data/", import.meta.url);
 
 /**
- * Plays `n` default games of `players` and writes every move decision with a choice to a shard:
- * what the mover sees, each legal move's two-round playout value on `deals` shared deals, the
- * default's pick, and whether the mover went on to win.
+ * Plays `n` games of `players` and writes every move decision with a choice to a shard: what the
+ * mover sees, each legal move's two-round playout value on `deals` shared deals, the default's
+ * pick, and whether the mover went on to win. With `model`, the learned player plays the games.
  */
-export function shard(players: number, deals: number, seed: number, n: number) {
+export function shard(players: number, deals: number, model: string, seed: number, n: number) {
   const rng = mulberry32(seed);
+  const player = model ? learned(model) : defaultPolicy;
   const file = new URL(`${players}p-${String(seed).padStart(3, "0")}.jsonl`, OUT);
   writeFileSync(file, "");
   let decisions = 0;
@@ -45,7 +47,7 @@ export function shard(players: number, deals: number, seed: number, n: number) {
             default: pick,
           });
         }
-        return choice;
+        return model ? player.move(game, p, left) : choice;
       },
     };
     const { winner } = new Game({ players, rng: mulberry32(gameSeed), policies: watcher, first: i % players }).run();
@@ -57,11 +59,11 @@ export function shard(players: number, deals: number, seed: number, n: number) {
 }
 
 if (import.meta.main) {
-  const [games, deals] = process.argv.slice(2).map(Number);
+  const [games, deals, model = ""] = process.argv.slice(2);
   mkdirSync(OUT, { recursive: true });
   for (const players of [2, 3, 4, 5]) {
     const t = performance.now();
-    const decisions = await parallel<number>(import.meta.url, "shard", [players, deals], games);
+    const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(deals), model], Number(games));
     console.log(`${players} players: ${games} games, ${decisions} decisions, ${((performance.now() - t) / 60000).toFixed(1)} min`);
   }
 }

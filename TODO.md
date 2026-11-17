@@ -176,6 +176,16 @@
       - [ ] Learn the other decisions: paying, Just Say No and discarding are still the
             default's rules. Paying is where playouts disagreed most at 5 players; `pay.ts` and
             `sayno.ts` replays give the data.
+            Paying (2026-11-17): `paydata.ts` plays out every payment with a choice in 16,384
+            default games per player count (338,000 payments, 32 shuffles each); trees on
+            `paying.ts`'s 27 numbers per way to pay gain +0.32 to +0.51 points a payment held
+            out. Head to head (100,000 games) the learned payer wins 50.8%, 34.6%, 26.2% and
+            21.4%: +1.1 to +1.5 points, the first change to paying that wins. Where it differs:
+            at 5 players a loose property instead of money in a fifth of payments, and from the
+            bank, fewer and bigger cards ($3M for a $2M Birthday). Neither part is a rule:
+            paying the fewest bank cards with the least change ties the default, and with the
+            most change loses 2.3 to 3.3 points (`variants.ts`). Still to do: wire it into
+            `src/` and into the learned player and `playouts`.
       - [ ] Mine the retrained model for rules again, as was done for `emptyHand` and Birthday.
 
 ## Analysis

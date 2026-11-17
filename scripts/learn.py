@@ -2,7 +2,8 @@
 # dependencies = ["scikit-learn", "numpy"]
 # ///
 """Fits `src/learned.ts`'s move scorer to the dataset's features, and writes the trees to
-src/model.json, which `playouts` ranks moves with. `uv run scripts/learn.py [trees] [out]`."""
+src/model.json, which `playouts` ranks moves with. `uv run scripts/learn.py [trees] [out]`, or
+with `pay` last, a payment scorer on `paydata.ts`'s features."""
 
 import json
 import sys
@@ -13,7 +14,7 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 
 from shards import features, report, split
 
-X, Y, held = split()
+X, Y, held = split(features.parent / "pay", 27) if sys.argv[3:] == ["pay"] else split()
 Xh = np.concatenate([h[0] for h in held.values()])
 Yh = np.concatenate([h[1] for h in held.values()])
 print(f"{len(X)} moves to train on, {len(Xh)} held out", flush=True)

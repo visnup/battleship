@@ -1,42 +1,13 @@
 import { parseArgs } from "node:util";
-import type { Card } from "../src/cards.ts";
-import { defaultPolicy, type Game, loose, payable, type Placed, type Player } from "../src/game.ts";
+import { type Game, loose, payable, type Player } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
+import { payments } from "../src/paying.ts";
 import { report, search as searchAt } from "./midturn.ts";
 
 // What to pay with, by playouts at each of the default player's payments (`midturn.ts`).
 
-type Piece = Card | Placed;
-
-const value = (x: Piece) => ("kind" in x ? x.value : x.card.value);
-const counts = (_: Game, p: Player, amount: number) => payable(p).reduce((s, x) => s + value(x), 0) > amount;
-
-/** The payments where no piece could be left out, plus the default's, as indices into `payable`. */
-function payments(game: Game, p: Player, amount: number, cap = 200): number[][] {
-  const all = payable(p);
-  const found: number[][] = [];
-  const pick = (i: number, chosen: number[], sum: number) => {
-    if (found.length >= cap) return;
-    if (sum >= amount) {
-      if (chosen.every((j) => sum - value(all[j]) < amount)) found.push([...chosen]);
-      return;
-    }
-    if (i === all.length) return;
-    pick(i + 1, [...chosen, i], sum + value(all[i]));
-    pick(i + 1, chosen, sum);
-  };
-  pick(0, [], 0);
-  const mine = defaultPolicy.pay(game, p, amount).map((x) => all.indexOf(x));
-  const key = (o: number[]) =>
-    o
-      .map((j) => label1(game, p, all[j]))
-      .sort()
-      .join();
-  const seen = new Set<string>();
-  return [mine, ...found].filter((o) => !seen.has(key(o)) && seen.add(key(o)));
-}
-
-const label1 = (game: Game, p: Player, x: Piece) => ("kind" in x ? `$${x.value}${x.kind === "money" ? "" : "a"}` : p.built.includes(x) ? "building" : `${x.color}${loose(game, p, x) ? "" : "!"}`);
+/** Whether `p` has a choice: more to pay with than `amount`. */
+export const counts = (_: Game, p: Player, amount: number) => payable(p).reduce((s, x) => s + ("kind" in x ? x : x.card).value, 0) > amount;
 
 /** What kind of payment `o` is: from the bank, loose properties, or a full set. */
 function kind(game: Game, p: Player, o: number[]): string {
