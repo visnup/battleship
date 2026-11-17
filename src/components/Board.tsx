@@ -67,7 +67,7 @@ export function Board({ game, me }: Props) {
   return (
     <div className="board">
       <section className="middle">
-        <div className={g.draw.length ? "deck" : "deck empty"}>Draw Pile ({g.draw.length})</div>
+        <div className={g.draw.length ? "deck" : "deck empty"}>Draw Pile <span className="count">{g.draw.length}</span></div>
         {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className="deck empty">Discard</span>}
         <ul className="log" ref={log}>
           {entries.map(({ turn, text }, i) => (
@@ -142,6 +142,9 @@ export function Board({ game, me }: Props) {
             2px 2px 0 0 rgba(0, 0, 0, 0.3),
             4px 4px 0 -1px white,
             4px 4px 0 0 rgba(0, 0, 0, 0.3);
+        }
+        .count {
+          color: #d0d0d0;
         }
         .empty {
           border: 2px dashed rgba(255, 255, 255, 0.4);
