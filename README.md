@@ -360,6 +360,24 @@ trees in `src/model.json`. Using the model as the player inside the imagined gam
 costs 20× the time and wins less. A network trained to judge the table in place of `chance` is even
 on the top 5 with 160 shuffles.
 
+**Training on its own games makes it stronger.** Each round, the learned player plays new games,
+its top 6 moves at each decision (and the default's, and one at random) are played out, and new
+trees are fit to that round and the one before. Round 0 is the trees above.
+
+| round | 2 players (fair 50.0%) | 3 players (fair 33.3%) | 4 players (fair 25.0%) | 5 players (fair 20.0%) |
+| --- | --- | --- | --- | --- |
+| 0 | 57.0% | 43.6% | 35.8% | 30.9% |
+| 1 | 57.7% | 44.6% | 37.7% | 32.6% |
+| 2 | 57.6% | 44.5% | 37.3% | 32.2% |
+| 3 | 58.1% | 46.1% | 39.4% | 34.6% |
+
+![The learned player's wins in fair shares after each round](charts/rounds.svg)
+
+All on the same 50,000 deals against the default in every other seat (`scripts/compare.ts`),
+where two rounds differ by ±0.35 to ±0.46 points. Round 1 played 10,000 games a player count,
+round 2 2,500, and round 3 5,000 with the playouts paying by the learned payer (`src/pay.json`).
+Ranked playouts gain nothing from rounds 2 and 3 (±1 to ±1.4 at 4,000 games).
+
 ## What each card is worth
 
 *From `node scripts/cards.ts`*, which deals each game twice: once as dealt, and once with one copy

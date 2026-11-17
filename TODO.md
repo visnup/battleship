@@ -185,7 +185,23 @@
             From round 4 only the mover pays by the learned payer in the playouts, as in the
             field it's measured against: labeling is 1.7× faster at 2 players and 2.7× at 5, and
             on the same deals its values correlate 0.99 and 0.78 with everyone paying that way
-            (default paying: 0.97 and 0.75).
+            (default paying: 0.97 and 0.75). Round 4's data took 3.5 and 6.6 minutes at 2 and
+            3 players, against round 3's 15 and 37.
+            `scripts/round.sh` runs a round. Round 4 (started 2026-11-17) is three variants from
+            round 3, each compared with it on the same deals, to see which way to spend the
+            labeling: 4a plain (5,000 games, 32 deals), 4b 10,000 games on 16 deals, 4c 10,000
+            games with half the decisions labeled (`--label 0.5`). Models land in
+            `dataset/model-r4a.json` and so on. This run predates `round.sh`, so its compares
+            print to the task log (`/private/tmp/claude-501/-Users-visnup-Developer-visnup/fa910614-8ef4-4a1f-b390-cd32857ed97d/tasks/bxjvdv1ms.output`),
+            not `dataset/r4a/`; if that's gone, rerun `node scripts/compare.ts
+            dataset/model-r3.json dataset/model-r4a.json --n 50000` for each. Adopt the winner into `src/model.json` and the README's
+            rounds table (then `node scripts/charts.ts`), and run later rounds that way while
+            they gain.
+      - [ ] Mine the latest model for rules, as round 0 gave two: where it overrules the
+            default most often, and by how much on playouts.
+      - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
+            margin, instead of only dropping moves `z` standard errors behind. Not yet run;
+            needs quiet cores.
       - [x] A small model inside the playouts (2026-11-17, quick playouts, 4,000 games, ±1.6 at
             2 players and ±1.5 at 5): the default there wins 53.2% and 33.5%. 50 trees 54.0% and
             33.5% at 9–12× the time, 150 trees 54.8% and 33.8% at 13–19×, a network 32 wide

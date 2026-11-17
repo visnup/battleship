@@ -151,6 +151,28 @@ save("variants", {
   ],
 });
 
+// A learned player: its wins as a multiple of a fair share after each round of training on its own games.
+const rounds = table("round").flatMap((r) => counts.map((k) => ({ round: +r.round, players: `${k} players`, shares: num(r[`${k} players (fair ${fair(k).toFixed(1)}%)`]) / fair(k) })));
+const lastRound = Math.max(...rounds.map((d) => d.round));
+save("rounds", {
+  width: 640,
+  height: 300,
+  marginRight: 70,
+  x: { label: "Training round", type: "point", padding: 0.4 },
+  y: { label: "Wins, in fair shares", grid: true, domain: [1, 1.8] },
+  color: playerColor,
+  marks: [
+    Plot.ruleY([1], dashed),
+    Plot.line(rounds, { x: "round", y: "shares", stroke: "players", strokeWidth: 2 }),
+    Plot.dot(rounds, { x: "round", y: "shares", fill: "players", stroke: art.paper, r: 4 }),
+    Plot.text(
+      rounds.filter((d) => d.round === 0 || d.round === lastRound),
+      { x: "round", y: "shares", text: (d) => d.shares.toFixed(2), dy: -10, fontSize: 9, ...halo },
+    ),
+    Plot.text(rounds, Plot.selectLast({ x: "round", y: "shares", z: "players", text: "players", textAnchor: "start", dx: 8, ...halo })),
+  ],
+});
+
 // What each card is worth: wins one more copy in an opening hand adds, by player count.
 const cardRows = table("card");
 const cards = cardRows.flatMap((r) => counts.map((k) => ({ card: r.card, players: `${k}`, value: num(r[`${k} players`]) })));

@@ -54,7 +54,9 @@ from photos of one card of each property color and each wild (`rules/properties.
   `scripts/shards.py`, holding out the last directory's last 8 shards a player count.
   `scripts/learn.ts --model` plays one head to head, and `scripts/compare.ts a.json b.json`
   plays two models on the same deals. Each round of training on stronger play lives in
-  `dataset/data-rN/`, `features-rN/` and `model-rN.json`.
+  `dataset/data-rN/`, `features-rN/` and `model-rN.json`, and `scripts/round.sh N` runs the
+  next one (its header lists the knobs), logging to `dataset/rN/`. Don't edit `src/` or what
+  it imports while a round runs: its workers load those files.
 - `paying.ts`: the ways to pay worth considering, and each as numbers. `scripts/paydata.ts`
   plays each out (in `dataset/pay/`), `learn.py … dataset/pay` fits `src/pay.json`, and
   `paid()` in `learned.ts` pays by it, for the learned player and `playouts`.
