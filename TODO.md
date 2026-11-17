@@ -139,7 +139,12 @@
             games). On all 248 training shards with 1,000 trees (16 minutes on 20 cores, not
             yet early-stopped): +0.6 to +0.7 a decision held out, and 56.3%, 42.8%, 35.2% and
             30.3% at 2–5 players (100,000 games), level with quick playouts at 2 and 3 players
-            at 9 ms of CPU a game. Next: inside playouts.
+            at 9 ms of CPU a game. Inside quick playouts as everyone's rollout player, 53.5% at
+            2 players and 38.1% at 5 (1,000 games, ±3), against 55.6% and 36.1% with the
+            default, at about 20× the time: 1,000 trees are 85% of it even from flat arrays.
+            Full playouts with the default cost less and win 42.8% at 5. Untried: far fewer
+            trees, refitting `chance` to learned games, or the model as a prior that limits
+            which moves playouts try.
       - [ ] Tune racing offline: how close each decision's top moves are says how many deals
             and what `z` it needs.
 
