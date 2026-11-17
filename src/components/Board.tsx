@@ -55,7 +55,7 @@ export function Board({ game, me }: Props) {
   const { prompt, result } = state;
   const g = state.game;
   const entries = turns(g.log ?? [], who);
-  const order = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length);
+  const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[60em] flex-col gap-[0.8em] p-[0.8em]">
       <section className="flex items-start justify-center gap-[1em]">
@@ -84,10 +84,11 @@ export function Board({ game, me }: Props) {
           ))}
         </ul>
       </section>
-      {order.map((n) => (
-        <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={n === seat} />
+      {others.map((n) => (
+        <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={false} />
       ))}
-      <section className="sticky bottom-0 rounded-[0.6em] bg-black/60 px-[0.8em] py-[0.6em] text-white">
+      <section className="sticky bottom-0 rounded-[0.6em] bg-[#123f2c] shadow-[0_-4px_12px_rgba(0,0,0,0.3)] px-[0.8em] py-[0.6em] text-white">
+        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={who(seat)} current={!result && g.current === seat} mine />}
         {result ? (
           <p>{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
         ) : prompt && prompt.seat === seat ? (
