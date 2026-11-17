@@ -117,7 +117,13 @@
       regenerate it first (66 minutes).
       - [ ] Where the gap to playouts is: by card and situation, the value the default's pick
             gives up against the best move. Minutes of SQL, and it says which of the rest are
-            worth doing.
+            worth doing. First look (2026-11-16, before the turn-order tie fix), counting only
+            gaps over 2 standard errors: 15 points a game at 2 players to 26 at 5. At 5 players
+            most is in whom to hit: which set to Deal Break, which card to Sly Deal, which swap
+            to Forced Deal. At 2, Forced Deal's swap and playing it more. Playouts would Deal
+            Break cheap sets (brown, utility) where the default takes dark blue, but the lowest
+            rent first, or the leader's lowest or highest, were all even head to head (100,000
+            games).
       - [ ] Screen rules offline: rebuild each board from what the mover sees (opponents' hands
             as placeholders), run a candidate rule, and score its pick with the stored values.
             Only what passes gets the 100,000-game check, since offline gains have failed head
