@@ -2,3 +2,5 @@ rules/*.jpg
 node_modules
 .DS_Store
 dataset/data
+dataset/features
+dataset/model*.json

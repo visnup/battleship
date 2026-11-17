@@ -8,7 +8,7 @@ const OUT = new URL("../dataset/data/", import.meta.url);
 const placed = (x: Placed) => ({ card: name(x.card), color: x.color });
 
 /** `m` from the mover's seat: targets count seats after the mover, 1 being the next to play. */
-function encode(game: Game, p: Player, m: Move | null) {
+export function encode(game: Game, p: Player, m: Move | null) {
   const rel = (seat?: number) => (seat === undefined ? null : (seat - p.seat + game.players.length) % game.players.length);
   if (!m) return { type: "end", card: null, color: null, target: null, doubles: 0, take: null, give: null };
   return {
@@ -23,10 +23,10 @@ function encode(game: Game, p: Player, m: Move | null) {
 }
 
 // `arrange` recolors a wild after every play, so its color when laid down doesn't matter
-const key = (m: ReturnType<typeof encode>) => JSON.stringify(m.type === "place" && m.card.startsWith("wild") ? { ...m, color: null } : m);
+export const key = (m: ReturnType<typeof encode>) => JSON.stringify(m.type === "place" && m.card.startsWith("wild") ? { ...m, color: null } : m);
 
 /** What `p` can see, with players listed from `p` in turn order. */
-function observe(game: Game, p: Player, left: number) {
+export function observe(game: Game, p: Player, left: number) {
   const n = game.players.length;
   return {
     turn: game.turns,

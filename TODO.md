@@ -132,6 +132,11 @@
             who won, on what the mover can see.
       - [ ] A learned rollout player: a model that predicts playouts' pick, played inside
             playouts in place of the default. This is also the nonlinear model above.
+            First fit (2026-11-16, `learn.ts` and `learn.py`): gradient-boosted trees over 94
+            numbers per move, 300 trees on 16 shards of each player count. Held out, +0.4
+            points of win chance a decision over the default's pick. Head to head it's the
+            first player to beat the default: 54.9% at 2 players and 26.4% at 5 (10,000
+            games). Next: more data and trees, 3 and 4 players, then inside playouts.
       - [ ] Tune racing offline: how close each decision's top moves are says how many deals
             and what `z` it needs.
 
