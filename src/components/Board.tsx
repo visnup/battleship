@@ -229,11 +229,8 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
 function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   const full = fullColors(game, p).length;
-  // sets started but not full, nearest to full first
-  const pending = colors
-    .map((c) => ({ c, n: count(p, c) % size(c), of: size(c) }))
-    .filter((s) => s.n)
-    .sort((a, b) => b.n / b.of - a.n / a.of);
+  // sets started but not full, in the table's order
+  const pending = colors.map((c) => ({ c, n: count(p, c) % size(c), of: size(c) })).filter((s) => s.n);
   return (
     <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
       <h2 className="flex items-baseline justify-between text-base font-bold">
