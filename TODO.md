@@ -100,7 +100,11 @@
       head to head the first is even and never countering loses 0.5 to 0.6 points.
 - [x] Tests for `STEPS`: a small board per rule (`game.test.ts`), so a refactor can't
       quietly change the default player.
-- [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
+- [ ] Use production's games (Convex `games` and `decisions` on monopoly.visnup.com) as real
+      games: each replays from its seed through every choice, and people's choices are marked
+      `bot: false`. Compare game length and the first player's share with the simulator's, and
+      score people's moves against the default's and the learned player's picks (where people
+      beat or lose to them). Too few to train on for a while.
 - [ ] A staller: a strategy that tries to make the game stall, from the list in the README's
       "Stalled games". Count its stalls at 5 players against the pacifist's 68 in 100,000, and
       see which of its rules matter most.
@@ -119,8 +123,9 @@
             `arrange` then moves every wild to its best color after each play, for people as
             well as bots: a lone railroad/utility wild always goes to utility. People's wilds
             should skip `arrange`. Games in progress may replay differently once this ships.
-      - [ ] Show what just happened: briefly outline the card just played or taken on the
-            table, so a bot's move shows without reading the log.
+      - [x] Show what just happened: others' decisions step by every 0.7s, each card that
+            lands glows, and once caught up everything since your last decision stays lit;
+            clicking a log line glows that play's cards too (2026-11-18).
       - [ ] Laying down a wild says "Lay it down", then `arrange` picks its color. Say so on the
             button (or its tooltip) until people can pick the color themselves.
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
