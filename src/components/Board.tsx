@@ -18,6 +18,8 @@ function Row({ children }: { children: ReactNode }) {
 const deck = "box-border flex h-[6.3em] w-[4.5em] shrink-0 flex-col items-center justify-center rounded-[0.4em] px-[0.3em] text-center text-[0.85rem] leading-[1.2]";
 const drawn = "border-[0.3em] border-white bg-[#b8292f] font-extrabold text-white shadow-[2px_2px_0_-1px_white,2px_2px_0_0_rgba(0,0,0,0.3),4px_4px_0_-1px_white,4px_4px_0_0_rgba(0,0,0,0.3)]";
 const empty = "border-2 border-dashed border-white/40";
+/** Floats over the table, just above the bottom bar. */
+const panel = "absolute right-0 bottom-full left-0 mb-[1.2em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)]";
 
 /** The log with a heading for each turn, and the mover's own lines without their name. */
 function turns(log: string[], who: (n: number) => string) {
@@ -229,7 +231,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
           </div>
         </div>
         {picked !== undefined && (
-          <div className="absolute right-0 bottom-full left-0 mb-[1.2em] grid grid-cols-2 items-end gap-[0.6em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)] sm:grid-cols-4">
+          <div className={`${panel} grid grid-cols-2 items-end gap-[0.6em] sm:grid-cols-4`}>
             {list.length ? (
               [...Map.groupBy(list, (m) => (target(m) === undefined ? describe(game, p, m, who) : describe(game, p, m, () => "\0").replace(/ (to|from) \0|\0's /g, "")))].map(([text, ms]) => {
                 const play = (m: Move) => () => {
@@ -285,11 +287,14 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
   }
   if (prompt.kind === "sayNo")
     return (
-      <div>
-        <p>
-          {who(prompt.from)}: {money(describe(game, game.players[prompt.from], prompt.move, who))}. Just Say No? <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: true })}>Say no</button>{" "}
+      <div className="relative">
+        <div className={`${panel} flex flex-wrap items-center justify-center gap-[0.6em]`}>
+          <span>
+            {who(prompt.from)}: {money(describe(game, game.players[prompt.from], prompt.move, who))}. Just Say No?
+          </span>
+          <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: true })}>Say no</button>
           <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: false })}>Let it through</button>
-        </p>
+        </div>
         {hand(
           () => {},
           () => false,
