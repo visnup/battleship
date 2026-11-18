@@ -109,8 +109,8 @@ slow, so they play 10,000 games per cell, which is good to about ±1 point.
 | banker | 49.6% | 32.9% | 24.7% | 19.7% |
 | pacifist | 10.8% | 2.0% (2 stalled) | 0.2% (13 stalled) | 0.0% (68 stalled) |
 | random | 5.4% | 1.7% | 0.6% | 0.3% |
-| playouts | 61.2% | 49.9% | 46.4% | 41.8% |
-| quick playouts | 54.1% | 40.8% | 36.0% | 33.7% |
+| playouts | 61.0% | 50.8% | 47.2% | 44.0% |
+| quick playouts | 53.5% | 40.3% | 36.0% | 33.8% |
 
 **Builder** plays the way the default player first did. It lays down properties as soon as it
 draws them, builds houses and hotels, and only then charges rent. It wins 11 points less than the
@@ -144,7 +144,7 @@ two more turns, and judges the table instead: a formula fitted to thousands of g
 full sets, progress toward more, money and the cards in hand into each player's chance to win
 (`scripts/chance.ts`). That's faster, and it plays better. Playing every imagined game to the end,
 it won 50.3%, 39.5%, 36.4% and 33.7%, probably because the further ahead it looks, the more each
-result depends on the draw and on the default player's weaker choices than on the option tried. It wins 11 to 22 points more than the default, so there is still a lot
+result depends on the draw and on the default player's weaker choices than on the option tried. It wins 11 to 24 points more than the default, so there is still a lot
 to find.
 
 **Quick playouts** is the same with less imagining and no model: every option, 16 shuffles each,
@@ -153,8 +153,8 @@ still wins 4 to 14 points more than the default: a strong opponent that's cheap 
 against.
 
 **Skill counts for more at big tables.** Against the default, playouts win 1.22 fair shares at
-2 players and 2.09 at 5. At 2 players the weaker player still wins nearly 4 games in 10; at 5,
-the four default players together win only 58%.
+2 players and 2.20 at 5. At 2 players the weaker player still wins nearly 4 games in 10; at 5,
+the four default players together win only 56%.
 
 ## Playing well
 
@@ -283,17 +283,17 @@ players, ±0.7 at 5):
 
 | player | 2 players (fair 50.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- |
-| default | 44.2% | 13.9% |
-| builder | 33.1% | 8.3% |
-| build houses and hotels, never bank them (previous) | 41.2% | 12.2% |
-| bank all money before laying down properties (previous) | 43.1% | 13.4% |
-| lay down properties before banking (previous) | 37.0% | 9.3% |
-| keep one Just Say No for a Deal Breaker | 44.3% | 13.6% |
-| hold the card that completes a set unless it wins | 29.0% | 11.6% |
+| default | 46.1% | 13.1% |
+| builder | 34.0% | 8.0% |
+| build houses and hotels, never bank them (previous) | 42.7% | 12.0% |
+| bank all money before laying down properties (previous) | 44.0% | 12.9% |
+| lay down properties before banking (previous) | 38.9% | 9.5% |
+| keep one Just Say No for a Deal Breaker | 45.6% | 13.2% |
+| hold the card that completes a set unless it wins | 29.6% | 11.1% |
 
-**The lessons hold.** Against strong players, building still costs 3.0 points at 2 players and
-1.7 at 5, laying properties down before banking costs 7.2 and 4.6, and holding the card that
-completes a set costs 15 at 2 players. Keeping a Just Say No for a Deal Breaker is still no
+**The lessons hold.** Against strong players, building still costs 3.4 points at 2 players and
+1.1 at 5, laying properties down before banking costs 7.2 and 3.6, and holding the card that
+completes a set costs 17 at 2 players. Keeping a Just Say No for a Deal Breaker is still no
 better. Banking all your money first is even at 5 players, as it nearly was before. Gaps shrink
 at 5 players, where every player is losing more of their games to the strong ones.
 
@@ -303,7 +303,7 @@ the first player wins 56.6% at 2 players, against the default's 57.0%, and 23.3%
 
 ### How good could the choices be?
 
-Playouts still beat the default by 11 to 22 points. What's left at 5 players, found with
+Playouts still beat the default by 11 to 24 points. What's left at 5 players, found with
 playouts that play each deal to the end:
 
 - **Forced Deal.** At 5 players, the best Forced Deal by playouts, rechecked on fresh deals, beats
@@ -346,7 +346,7 @@ with the trees and 60 ms with the network.
 | --- | --- | --- | --- | --- |
 | gradient-boosted trees | 56.0% | 42.0% | 33.8% | 29.1% |
 | neural network | 55.5% | 42.6% | 35.2% | 30.7% |
-| quick playouts | 54.1% | 40.8% | 36.0% | 33.7% |
+| quick playouts | 53.5% | 40.3% | 36.0% | 33.8% |
 
 100,000 games each against the default in every other seat. The trees (`learn.py`, 1,000 trees,
 21 minutes on 20 cores) and the network (`learn_mlx.py`, two layers of 512, 6.5 minutes on the

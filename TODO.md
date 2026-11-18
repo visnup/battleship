@@ -51,7 +51,7 @@
 - [x] Learn a player from playouts. A linear scorer (2026-11-16, not committed) lost to the
       default, 48.1% at 2 players and 17.4% at 5, even with a feature for the default's move.
       Gradient-boosted trees beat it, and are now `playouts`' filter: see "Use the dataset".
-- [ ] Close more of the gap to playouts, now 11 to 22 points with the model-pruned playouts. Done 2026-11-16, one
+- [ ] Close more of the gap to playouts, now 11 to 24 points with the model-pruned playouts. Done 2026-11-16, one
       step at a time on top of the last: adopt banking Forced Deal in the first round at 3+
       players (+0.35 to +0.4 at 3–5, −0.3 at 2; done), refit `chance` (done), run
       `decisions.ts` with its recheck also cut off at two rounds (done: at 2 players the
