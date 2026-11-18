@@ -129,6 +129,18 @@
             clicking a log line glows that play's cards too (2026-11-18).
       - [ ] Laying down a wild says "Lay it down", then `arrange` picks its color. Say so on the
             button (or its tooltip) until people can pick the color themselves.
+      - [ ] Others as a compact strip: each one a row at the top (name, level, hand count, bank,
+            set pills), tapping one to open their sets, so on a phone the table and your hand get
+            the screen instead of empty bot seats (193px each at 375 wide).
+      - [ ] Your hand as a fan of held cards at the bottom, like the start page's, instead of a
+            scrolling row.
+      - [ ] Plays left as three coins instead of "3 plays left".
+      - [ ] A warmer look: cream card stock, a serif display face, coin badges for values.
+      - [ ] House rules as lobby toggles: the `Rules` flags (`doubles`,
+            `breakerTakesBuildings`, `reshuffle`, …), saved with the game so replays stay
+            deterministic, each linked to what the README measured for it.
+      - [ ] Pass and play on one phone, with a "hand it to Kerem" screen between turns; and
+            "Add to home screen" (a web app manifest).
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
       move decision of 10,000 default games at each player count, with each move's two-round
       playout value. It goes stale whenever the default player or `chance` changes, so
