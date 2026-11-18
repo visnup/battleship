@@ -47,12 +47,13 @@ export function Game({ table }: { table: string }) {
   return (
     <>
       {game && <Board game={game} me={player.id} />}
-      {!playing && <Lobby table={table} me={player.id} />}
+      {!playing && <Lobby table={table} me={player.id} alone={!game} />}
     </>
   );
 }
 
-function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
+/** Who's at the table and the bots to deal in; `alone` centers it in the window when there's no board above. */
+function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: boolean }) {
   const start = useMutation(api.games.start);
   const rename = useMutation(api.players.rename);
   // remembered across tables in this browser, and saved shortly after typing stops
@@ -83,37 +84,52 @@ function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
     return () => clearInterval(interval);
   }, []);
   const total = players.length + bots;
+  const row = "flex min-h-11 items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5";
   return (
-    <section className="mx-auto my-[1em] max-w-[30em] rounded-[0.6em] bg-black/15 p-[1em]">
-      <h1 className="my-[0.67em] text-[2em] font-bold">Monopoly Deal</h1>
-      <p>Share this page&apos;s address to bring people to the table.</p>
-      <ul>
-        {players.map((p) => (
-          <li key={p._id}>
-            {p._id === me ? (
-              <>
+    <div className={alone ? "grid min-h-dvh place-items-center p-4" : "p-4"}>
+      <section className="mx-auto w-full max-w-sm rounded-2xl bg-[var(--bar)] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+        <h1 className="m-0 text-center text-3xl font-bold">Monopoly Deal</h1>
+        <p className="mt-2 mb-5 text-center text-sm opacity-70">Share this page&apos;s address to bring people to the table.</p>
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+          {players.map((p) =>
+            p._id === me ? (
+              <li key={p._id} className={row}>
                 <input
                   aria-label="Your name"
-                  className="rounded-[0.3em] bg-[var(--card)] px-[0.4em] py-[0.1em] text-black"
+                  className="min-w-0 flex-1 rounded-md bg-[var(--card)] px-2 py-1 text-black"
                   value={name}
                   placeholder={`Player ${p.seat + 1}`}
                   maxLength={24}
                   onChange={(e) => setName(e.target.value)}
-                />{" "}
-                (you)
-              </>
+                />
+                <span className="text-sm opacity-70">you</span>
+              </li>
             ) : (
-              (p.name ?? `Player ${p.seat + 1}`)
-            )}
-          </li>
-        ))}
-      </ul>
-      <p>
-        Bots: <button onClick={() => setBots(Math.max(0, bots - 1))}>−</button> {bots} <button onClick={() => setBots(Math.min(5 - players.length, bots + 1))}>+</button>
-      </p>
-      <button disabled={total < 2 || total > 5} onClick={() => start({ table, players: players.map((p) => p._id), bots })}>
-        Deal {total} players
-      </button>
-    </section>
+              <li key={p._id} className={row}>
+                {p.name ?? `Player ${p.seat + 1}`}
+              </li>
+            ),
+          )}
+          {Array.from({ length: bots }, (_, i) => (
+            <li key={`bot${i}`} className={row}>
+              <span className="flex-1">🤖 Bot</span>
+              <button className="bg-white/15 px-2 py-0.5 text-sm text-white" aria-label="Remove bot" onClick={() => setBots(bots - 1)}>
+                Remove
+              </button>
+            </li>
+          ))}
+          {total < 5 && (
+            <li>
+              <button className="w-full border-2 border-dashed border-white/30 bg-transparent py-2 text-white/80" onClick={() => setBots(bots + 1)}>
+                + Add a bot
+              </button>
+            </li>
+          )}
+        </ul>
+        <button className="mt-5 w-full bg-[gold] py-2 text-lg font-bold" disabled={total < 2} onClick={() => start({ table, players: players.map((p) => p._id), bots })}>
+          Deal {total} players
+        </button>
+      </section>
+    </div>
   );
 }
