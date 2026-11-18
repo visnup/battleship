@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, statSync } from "node:fs";
+import { appendFileSync, closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { availableParallelism, loadavg } from "node:os";
 import { parseArgs } from "node:util";
@@ -126,10 +126,22 @@ function events(real: string) {
 }
 
 const CORES = availableParallelism();
-const usage: { t: number; cores: number; load: number }[] = [];
+type Usage = { t: number; cores: number; load: number };
+// kept in a file beside the log, so restarting this page doesn't lose it
+const USAGE = `dataset/r${args.round}/usage.jsonl`;
+const recent = (u: Usage) => Date.now() - u.t < 2 * 3600e3;
+const usage: Usage[] = existsSync(USAGE)
+  ? readFileSync(USAGE, "utf8")
+      .trim()
+      .split("\n")
+      .map((l) => JSON.parse(l))
+      .filter(recent)
+  : [];
 const sample = () => {
-  usage.push({ t: Date.now(), cores: working(), load: loadavg()[0] });
-  if (usage.length > 240) usage.shift();
+  const u = { t: Date.now(), cores: working(), load: loadavg()[0] };
+  usage.push(u);
+  appendFileSync(USAGE, JSON.stringify(u) + "\n");
+  while (!recent(usage[0])) usage.shift();
 };
 
 // The chart is drawn in the page by Observable Plot: cores used and the load over the last two
