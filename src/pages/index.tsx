@@ -28,6 +28,7 @@ export default function Home() {
         <button className="primary w-full py-2 text-lg" onClick={() => router.push(`/${randomWord()}`)}>
           Start a table
         </button>
+        <p className="mt-6 mb-0 text-xs opacity-50">A fan-made game, not affiliated with or endorsed by Hasbro. Monopoly Deal is a trademark of Hasbro.</p>
       </section>
     </main>
   );

@@ -105,9 +105,15 @@
       "Stalled games". Count its stalls at 5 players against the pacifist's 68 in 100,000, and
       see which of its rules matter most.
 - [ ] Online play (Next and Convex, `pnpm dev`): works with default-player bots, deployed at
-      monopoly.visnup.com (Vercel project `visnu/monopoly-deal`, 2026-11-17). Still to do: names,
-      and harder bots and hints: the learned player is stronger at 2 and 3 players than quick
-      playouts and takes about 4 ms a game.
+      monopoly.visnup.com (Vercel project `visnu/monopoly-deal`, 2026-11-17). Still to do: harder
+      bots and hints: the learned player is stronger at 2 and 3 players than quick playouts and
+      takes about 4 ms a game.
+      - [ ] Rename the site if Hasbro objects to the name: "Monopoly Deal" is their trademark, and
+            the start page says the site isn't affiliated with them. Planned name Landlord's Hand
+            (after The Landlord's Game) at landlords.visnup.com, with monopoly.visnup.com
+            redirecting. The page title, the start page and lobby headings, and the domain, about
+            an hour. Fan versions that kept the name seem to be left alone; Hasbro has sent
+            cease-and-desists over online Scrabble and My Little Pony fan games.
       - [ ] Pick a wild's color when laying it down, and move it on your own turn without using
             a play. Today `moves()` lists one place move per wild (its first color), and
             `arrange` then moves every wild to its best color after each play, for people as
