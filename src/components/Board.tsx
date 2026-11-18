@@ -227,13 +227,13 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     return (
       <div className="relative">
         <div className="flex items-end gap-[0.8em]">
-          <div className="min-w-0">
+          <div className="flex-1">
             {hand(
               (i) => setPicked(i === picked ? undefined : i),
               (i) => i === picked,
             )}
           </div>
-          <div className="flex flex-1 shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.6em] text-sm">
+          <div className="flex shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.6em] text-sm">
             <span>
               {prompt.left} play{prompt.left === 1 ? "" : "s"} left
             </span>
