@@ -306,22 +306,26 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
 function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined; glow: Set<CardType> }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   // every set, full or started, in the table's order
+  let fulls = 0;
   const pills = colors.flatMap((c) => {
     const full = fullSets(game, p, c);
     const rest = count(p, c) - full * size(c);
-    return [...Array.from({ length: full }, () => ({ c, n: size(c), full: true })), ...(rest ? [{ c, n: Math.min(rest, size(c)), full: false }] : [])];
+    return [...Array.from({ length: full }, () => ({ c, n: size(c), full: true, nth: ++fulls })), ...(rest ? [{ c, n: Math.min(rest, size(c)), full: false, nth: 0 }] : [])];
   });
   return (
     <section className={`seat flex flex-col gap-[0.5em] ${current ? "current" : ""}`}>
       <h2 className="m-0 flex items-baseline justify-between text-base font-bold">
         {name} {!mine && <small className="label">{p.hand.length} in hand</small>}
       </h2>
-      <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em]">
-        {pills.map(({ c, n, full }, k) => (
-          <span key={k} title={full ? `${colorName(c)}: full set` : `${colorName(c)}: ${n} of ${size(c)}`} className={`flex overflow-hidden rounded-full ${full ? "full" : "outline outline-white/50"}`}>
-            {Array.from({ length: size(c) }, (_, i) => (
-              <span key={i} className="h-[0.7em] w-[0.6em] bg-white/20 not-first:border-l not-first:border-white/50" style={i < n ? { background: PAINT[c] } : undefined} />
-            ))}
+      <div className="flex flex-wrap items-start gap-x-[0.6em] gap-y-[0.3em]">
+        {pills.map(({ c, n, full, nth }, k) => (
+          <span key={k} className="flex flex-col items-center">
+            <span title={full ? `${colorName(c)}: full set` : `${colorName(c)}: ${n} of ${size(c)}`} className={`flex overflow-hidden rounded-full ${full ? "full" : "outline outline-white/50"}`}>
+              {Array.from({ length: size(c) }, (_, i) => (
+                <span key={i} className="h-[0.7em] w-[0.6em] bg-white/20 not-first:border-l not-first:border-white/50" style={i < n ? { background: PAINT[c] } : undefined} />
+              ))}
+            </span>
+            {full && <span className="mt-[0.2em] text-[0.65em] leading-none opacity-70">{nth}/3</span>}
           </span>
         ))}
       </div>
