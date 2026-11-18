@@ -1,10 +1,11 @@
 import { useRouter } from "next/router";
 import type { Card as CardType } from "../cards.ts";
 import { Card } from "../components/Card";
+import { onStreet } from "../streets.ts";
 import { randomWord } from "../words.ts";
 
 const FAN: CardType[] = [
-  { kind: "property", color: "darkBlue", value: 4 },
+  onStreet({ kind: "property", color: "darkBlue", value: 4 }, "Boardwalk"),
   { kind: "action", action: "slyDeal", value: 3 },
   { kind: "action", action: "dealBreaker", value: 5 },
   { kind: "action", action: "justSayNo", value: 4 },

@@ -27,3 +27,6 @@ export function nameStreets(game: Game) {
 }
 
 export const street = (c: Card) => names.get(c);
+
+/** `c`, named for one street. */
+export const onStreet = (c: Card, name: string) => (names.set(c, name), c);
