@@ -350,7 +350,7 @@ function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Pla
         ))}
       </Scroller>
       <div className="label">{money(`$${banked(p)}M`)} banked</div>
-      <Scroller className="min-h-[5.36rem] *:not-first:-ml-[2.25rem]">
+      <Scroller className="min-h-[calc(5.355rem_+_16px)] *:not-first:-ml-[2.25rem]">
         {p.bank.map((c, i) => (
           <Card key={i} card={c} banked glow={glow.has(c)} />
         ))}
