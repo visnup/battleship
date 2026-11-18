@@ -18,7 +18,7 @@ export default function Home() {
       <section className="panel w-full max-w-sm px-6 pt-10 pb-6 text-center">
         <div className="mb-6 flex justify-center" aria-hidden>
           {FAN.map((card, i) => (
-            <div key={i} className="-mx-0.5 origin-bottom" style={{ transform: `rotate(${(i - 2) * 8}deg) translateY(${Math.abs(i - 2) ** 2 * 4}px)` }}>
+            <div key={i} className="-mx-3 origin-bottom" style={{ transform: `rotate(${(i - 2) * 9}deg) translateY(${Math.abs(i - 2) * 6}px)` }}>
               <Card card={card} />
             </div>
           ))}
