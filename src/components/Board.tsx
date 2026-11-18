@@ -4,7 +4,7 @@ import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, moves, type Move, payable, type Player, rent, size } from "../game.ts";
 import { type Choice, choose, type Ref, ref, replay, setup } from "../replay.ts";
-import { Card, colorName, label } from "./Card";
+import { Card, colorName, label, Slot } from "./Card";
 
 type Props = { game: Doc<"games"> & { log: Choice[] }; me: Id<"players"> };
 
@@ -146,6 +146,9 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
       <div className="flex flex-wrap gap-[0.6em]">
         {colors.map((c) => (
           <div key={c} className={`flex flex-col self-start *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
+            {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
+              <Slot key={`s${i}`} color={c} />
+            ))}
             {p.props
               .filter((x) => x.color === c)
               .map((x, i) => (
