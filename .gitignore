@@ -16,5 +16,5 @@ test-results
 __pycache__
 dataset/r[0-9]*
 .env*
-dataset/sayno
-dataset/discard
+dataset/sayno*
+dataset/discard*

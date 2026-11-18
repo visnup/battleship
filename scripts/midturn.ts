@@ -1,4 +1,5 @@
 import { defaultPolicy, Game, mulberry32, type Policy, shuffle } from "../src/game.ts";
+import { discarded, paid, said } from "../src/learned.ts";
 import { chance } from "../src/strategies.ts";
 
 // Playouts at decisions that come mid-turn, often someone else's: payments, Just Say No and
@@ -13,14 +14,17 @@ type Args<H extends Hook> = Parameters<Policy[H]>;
 type Result<H extends Hook> = ReturnType<Policy[H]>;
 class Stop {}
 
-/** Plays game `seed` with default players, calling `see` at each of seat 0's `hook` decisions that `counts`. */
-export function watch<H extends Hook>(hook: H, players: number, seed: number, first: number, counts: (...a: Args<H>) => boolean, see: (k: number, ...a: Args<H>) => void) {
+/** The default player, except paying, saying no and discarding by the learned models. */
+export const learnedSeat = (): Policy => ({ ...defaultPolicy, pay: paid(), sayNo: said(), discard: discarded() });
+
+/** Plays game `seed` with default players, seat 0 by `seat`, calling `see` at each of seat 0's `hook` decisions that `counts`. */
+export function watch<H extends Hook>(hook: H, players: number, seed: number, first: number, counts: (...a: Args<H>) => boolean, see: (k: number, ...a: Args<H>) => void, seat = defaultPolicy) {
   let k = 0;
   const watcher = {
-    ...defaultPolicy,
+    ...seat,
     [hook](...a: Args<H>) {
       if (counts(...a)) see(k++, ...a);
-      return (defaultPolicy[hook] as (...a: Args<H>) => Result<H>)(...a);
+      return (seat[hook] as (...a: Args<H>) => Result<H>)(...a);
     },
   } as Policy;
   new Game({ players, rng: mulberry32(seed), policies: Array.from({ length: players }, (_, j) => (j === 0 ? watcher : defaultPolicy)), first }).run();
@@ -30,7 +34,7 @@ export function watch<H extends Hook>(hook: H, players: number, seed: number, fi
  * Seat 0's chance two rounds after its `k`th counted `hook` decision in game `seed`, made by
  * `decide`, with what seat 0 can't see reshuffled by `shuffleSeed`.
  */
-export function replay<H extends Hook>(hook: H, players: number, seed: number, first: number, counts: (...a: Args<H>) => boolean, k: number, decide: (...a: Args<H>) => Result<H>, shuffleSeed: number): number {
+export function replay<H extends Hook>(hook: H, players: number, seed: number, first: number, counts: (...a: Args<H>) => boolean, k: number, decide: (...a: Args<H>) => Result<H>, shuffleSeed: number, seat = defaultPolicy): number {
   let n = 0;
   let limit = Infinity;
   const timed: Policy = {
@@ -41,9 +45,10 @@ export function replay<H extends Hook>(hook: H, players: number, seed: number, f
     },
   };
   const seat0 = {
-    ...timed,
+    ...seat,
+    move: timed.move,
     [hook](...a: Args<H>) {
-      if (!counts(...a) || n++ !== k) return (defaultPolicy[hook] as (...a: Args<H>) => Result<H>)(...a);
+      if (!counts(...a) || n++ !== k) return (seat[hook] as (...a: Args<H>) => Result<H>)(...a);
       const [game, p] = a as unknown as [Game, Game["players"][number]];
       const rng = mulberry32(shuffleSeed);
       game.rng = rng;

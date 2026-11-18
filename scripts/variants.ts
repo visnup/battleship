@@ -32,7 +32,7 @@ import {
   type Step,
   type Target,
 } from "../src/game.ts";
-import { discarded, said } from "../src/learned.ts";
+import { discarded, paid, said } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { header } from "./table.ts";
 import { build, chance, headToHead, STRATEGIES, translate } from "../src/strategies.ts";
@@ -229,6 +229,9 @@ const breakNearest =
     return pick ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
   };
 
+/** The pay, Just Say No and discard models fit to playouts where seat 0 already decides all three by the learned models (`--learned`). */
+const RETRAINED = Object.fromEntries(["pay", "sayno", "discard"].map((m) => [m, new URL(`../dataset/${m}-learned.json`, import.meta.url).pathname]));
+
 /** `step`, only after the first `rounds` rounds. */
 const after =
   (rounds: number, step: Step): Step =>
@@ -323,6 +326,12 @@ export const VARIANTS: Record<string, () => Policy> = {
   "pay from the bank with the fewest cards, then the most change": () => ({ ...defaultPolicy, pay: payFewest(true) }),
   "Just Say No by the learned model": () => ({ ...defaultPolicy, sayNo: said() }),
   "discard by the learned model": () => ({ ...defaultPolicy, discard: discarded() }),
+  "pay, Just Say No and discard by the learned models": () => ({ ...defaultPolicy, pay: paid(), sayNo: said(), discard: discarded() }),
+  "pay, Just Say No and discard by models retrained with them": () => ({ ...defaultPolicy, pay: paid(RETRAINED.pay), sayNo: said(RETRAINED.sayno), discard: discarded(RETRAINED.discard) }),
+  "pay by the learned model": () => ({ ...defaultPolicy, pay: paid() }),
+  "pay by the retrained model":() => ({ ...defaultPolicy, pay: paid(RETRAINED.pay) }),
+  "Just Say No by the retrained model": () => ({ ...defaultPolicy, sayNo: said(RETRAINED.sayno) }),
+  "discard by the retrained model": () => ({ ...defaultPolicy, discard: discarded(RETRAINED.discard) }),
   "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),
   "never counter a Just Say No": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => game.players[game.current] !== p && defaultPolicy.sayNo(game, p, move, from) }),
   "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),
