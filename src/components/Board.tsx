@@ -147,15 +147,11 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
             ))}
             {p.built
               .filter((x) => x.color === c)
-              .map((x, i) => (
-                <Card key={`b${i}`} card={x.card} />
-              ))
+              .map((x, i) => <Card key={`b${i}`} card={x.card} />)
               .reverse()}
             {p.props
               .filter((x) => x.color === c)
-              .map((x, i) => (
-                <Card key={i} card={x.card} rent={COLORS[c].rent[i % size(c)]} />
-              ))
+              .map((x, i) => <Card key={i} card={x.card} rent={COLORS[c].rent[i % size(c)]} />)
               .reverse()}
           </div>
         ))}
@@ -200,6 +196,23 @@ function describe(game: Game, p: Player, m: Move, who: (n: number) => string): s
   }
 }
 
+/** A move as a button, under a heading it shares with others when there's a choice of whom or what. */
+function option(game: Game, p: Player, m: Move, who: (n: number) => string): { group?: string; label: string } {
+  const t = target(m);
+  if (t === undefined) return { label: describe(game, p, m, who) };
+  const card = (x: { card: Parameters<typeof label>[0]; color: string }) => `${label(x.card)}${x.card.kind === "wild" ? ` (${colorName(x.color)})` : ""}`;
+  if (m.type === "action" && m.card.kind === "action")
+    switch (m.card.action) {
+      case "slyDeal":
+        return { group: `Sly Deal from ${who(t)}`, label: card(m.take!) };
+      case "forcedDeal":
+        return { group: `Take ${who(t)}'s ${card(m.take!)}`, label: `for your ${card(m.give!)}` };
+      case "dealBreaker":
+        return { group: `Deal Breaker on ${who(t)}`, label: `${colorName(m.color!)} set` };
+    }
+  return { group: describe(game, p, m, () => "\0").replace(/ (to|from) \0/, ""), label: who(t) };
+}
+
 function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: NonNullable<ReturnType<typeof replay>["prompt"]>; who: (n: number) => string; send: (c: Choice) => void }) {
   const [picked, setPicked] = useState<number>();
   const [chosen, setChosen] = useState<Set<string>>(() => {
@@ -237,24 +250,29 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
         {picked !== undefined && (
           <div className={`${panel} grid grid-cols-2 items-end gap-[0.6em] sm:grid-cols-4`}>
             {list.length ? (
-              [...Map.groupBy(list, (m) => (target(m) === undefined ? describe(game, p, m, who) : describe(game, p, m, () => "\0").replace(/ (to|from) \0|\0's /g, "")))].map(([text, ms]) => {
+              [
+                ...Map.groupBy(
+                  list.map((m) => ({ m, ...option(game, p, m, who) })),
+                  (o) => o.group ?? o.label,
+                ),
+              ].map(([text, os]) => {
                 const play = (m: Move) => () => {
                   const c = choose(game, p, { ...m, card: p.hand[picked] } as Move);
                   setPicked(undefined);
                   send({ kind: "move", seat: p.seat, move: c });
                 };
-                return target(ms[0]) === undefined ? (
-                  ms.map((m, i) => (
-                    <button key={`${text}${i}`} className="mb-[0.4em] justify-self-center" onClick={play(m)}>
+                return os[0].group === undefined ? (
+                  os.map((o, i) => (
+                    <button key={`${text}${i}`} className="mb-[0.4em] justify-self-center" onClick={play(o.m)}>
                       {money(text)}
                     </button>
                   ))
                 ) : (
                   <div key={text} className="flex flex-wrap items-center justify-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
                     <span className="w-full px-[0.3em]">{money(text)}</span>
-                    {ms.map((m, i) => (
-                      <button key={i} onClick={play(m)}>
-                        {who(target(m)!)}
+                    {os.map((o, i) => (
+                      <button key={i} onClick={play(o.m)}>
+                        {o.label}
                       </button>
                     ))}
                   </div>
