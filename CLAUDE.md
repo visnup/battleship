@@ -6,7 +6,8 @@ the TypeScript directly, and the engine has no dependencies.
 The rules are the 2023 US edition's sheet (G0351, `rules/g0351.pdf`), which settles three
 things the 2014 sheet (B0965, `rules/b0965-*.jpg`) left open or read otherwise. Neither is
 committed. Most of `README.md` was measured under B0965; switching changed the first player's
-share by at most 0.3 points and games by 0.2 turns, so it wasn't rerun. The deck in `src/cards.ts` follows its contents list, with values and rent tables
+share by at most 0.3 points and games by 0.2 turns, so it wasn't rerun. The deck in
+`src/cards.ts` follows B0965's contents list (G0351's has none), with values and rent tables
 from photos of one card of each property color and each wild (`rules/properties.jpg`,
 `rules/wilds.jpg`).
 

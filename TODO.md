@@ -192,25 +192,23 @@
             on the same deals its values correlate 0.99 and 0.78 with everyone paying that way
             (default paying: 0.97 and 0.75). Round 4's data took 3.5 and 6.6 minutes at 2 and
             3 players, against round 3's 15 and 37.
-            `scripts/round.sh` runs a round. Round 4 (started 2026-11-17) is three variants from
-            round 3, each compared with it on the same deals, to see which way to spend the
-            labeling: 4a plain (5,000 games, 32 deals), 4b 10,000 games on 16 deals, 4c 10,000
-            games with half the decisions labeled (`--label 0.5`). Models land in
-            `dataset/model-r4a.json` and so on. This run predates `round.sh`, so its compares
-            print to the task log (`/private/tmp/claude-501/-Users-visnup-Developer-visnup/fa910614-8ef4-4a1f-b390-cd32857ed97d/tasks/bxjvdv1ms.output`),
-            not `dataset/r4a/`; if that's gone, rerun `node scripts/compare.ts
-            dataset/model-r3.json dataset/model-r4a.json --n 50000` for each. Adopt the winner
-            into `src/model.json` and the README's rounds table (then `node scripts/charts.ts`).
-            4a tied round 3: +0.1, −0.1, +0.2 and +0.3 (±0.3–0.4), and as playouts' filter +0.2
-            ±0.9 at 2 players and −0.3 ±1.2 at 5.
+            `scripts/round.sh` runs a round. Round 4 (2026-11-17, under the B0965 rules) tried
+            three ways to spend the labeling, each against round 3 on the same deals (±0.3–0.4):
+            4a plain (5,000 games, 32 deals) +0.1, −0.1, +0.2, +0.3; 4b 10,000 games on 16 deals
+            +0.4, +0.3, +0.5, +0.6; 4c 10,000 games with half the decisions labeled
+            (`--label 0.5`) 0.0, +0.2, +0.6, +0.2. 4b gains at every count (about 2.5 se at 2,
+            4 and 5) and is adopted: more decisions beat less noise per decision. Each took about
+            40 minutes of data. As playouts' filter all three tie (±0.9 at 2, ±1.2 at 5). Later
+            rounds should use `DEALS=16 GAMES=10000`, and maybe try 8 deals and 20,000 games.
             **The loop is near its limit as set up** (fits the data, not tested). Rounds gained
             only when the labels changed: round 1 over round 0, and round 3, the first with the
-            learned payer in the playouts. Rounds 2 and 4a, the same recipe again, tied. Every
+            learned payer in the playouts, and a little in 4b with cheaper labels. Rounds 2 and 4a,
+            the same recipe again, tied. Every
             label asks which move is best if the default then plays two rounds, so iterating
             converges on the best one-step deviation from the default, however strong the player
             generating the games. As playouts' filter, no round since 1 has gained. Held out, the
-            model gains +0.4 to +0.7 a decision against a noisy ceiling of +1.8 to +3.5, which
-            4b and 4c probe as label noise. More rounds of the same recipe aren't worth running;
+            model gains +0.4 to +0.7 a decision against a noisy ceiling of +1.8 to +3.5; 4b says
+            some of that was too few decisions, not too noisy labels. More rounds of the same recipe aren't worth running;
             stronger rollouts are, if they stay cheap like the learned payer (the learned player
             inside the playouts was 9–20× slower for no gain). In order:
       - [ ] Mine the latest model for rules, as round 0 gave two: where it overrules the

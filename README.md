@@ -371,13 +371,17 @@ trees are fit to that round and the one before. Round 0 is the trees above.
 | 1 | 57.7% | 44.6% | 37.7% | 32.6% |
 | 2 | 57.6% | 44.5% | 37.3% | 32.2% |
 | 3 | 58.1% | 46.1% | 39.4% | 34.6% |
+| 4 | 58.5% | 46.4% | 39.9% | 35.2% |
 
 ![The learned player's wins in fair shares after each round](charts/rounds.svg)
 
 All on the same 50,000 deals against the default in every other seat (`scripts/compare.ts`),
 where two rounds differ by ±0.35 to ±0.46 points. Round 1 played 10,000 games a player count,
 round 2 2,500, and round 3 5,000 with the playouts paying by the learned payer (`src/pay.json`).
-Ranked playouts gain nothing from rounds 2 and 3 (±1 to ±1.4 at 4,000 games).
+Round 4 played 10,000 on 16 shuffles a move instead of 32, with only the mover paying that way.
+That beat 5,000 games on 32 (+0.1 to +0.3) and 10,000 with half the decisions played out (0 to
++0.6), each against round 3: more decisions beat less noise in each. Ranked playouts gain nothing
+from rounds 2 to 4 (±1 to ±1.4 at 4,000 games).
 
 ## What each card is worth
 

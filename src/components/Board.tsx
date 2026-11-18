@@ -286,7 +286,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
   return (
     <div>
       <p>
-        Put {prompt.n} card{prompt.n === 1 ? "" : "s"} back under the deck.{" "}
+        Discard {prompt.n} card{prompt.n === 1 ? "" : "s"}.{" "}
         <button disabled={cards.length !== prompt.n} onClick={() => send({ kind: "discard", seat: p.seat, cards })}>
           Done
         </button>
