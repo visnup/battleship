@@ -145,16 +145,18 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
             {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
               <Slot key={`s${i}`} color={c} rent={COLORS[c].rent[size(c) - 1 - i]} />
             ))}
-            {p.props
-              .filter((x) => x.color === c)
-              .map((x, i) => (
-                <Card key={i} card={x.card} rent={COLORS[c].rent[i % size(c)]} />
-              ))}
             {p.built
               .filter((x) => x.color === c)
               .map((x, i) => (
                 <Card key={`b${i}`} card={x.card} />
-              ))}
+              ))
+              .reverse()}
+            {p.props
+              .filter((x) => x.color === c)
+              .map((x, i) => (
+                <Card key={i} card={x.card} rent={COLORS[c].rent[i % size(c)]} />
+              ))
+              .reverse()}
           </div>
         ))}
       </div>
