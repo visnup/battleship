@@ -295,9 +295,15 @@ learned fits in a sentence:
 - **Say no to whatever costs you, and counter a No against your own play.** Never countering
   loses 0.5 to 0.6 points, and saving a Just Say No for a Deal Breaker loses (above). Letting a
   Debt Collector through is even. The learned model gains 1.0 to 1.6 points on top.
-- **Discard by more than value.** The learned discard gains 0.4 to 1.5 points, and disagrees with
-  the default on 82% to 86% of discards at 3–5 players. What it does differently hasn't been
-  pinned down.
+- **At 3+ players, discard money before Rent cards.** Where the learned discard overrules the
+  default (`scripts/overruled.ts`), it most often keeps a Rent card and gives up a $1M or $2M
+  bill instead, or at 5 players a loose property or a Pass Go. As a rule, keeping Rent cards over
+  money gains 0.3, 0.6 and 0.9 points at 3–5 players (400,000 games) and loses 0.3 at 2, so the
+  default now does it at 3+. That's about half to two-thirds of what the learned discard gains.
+- **The learned Just Say No's changes don't make rules.** It lets a Debt Collector through and,
+  at 5 players, says no to more rent and to Birthday. Saying no to rent of $3M or $4M or more
+  instead of $5M, with or without letting Debt Collector through, ties the default or loses up
+  to 0.4 points.
 - **Keep track of what's been played.** The move model that also counts the Just Say Nos, Deal
   Breakers and other actions still unseen wins up to a point more at 5 players. No rule built on
   that has been tried.

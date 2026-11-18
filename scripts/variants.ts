@@ -356,7 +356,8 @@ export const VARIANTS: Record<string, () => Policy> = {
   ...Object.fromEntries(
     [3, 4].flatMap((min) => [false, true].map((letDebt) => [`say no to rent of $${min}M or more${letDebt ? ", and let Debt Collector through" : ""}`, (): Policy => ({ ...defaultPolicy, sayNo: rentNo(min, letDebt) })])),
   ),
-  "discard money before Rent cards": () => ({ ...defaultPolicy, discard: discardBy({ rent: 1.5 }) }),
+  "discard money before Rent cards, at 2 players too": () => ({ ...defaultPolicy, discard: discardBy({ rent: 1.5 }) }),
+  "discard Rent cards before money (previous)": () => ({ ...defaultPolicy, discard: discardBy({ rent: 0 }) }),
   "discard $1M and $2M before Rent cards": () => ({ ...defaultPolicy, discard: discardBy({ rent: 0.75, small: 0.5 }) }),
   "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),

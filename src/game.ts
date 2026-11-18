@@ -758,8 +758,14 @@ export const defaultPolicy: Policy = {
     return move.card.kind === "action" && move.card.action === "debtCollector";
   },
 
+  /**
+   * The least useful cards: other actions, then money, smallest first. At 3+ players Rent cards
+   * outlast money: +0.3 to +0.9 points at 3–5 players, −0.3 at 2 (`variants.ts`, 400,000 games),
+   * found where the learned discard overrules this (`overruled.ts`).
+   */
   discard(game, p, n) {
-    const keep = (c: Card) => (c.kind === "property" || c.kind === "wild" ? 3 : isAction(c, "justSayNo") || isAction(c, "dealBreaker") ? 2 : c.kind === "money" ? 1 : 0);
+    const rents = game.players.length >= 3 ? 1.5 : 0;
+    const keep = (c: Card) => (c.kind === "property" || c.kind === "wild" ? 3 : isAction(c, "justSayNo") || isAction(c, "dealBreaker") ? 2 : c.kind === "rent" ? rents : c.kind === "money" ? 1 : 0);
     return [...p.hand].sort((a, b) => keep(a) - keep(b) || a.value - b.value).slice(0, n);
   },
 };

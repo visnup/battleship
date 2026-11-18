@@ -110,6 +110,19 @@ test("over 7 cards at the end of a turn are discarded", () => {
   assert.equal(game.pile.at(-1)?.kind, "action");
 });
 
+test("the default discards Rent cards before money at 2 players, and money first at 3+", () => {
+  const rentCard: Card = { kind: "rent", colors: ["red", "yellow"], value: 1 };
+  for (const [players, gone] of [
+    [2, "rent"],
+    [3, "money"],
+  ] as const) {
+    const game = setup(players);
+    const p = game.players[0];
+    p.hand = [rentCard, money(1)];
+    assert.equal(defaultPolicy.discard(game, p, 1)[0].kind, gone);
+  }
+});
+
 test("a clone plays out without changing the game it came from", () => {
   const game = new Game({ players: 3, rng: mulberry32(7) });
   for (let i = 0; i < 6; i++) game.turn(game.players[i % 3]);
