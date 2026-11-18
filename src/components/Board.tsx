@@ -36,16 +36,27 @@ const gives = (seat: number, m: Move) => (m.type === "action" && m.give ? slot(s
 
 /** The log with a heading for each turn, and the mover's own lines without their name. */
 function turns(log: string[], who: (n: number) => string) {
-  const entries: { turn: boolean; text: string }[] = [];
+  const entries: { turn: boolean; text: string; line: number }[] = [];
   let mover = -1;
-  for (const line of log) {
-    const t = line.match(/^turn (\d+): P(\d) (.*)/);
+  log.forEach((text, line) => {
+    const t = text.match(/^turn (\d+): P(\d) (.*)/);
     if (t) {
       mover = Number(t[2]);
-      entries.push({ turn: true, text: `Turn ${t[1]}: ${who(mover)}` }, { turn: false, text: t[3] });
-    } else entries.push({ turn: false, text: line.startsWith(`P${mover} `) ? line.slice(3) : line });
-  }
+      entries.push({ turn: true, text: `Turn ${t[1]}: ${who(mover)}`, line }, { turn: false, text: t[3], line });
+    } else entries.push({ turn: false, text: text.startsWith(`P${mover} `) ? text.slice(3) : text, line });
+  });
   return entries;
+}
+
+/** How many of a game's decisions it takes for its log to reach `line`. */
+function decisionsTo(game: Props["game"], line: number) {
+  let [lo, hi] = [0, game.log.length];
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if ((replay(setup(game), game.log.slice(0, mid)).game.log?.length ?? 0) > line) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo;
 }
 
 export function Board({ game, me }: Props) {
@@ -77,8 +88,15 @@ export function Board({ game, me }: Props) {
     const interval = setInterval(() => replaceGone({ game: game._id }), 10e3);
     return () => clearInterval(interval);
   }, [waiting, replaceGone, game._id]);
-  const g = state.game;
-  const entries = turns(g.log ?? [], who);
+  // A past board, replayed up to the decision that wrote the log line clicked
+  const [past, setPast] = useState<{ decisions: number; line: number }>();
+  const view = useMemo(() => (past ? replay(setup(game), game.log.slice(0, past.decisions)) : state), [past, game, state]);
+  const g = view.game;
+  const entries = turns(state.game.log ?? [], who);
+  const visit = (line: number) => {
+    const decisions = decisionsTo(game, line);
+    setPast(decisions >= game.log.length ? undefined : { decisions, line });
+  };
   const [steal, setSteal] = useState<Steal>();
   const pick =
     steal &&
@@ -96,14 +114,15 @@ export function Board({ game, me }: Props) {
         </div>
         {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className={`${deck} ${empty}`}>Discard</span>}
         <ul className="m-0 h-[5.4rem] list-none overflow-y-auto p-0 text-[small] opacity-80" ref={log}>
-          {entries.map(({ turn, text }, i) => (
+          {entries.map(({ turn, text, line }, i) => (
             <li
               key={i}
-              className={
+              onClick={() => visit(line)}
+              className={`cursor-pointer hover:bg-white/10 ${past?.line === line && !turn ? "bg-white/20" : ""} ${
                 turn
                   ? "mt-[0.3em] flex items-center gap-[0.5em] font-semibold first:mt-0 before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
-                  : undefined
-              }
+                  : ""
+              }`}
             >
               {turn
                 ? text
@@ -120,13 +139,17 @@ export function Board({ game, me }: Props) {
       </section>
       <div className="mb-[9em] grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {others.map((n) => (
-          <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={false} pick={pick} />
+          <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!view.result && g.current === n} mine={false} pick={past ? undefined : pick} />
         ))}
-        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={who(seat)} current={!result && g.current === seat} mine pick={pick} />}
+        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={who(seat)} current={!view.result && g.current === seat} mine pick={past ? undefined : pick} />}
       </div>
       <section className="sticky bottom-0 z-10 rounded-[0.6em] bg-[#123f2c] text-white shadow-[0_-4px_12px_rgba(0,0,0,0.3)]">
         <div className="px-[0.8em] pb-[0.6em]">
-          {result ? (
+          {past ? (
+            <p className="flex items-center justify-between">
+              Viewing the board after an earlier play. <button onClick={() => setPast(undefined)}>Back to now</button>
+            </p>
+          ) : result ? (
             <p>{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
           ) : prompt && prompt.seat === seat ? (
             <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} steal={steal} setSteal={setSteal} />
