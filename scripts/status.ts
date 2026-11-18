@@ -21,6 +21,19 @@ const AFTER = [
   ["done", 0],
 ] as const;
 
+/** How far along a stage after the data is, from what it has written, when that says. */
+const trees = (file: string) => {
+  const done = existsSync(file) && [...readFileSync(file, "utf8").matchAll(/^\[(\d+)\]/gm)].at(-1);
+  return done ? Number(done[1]) / 1000 : undefined;
+};
+const lines = (file: string, re: RegExp) => (existsSync(file) ? (readFileSync(file, "utf8").match(re)?.length ?? 0) : 0);
+const PROGRESS: Record<string, () => number | undefined> = {
+  extract: () => (existsSync(`dataset/features-r${args.round}`) ? readdirSync(`dataset/features-r${args.round}`).length / (256 * 4 * 3) : 0),
+  train: () => trees(`dataset/r${args.round}/trees.txt`),
+  "compare learned": () => lines(`dataset/r${args.round}/compare.txt`, /^learned, /gm) / 4,
+  "trained on its own data alone": () => trees(`dataset/r${args.round}/trees-only.txt`),
+};
+
 /** Games finished in each shard of `players`, from the game number on its last row. */
 function played(players: number) {
   if (!existsSync(data)) return 0;
@@ -64,8 +77,12 @@ function status() {
   const rate = (total - g0) / ((Date.now() - t0) / 60e3);
   const left = counts.reduce((s, c) => s + (games - c.games) * c.p, 0);
   const dataDone = counts.every((c) => c.done);
-  const after = AFTER.map(([name, min]) => ({ name, min, done: real.includes(`] ${name}`) || real.includes(`: ${name}`) }));
-  const afterLeft = after.filter((a) => !a.done).reduce((s, a) => s + a.min, 0);
+  const evs = events(text.slice(text.lastIndexOf("\n", at) + 1));
+  const since = (Date.now() - (evs.at(-1)?.t ?? Date.now())) / 60e3;
+  const after = AFTER.map(([name, min]) => ({ name, min, done: real.includes(`] ${name}`) || real.includes(`: ${name}`), progress: 0 }));
+  const current = dataDone ? after.find((a) => !a.done) : undefined;
+  if (current) current.progress = Math.min(PROGRESS[current.name]?.() ?? since / current.min, 0.99);
+  const afterLeft = after.filter((a) => !a.done).reduce((s, a) => s + a.min * (1 - a.progress), 0);
   const eta = (dataDone ? 0 : rate > 0 ? left / rate : NaN) + afterLeft;
   const bar = (f: number) => `<div class="bar"><div style="width:${(100 * Math.min(1, f)).toFixed(1)}%"></div></div>`;
   const when = Number.isFinite(eta) ? new Date(Date.now() + eta * 60e3).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "…";
@@ -75,13 +92,13 @@ function status() {
     title,
     body: `<h1>Round ${args.round}: done about ${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>
 ${counts.map((c) => `${c.p} players: ${c.games.toLocaleString()} of ${games.toLocaleString()} games${c.done ? ` · ${c.minutes} min` : ""}${bar(c.games / games)}`).join("\n")}
-${after.map((a) => `<div>${a.done ? "✓" : "○"} ${a.name}</div>`).join("\n")}
+${after.map((a) => (a === current ? `<div>◐ ${a.name}</div>${bar(a.progress)}` : `<div>${a.done ? "✓" : "○"} ${a.name}</div>`)).join("\n")}
 <p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>
 <pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>
 <div><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores · <span class="key"></span>load ${now.load.toFixed(1)}</div>`,
     usage,
     cores: CORES,
-    events: events(text.slice(text.lastIndexOf("\n", at) + 1)),
+    events: evs,
   };
 }
 
