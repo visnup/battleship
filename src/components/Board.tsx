@@ -169,7 +169,7 @@ const target = (m: Move) => ("target" in m ? m.target : undefined);
 function describe(game: Game, p: Player, m: Move, who: (n: number) => string): string {
   const to = target(m) !== undefined ? who(target(m)!) : "";
   const theirs = to === "You" ? "your" : `${to}'s`;
-  if (m.type === "bank") return "Bank it";
+  if (m.type === "bank") return `Bank it, $${m.card.value}M`;
   if (m.type === "place") return m.card.kind === "action" ? `Build on ${colorName(m.color)}` : "Lay it down";
   if (m.type === "rent") {
     const amount = rent(game, p, m.color) * 2 ** m.doubles.length;
