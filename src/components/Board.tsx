@@ -180,43 +180,45 @@ export function Board({ game, me }: Props) {
       <Head>
         <title>{up ? "Your move · Monopoly Deal" : "Monopoly Deal"}</title>
       </Head>
-      <section className="panel frosted sticky top-[0.8em] z-10 flex items-start justify-center gap-[1em] p-[0.8em]">
-        <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
-          Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
-        </div>
-        {g.pile.length ? <Card key={g.pile.length} card={g.pile[g.pile.length - 1]} glow={glow.has(g.pile[g.pile.length - 1])} /> : <span className={`${deck} ${empty}`}>Discard</span>}
-        <div className="h-[5.4rem] overflow-y-auto text-sm text-white/80" ref={log}>
-          {entries.map(({ heading, line: first, lines }, i) => (
-            <section key={i}>
-              {heading && (
-                <h3
-                  onClick={() => visit(first)}
-                  className="sticky top-0 m-0 flex cursor-pointer items-center gap-[0.5em] px-[0.3em] pt-[0.3em] text-sm font-semibold before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
-                  style={{ background: "var(--bar)" }}
-                >
-                  {heading}
-                </h3>
-              )}
-              <ul>
-                {lines.map(({ text, line }) => (
-                  <li key={line} onClick={() => visit(line)} className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line ? "bg-white/20" : ""}`}>
-                    {money(
-                      text
-                        .replace(/P(\d)/g, (_, n) => who(Number(n)))
-                        .replace(/\bYou (\w+)s\b/g, "You $1")
-                        .replace(/\b(\w+) as \1\b/g, "$1")
-                        .replace(/\b(wild|rent)\(/g, (_, w) => `${w[0].toUpperCase()}${w.slice(1)} (`)
-                        .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
-                        .replace(new RegExp(`\\b(${COLOR_NAMES.join("|")})\\b`, "g"), colorName)
-                        .replace(/^./, (c) => c.toUpperCase()),
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      </section>
+      <div className="frosted sticky top-[0.8em] z-10">
+        <section className="panel flex items-start justify-center gap-[1em] p-[0.8em]">
+          <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
+            Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
+          </div>
+          {g.pile.length ? <Card key={g.pile.length} card={g.pile[g.pile.length - 1]} glow={glow.has(g.pile[g.pile.length - 1])} /> : <span className={`${deck} ${empty}`}>Discard</span>}
+          <div className="h-[5.4rem] overflow-y-auto text-sm text-white/80" ref={log}>
+            {entries.map(({ heading, line: first, lines }, i) => (
+              <section key={i}>
+                {heading && (
+                  <h3
+                    onClick={() => visit(first)}
+                    className="sticky top-0 m-0 flex cursor-pointer items-center gap-[0.5em] px-[0.3em] pt-[0.3em] text-sm font-semibold before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
+                    style={{ background: "var(--bar)" }}
+                  >
+                    {heading}
+                  </h3>
+                )}
+                <ul>
+                  {lines.map(({ text, line }) => (
+                    <li key={line} onClick={() => visit(line)} className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line ? "bg-white/20" : ""}`}>
+                      {money(
+                        text
+                          .replace(/P(\d)/g, (_, n) => who(Number(n)))
+                          .replace(/\bYou (\w+)s\b/g, "You $1")
+                          .replace(/\b(\w+) as \1\b/g, "$1")
+                          .replace(/\b(wild|rent)\(/g, (_, w) => `${w[0].toUpperCase()}${w.slice(1)} (`)
+                          .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
+                          .replace(new RegExp(`\\b(${COLOR_NAMES.join("|")})\\b`, "g"), colorName)
+                          .replace(/^./, (c) => c.toUpperCase()),
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </section>
+      </div>
       <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
           <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={n === seat} pick={past ? undefined : pick} glow={glow} />

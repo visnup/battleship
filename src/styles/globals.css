@@ -115,14 +115,15 @@
     box-shadow: 0 0 6px 1px var(--gold);
   }
 
-  /* Blurs what scrolls by around a stuck panel, fading out at the sides and below */
+  /* Holds a stuck panel, and blurs what scrolls by around it like a shadow, fading out from its edges */
   .frosted::before {
+    --fade: transparent, black 1em, black calc(100% - 1em), transparent;
     content: "";
     position: absolute;
     z-index: -1;
-    inset: -0.8em -0.8em -1.6em;
+    inset: -1em;
     backdrop-filter: blur(6px);
-    mask-image: linear-gradient(black calc(100% - 1.6em), transparent), linear-gradient(to right, transparent, black 0.8em, black calc(100% - 0.8em), transparent);
+    mask-image: linear-gradient(var(--fade)), linear-gradient(to right, var(--fade));
     mask-composite: intersect;
   }
 
