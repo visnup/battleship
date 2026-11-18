@@ -1,6 +1,6 @@
 # monopoly-deal
 
-A simulator of Hasbro's Monopoly Deal card game, in the vein of `../magical-athlete`. Node 24 runs
+A simulator of Hasbro's Monopoly Deal card game, in the vein of `../magical-athlete`. Node 26 (`.node-version`) runs
 the TypeScript directly, and the engine has no dependencies.
 
 The rules are the 2023 US edition's sheet (G0351, `rules/g0351.pdf`), which settles three
