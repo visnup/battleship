@@ -198,8 +198,9 @@
             +0.4, +0.3, +0.5, +0.6; 4c 10,000 games with half the decisions labeled
             (`--label 0.5`) 0.0, +0.2, +0.6, +0.2. 4b gains at every count (about 2.5 se at 2,
             4 and 5) and is adopted: more decisions beat less noise per decision. Each took about
-            40 minutes of data. As playouts' filter all three tie (±0.9 at 2, ±1.2 at 5). Later
-            rounds should use `DEALS=16 GAMES=10000`, and maybe try 8 deals and 20,000 games.
+            40 minutes of data. As playouts' filter all three tie (±0.9 at 2, ±1.2 at 5). That's
+            now `round.sh`'s default; 8 deals and 20,000 games is the next thing to try. The
+            model in `dataset/model-r4.json` is 4b's.
             **The loop is near its limit as set up** (fits the data, not tested). Rounds gained
             only when the labels changed: round 1 over round 0, and round 3, the first with the
             learned payer in the playouts, and a little in 4b with cheaper labels. Rounds 2 and 4a,
