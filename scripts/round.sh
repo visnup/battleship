@@ -21,7 +21,7 @@ start=$(date +%s)
 lap() { echo "  [$((($(date +%s) - start) / 60)) min] $1"; }
 (while sleep 600; do lap "$(cat $D/data-r$next/*.jsonl 2>/dev/null | wc -l | tr -d ' ') decisions so far"; done) &
 progress=$!
-trap 'kill $progress 2>/dev/null' EXIT
+trap 'kill $progress 2>/dev/null || true' EXIT
 timeout $((${HOURS:-2} * 3600)) node scripts/dataset.ts --games ${GAMES:-10000} --deals ${DEALS:-16} --model $D/model-r$prev.json --top ${TOP:-6} --pay $EXTRA --out $D/data-r$next
 { kill $progress && wait $progress; } 2>/dev/null || true
 lap data
