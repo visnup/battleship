@@ -79,6 +79,8 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `discarding.ts`: what to discard past 7, as numbers, the same way. `scripts/discarddata.ts`
   plays out each discard (in `dataset/discard/`), `learn.py … dataset/discard` fits
   `src/discard.json`, and `discarded()` in `learned.ts` discards by it.
+- `memory.ts`: card memory, what a player hasn't seen yet, appended to the move, Just Say No and
+  discard numbers. `scripts/memory.sh` refit the last two with it.
 - `scripts/table.ts`: the markdown table header the scripts print their results under.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
