@@ -216,5 +216,5 @@ export function said(file = NO): Policy["sayNo"] {
 /** The default player, except that every move is the one the model in `file` scores highest, and every payment the one `src/pay.json` does. */
 export function learned(file: string): Policy {
   const rank = ranked(file);
-  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0], pay: paid() };
+  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0], pay: paid(), sayNo: said() };
 }

@@ -119,6 +119,10 @@
             `arrange` then moves every wild to its best color after each play, for people as
             well as bots: a lone railroad/utility wild always goes to utility. People's wilds
             should skip `arrange`. Games in progress may replay differently once this ships.
+      - [ ] Show what just happened: briefly outline the card just played or taken on the
+            table, so a bot's move shows without reading the log.
+      - [ ] Laying down a wild says "Lay it down", then `arrange` picks its color. Say so on the
+            button (or its tooltip) until people can pick the color themselves.
 - [ ] Use the dataset (`scripts/dataset.ts`, on Hugging Face as `visnup/monopoly-deal`): every
       move decision of 10,000 default games at each player count, with each move's two-round
       playout value. It goes stale whenever the default player or `chance` changes, so

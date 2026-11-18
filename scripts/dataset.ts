@@ -1,7 +1,7 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game.ts";
-import { paid, ranked } from "../src/learned.ts";
+import { paid, ranked, said } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { encode, key, observe } from "../src/replay.ts";
 import { playout } from "../src/strategies.ts";
@@ -20,7 +20,7 @@ export const shardName = (players: number, seed: number) => `${players}p-${Strin
 export function shard(players: number, deals: number, model: string, top: number, pay: boolean, label: number, out: string, seed: number, n: number) {
   const rng = mulberry32(seed);
   const rank = model ? ranked(model) : null;
-  const rollout = pay ? { ...defaultPolicy, pay: paid() } : defaultPolicy;
+  const rollout = pay ? { ...defaultPolicy, pay: paid(), sayNo: said() } : defaultPolicy;
   const file = `${out}/${shardName(players, seed)}.jsonl`;
   writeFileSync(file, "");
   let decisions = 0;
