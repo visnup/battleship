@@ -36,18 +36,21 @@ const slot = (seat: number, x: Placed, set: boolean) => `${seat}:${set ? x.color
 const takes = (m: Move) => (m.type === "action" ? `${m.target}:${breaks(m) ? m.color : JSON.stringify(m.take)}` : "");
 const gives = (seat: number, m: Move) => (m.type === "action" && m.give ? slot(seat, m.give, false) : "");
 
-/** The log with a heading for each turn, and the mover's own lines without their name. */
+/** The log by turn, each with a heading, and the mover's own lines without their name. */
 function turns(log: string[], who: (n: number) => string) {
-  const entries: { turn: boolean; text: string; line: number }[] = [];
+  const groups: { heading?: string; line: number; lines: { text: string; line: number }[] }[] = [];
   let mover = -1;
   log.forEach((text, line) => {
     const t = text.match(/^turn (\d+): P(\d) (.*)/);
     if (t) {
       mover = Number(t[2]);
-      entries.push({ turn: true, text: `Turn ${t[1]}: ${who(mover)}`, line }, { turn: false, text: t[3], line });
-    } else entries.push({ turn: false, text: text.startsWith(`P${mover} `) ? text.slice(3) : text, line });
+      groups.push({ heading: `Turn ${t[1]}: ${who(mover)}`, line, lines: [{ text: t[3], line }] });
+    } else {
+      if (!groups.length) groups.push({ line, lines: [] });
+      groups.at(-1)!.lines.push({ text: text.startsWith(`P${mover} `) ? text.slice(3) : text, line });
+    }
   });
-  return entries;
+  return groups;
 }
 
 /** The game through its first `n` decisions, stopped there even when a bot is next, since replay would play bots on. */
@@ -107,7 +110,7 @@ export function Board({ game, me }: Props) {
   const decide = useMutation(api.games.decide);
   const [error, setError] = useState<string>();
   const state = useMemo(() => replay(setup(game), game.log), [game]);
-  const log = useRef<HTMLUListElement>(null);
+  const log = useRef<HTMLDivElement>(null);
   const height = useRef(0);
   const lines = state.game.log?.length;
   // follow new lines only when already at the bottom, so scrolling back through it stays put
@@ -182,32 +185,37 @@ export function Board({ game, me }: Props) {
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>
         {g.pile.length ? <Card key={g.pile.length} card={g.pile[g.pile.length - 1]} glow={glow.has(g.pile[g.pile.length - 1])} /> : <span className={`${deck} ${empty}`}>Discard</span>}
-        <ul className="h-[5.4rem] overflow-y-auto text-sm opacity-80" ref={log}>
-          {entries.map(({ turn, text, line }, i) => (
-            <li
-              key={i}
-              onClick={() => visit(line)}
-              className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line && !turn ? "bg-white/20" : ""} ${
-                turn
-                  ? "mt-[0.3em] flex items-center gap-[0.5em] font-semibold first:mt-0 before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
-                  : ""
-              }`}
-            >
-              {turn
-                ? text
-                : money(
-                    text
-                      .replace(/P(\d)/g, (_, n) => who(Number(n)))
-                      .replace(/\bYou (\w+)s\b/g, "You $1")
-                      .replace(/\b(\w+) as \1\b/g, "$1")
-                      .replace(/\b(wild|rent)\(/g, (_, w) => `${w[0].toUpperCase()}${w.slice(1)} (`)
-                      .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
-                      .replace(new RegExp(`\\b(${COLOR_NAMES.join("|")})\\b`, "g"), colorName)
-                      .replace(/^./, (c) => c.toUpperCase()),
-                  )}
-            </li>
+        <div className="h-[5.4rem] overflow-y-auto text-sm text-white/80" ref={log}>
+          {entries.map(({ heading, line: first, lines }, i) => (
+            <section key={i}>
+              {heading && (
+                <h3
+                  onClick={() => visit(first)}
+                  className="sticky top-0 m-0 flex cursor-pointer items-center gap-[0.5em] px-[0.3em] pt-[0.3em] text-sm font-semibold before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
+                  style={{ background: "var(--bar)" }}
+                >
+                  {heading}
+                </h3>
+              )}
+              <ul>
+                {lines.map(({ text, line }) => (
+                  <li key={line} onClick={() => visit(line)} className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line ? "bg-white/20" : ""}`}>
+                    {money(
+                      text
+                        .replace(/P(\d)/g, (_, n) => who(Number(n)))
+                        .replace(/\bYou (\w+)s\b/g, "You $1")
+                        .replace(/\b(\w+) as \1\b/g, "$1")
+                        .replace(/\b(wild|rent)\(/g, (_, w) => `${w[0].toUpperCase()}${w.slice(1)} (`)
+                        .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
+                        .replace(new RegExp(`\\b(${COLOR_NAMES.join("|")})\\b`, "g"), colorName)
+                        .replace(/^./, (c) => c.toUpperCase()),
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       </section>
       <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
