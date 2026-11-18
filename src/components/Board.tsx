@@ -229,7 +229,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
           </div>
         </div>
         {picked !== undefined && (
-          <div className="absolute right-0 bottom-full left-0 mb-[1.2em] grid grid-cols-2 items-start gap-[0.6em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)] sm:grid-cols-4">
+          <div className="absolute right-0 bottom-full left-0 mb-[1.2em] grid grid-cols-2 items-end gap-[0.6em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)] sm:grid-cols-4">
             {list.length ? (
               [...Map.groupBy(list, (m) => (target(m) === undefined ? describe(game, p, m, who) : describe(game, p, m, () => "\0").replace(/ (to|from) \0|\0's /g, "")))].map(([text, ms]) => {
                 const play = (m: Move) => () => {
@@ -239,7 +239,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
                 };
                 return target(ms[0]) === undefined ? (
                   ms.map((m, i) => (
-                    <button key={`${text}${i}`} className="justify-self-center" onClick={play(m)}>
+                    <button key={`${text}${i}`} className="mb-[0.4em] justify-self-center" onClick={play(m)}>
                       {money(text)}
                     </button>
                   ))
