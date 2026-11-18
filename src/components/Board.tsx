@@ -309,11 +309,11 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
         ))}
       </Scroller>
       <div className="label">{money(`$${banked(p)}M`)} banked</div>
-      <div className="flex min-h-[5.36rem] *:not-first:-ml-[2.25rem]">
+      <Scroller className="min-h-[5.36rem] *:not-first:-ml-[2.25rem]">
         {p.bank.map((c, i) => (
           <Card key={i} card={c} banked />
         ))}
-      </div>
+      </Scroller>
     </section>
   );
 }
