@@ -66,7 +66,7 @@ export function Board({ game, me }: Props) {
   const entries = turns(g.log ?? [], who);
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
-    <div className="mx-auto flex max-w-[60em] flex-col lg:max-w-[90em] gap-[0.8em] p-[0.8em]">
+    <div className="mx-auto flex max-w-[90em] flex-col gap-[0.8em] p-[0.8em]">
       <section className="flex items-start justify-center gap-[1em] rounded-[0.6em] bg-[#123f2c] px-[0.8em] py-[0.6em] shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
@@ -95,7 +95,7 @@ export function Board({ game, me }: Props) {
           ))}
         </ul>
       </section>
-      <div className="grid items-start gap-[0.8em] lg:grid-cols-2">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] items-start gap-[0.8em]">
         {others.map((n) => (
           <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={false} />
         ))}
