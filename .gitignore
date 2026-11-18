@@ -9,7 +9,6 @@ dataset/features*
 dataset/model*.json
 dataset/mlp*.json
 /.next/
-.env*.local
 .vercel
 *.tsbuildinfo
 next-env.d.ts

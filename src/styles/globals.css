@@ -2,7 +2,6 @@
 
 @theme {
   --font-sans: Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;
-  --color-bar: var(--bar);
   --color-card: var(--card);
   --color-gold: var(--gold);
 }
@@ -33,14 +32,8 @@
     color: white;
   }
 
-  p,
-  ul {
+  p {
     margin-block: 1em;
-  }
-
-  ul {
-    padding-left: 1.2em;
-    list-style: disc;
   }
 
   button {
@@ -67,6 +60,16 @@
     border-radius: 0.75rem;
     background: var(--bar);
     box-shadow: var(--shadow);
+  }
+
+  /* A card's size, shared by cards, empty slots and the draw pile; stacks overlap by multiples of it */
+  .card {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 4.5em;
+    height: 6.3em;
+    border-radius: 0.4em;
+    font-size: 0.85rem;
   }
 
   .seat {

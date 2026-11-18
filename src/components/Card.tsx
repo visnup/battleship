@@ -64,7 +64,7 @@ function explain(c: CardType): string {
 /** An empty place in a set, where its next card will stack, with the rent the set would charge then. */
 export function Slot({ color, rent }: { color: Color; rent: number }) {
   return (
-    <div className="box-border h-[6.3em] w-[4.5em] shrink-0 rounded-[0.4em] border-2 border-dashed text-center text-[0.85rem] opacity-60" style={{ borderColor: PAINT[color] }}>
+    <div className="card border-2 border-dashed text-center opacity-60" style={{ borderColor: PAINT[color] }}>
       <span className="block text-[0.85em] leading-[1.85em] font-extrabold text-white">{money(`$${rent}M`)}</span>
     </div>
   );
@@ -87,7 +87,7 @@ export function Card({ card, color, selected, banked, rent, onClick }: { card: C
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
-      className={`relative m-0 box-border inline-flex h-[6.3em] w-[4.5em] shrink-0 flex-col overflow-hidden rounded-[0.4em] bg-card p-0 text-center text-[0.85rem] text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-gold" : ""}`}
+      className={`card relative m-0 inline-flex flex-col overflow-hidden bg-card p-0 text-center text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-gold" : ""}`}
       onClick={onClick}
       title={explain(card)}
     >

@@ -1,13 +1,13 @@
 import { useMutation } from "convex/react";
-import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { COLORS } from "../cards.ts";
+import { BIRTHDAY, COLORS, DEBT } from "../cards.ts";
 import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, payable, type Placed, type Player, rent, size } from "../game.ts";
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, PAINT, Slot } from "./Card";
 
-type Props = { game: Doc<"games"> & { log: Choice[]; names?: (string | null)[] }; me?: Id<"players"> };
+type Props = { game: Doc<"games"> & { log: Choice[]; names: (string | null)[] }; me?: Id<"players"> };
 
 const id = (r: Ref) => `${r.pile}${r.i}`;
 
@@ -15,7 +15,7 @@ function Row({ children }: { children: ReactNode }) {
   return <Scroller className="gap-[0.4em] pt-[0.8em]">{children}</Scroller>;
 }
 
-const deck = "box-border flex h-[6.3em] w-[4.5em] shrink-0 flex-col items-center justify-center rounded-[0.4em] px-[0.3em] text-center text-[0.85rem] leading-[1.2]";
+const deck = "card flex flex-col items-center justify-center px-[0.3em] text-center leading-[1.2]";
 const drawn = "border-[0.3em] border-white bg-[#b8292f] font-extrabold text-white shadow-[2px_2px_0_-1px_white,2px_2px_0_0_rgba(0,0,0,0.3),4px_4px_0_-1px_white,4px_4px_0_0_rgba(0,0,0,0.3)]";
 const empty = "border-2 border-dashed border-white/40";
 /** Floats over the table, just above the bottom bar. */
@@ -80,7 +80,7 @@ export function Board({ game, me }: Props) {
     height.current = ul.scrollHeight;
   }, [lines]);
   const seat = game.seats.findIndex((s) => "player" in s && s.player === me);
-  const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : (game.names?.[n] ?? `Player ${n + 1}`));
+  const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : (game.names[n] ?? `Player ${n + 1}`));
   const send = (choice: Choice) => {
     setError(undefined);
     decide({ game: game._id, player: me!, choice }).catch((e) => setError(String(e.message ?? e)));
@@ -119,7 +119,7 @@ export function Board({ game, me }: Props) {
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>
         {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className={`${deck} ${empty}`}>Discard</span>}
-        <ul className="m-0 h-[5.4rem] list-none overflow-y-auto p-0 text-sm opacity-80" ref={log}>
+        <ul className="h-[5.4rem] overflow-y-auto text-sm opacity-80" ref={log}>
           {entries.map(({ turn, text, line }, i) => (
             <li
               key={i}
@@ -147,10 +147,9 @@ export function Board({ game, me }: Props) {
         </ul>
       </section>
       <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
-        {others.map((n) => (
-          <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={false} pick={past ? undefined : pick} />
+        {(seat >= 0 ? [...others, seat] : others).map((n) => (
+          <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={n === seat} pick={past ? undefined : pick} />
         ))}
-        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={`${who(seat)}${view.result?.winner === seat ? " 🏆" : ""}`} current={!view.result && g.current === seat} mine pick={past ? undefined : pick} />}
       </div>
       <section className="panel sticky bottom-0 z-10 text-white">
         <div className="px-[0.8em] pb-[0.8em]">
@@ -298,18 +297,31 @@ function describe(game: Game, p: Player, m: Move, who: (n: number) => string): s
     case "passGo":
       return "Pass Go: draw 2";
     case "birthday":
-      return "Birthday: $2M from everyone";
+      return `Birthday: $${BIRTHDAY}M from everyone`;
     case "debtCollector":
-      return `Debt Collector: $5M from ${to}`;
+      return `Debt Collector: $${DEBT}M from ${to}`;
     case "slyDeal":
-      return `Take ${theirs} ${label(m.take!.card)}${m.take!.card.kind === "wild" ? ` (${colorName(m.take!.color)})` : ""}`;
+      return `Take ${theirs} ${named(m.take!)}`;
     case "forcedDeal":
-      return `Swap ${who(p.seat) === "You" ? "your" : "their"} ${label(m.give!.card)} for ${theirs} ${label(m.take!.card)}`;
+      return `Swap ${who(p.seat) === "You" ? "your" : "their"} ${named(m.give!)} for ${theirs} ${named(m.take!)}`;
     case "dealBreaker":
       return `Take ${theirs} ${colorName(m.color!)} set`;
     default:
       return label(m.card);
   }
+}
+
+/** A question floating over the table with its answers, and the cards it's about in the bar below. */
+function Asking({ question, answers, children }: { question: ReactNode; answers: ReactNode; children: ReactNode }) {
+  return (
+    <div className="relative">
+      <div className={`${floating} flex flex-wrap items-center justify-center gap-[0.6em]`}>
+        <span>{question}</span>
+        {answers}
+      </div>
+      {children}
+    </div>
+  );
 }
 
 /** A move as a button, under a heading it shares with others when there's a choice of whom or what. */
@@ -366,11 +378,11 @@ function Ask({
   // moves() lists one of each identical card, so match the picked card by what it is
   const list = card ? moves(game, p, (prompt as { left: number }).left).filter((m) => JSON.stringify(m.card) === JSON.stringify(card)) : [];
   const steals = list.filter(stealing);
+  const showSteal = useEffectEvent(() => setSteal(steals.length ? { moves: steals, ...(hint && stealing(hint) && { take: takes(hint), give: gives(p.seat, hint) || undefined }) } : undefined));
   useEffect(() => {
-    setSteal(steals.length ? { moves: steals, ...(hint && stealing(hint) && { take: takes(hint), give: gives(p.seat, hint) || undefined }) } : undefined);
+    showSteal();
     return () => setSteal(undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [picked, hint]);
+  }, [picked, hint, setSteal]);
   const hinted = (m: Move | null) => (hint !== undefined && key(encode(game, p, m)) === key(encode(game, p, hint)) ? "outline-3 outline-gold" : "");
   const [chosen, setChosen] = useState<Set<string>>(() => {
     if (prompt.kind === "pay") return new Set(defaultPolicy.pay(game, p, prompt.amount).map((x) => id(ref(p, x))));
@@ -468,55 +480,62 @@ function Ask({
     const picks = all.filter((x) => chosen.has(id(ref(p, x))));
     const total = picks.reduce((s, x) => s + ("kind" in x ? x : x.card).value, 0);
     return (
-      <div className="relative">
-        <div className={`${floating} flex flex-wrap items-center justify-center gap-[0.6em]`}>
-          <span>
+      <Asking
+        question={
+          <>
             You owe {who(prompt.to)} {money(`$${prompt.amount}M`)}. Picked {money(`$${total}M`)}.
-          </span>
+          </>
+        }
+        answers={
           <button className="primary" disabled={total < prompt.amount && picks.length < all.length} onClick={() => send({ kind: "pay", seat: p.seat, paid: picks.map((x) => ref(p, x)) })}>
             Pay
           </button>
-        </div>
+        }
+      >
         <Row>
           {all.map((x) => {
             const k = id(ref(p, x));
             return "kind" in x ? <Card key={k} card={x} banked selected={chosen.has(k)} onClick={() => toggle(k)} /> : <Card key={k} card={x.card} color={x.color} selected={chosen.has(k)} onClick={() => toggle(k)} />;
           })}
         </Row>
-      </div>
+      </Asking>
     );
   }
   if (prompt.kind === "sayNo")
     return (
-      <div className="relative">
-        <div className={`${floating} flex flex-wrap items-center justify-center gap-[0.6em]`}>
-          <span>
+      <Asking
+        question={
+          <>
             {who(prompt.from)}: {money(describe(game, game.players[prompt.from], prompt.move, who))}. Just Say No?
-          </span>
-          <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: true })}>Say no</button>
-          <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: false })}>Let it through</button>
-        </div>
+          </>
+        }
+        answers={
+          <>
+            <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: true })}>Say no</button>
+            <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: false })}>Let it through</button>
+          </>
+        }
+      >
         {hand(
           () => {},
           () => false,
         )}
-      </div>
+      </Asking>
     );
   const cards = [...chosen].filter((k) => k.startsWith("hand")).map((k) => Number(k.slice(4)));
   return (
-    <div className="relative">
-      <div className={`${floating} flex flex-wrap items-center justify-center gap-[0.6em]`}>
-        <span>
-          Discard {prompt.n} card{prompt.n === 1 ? "" : "s"}.
-        </span>
+    <Asking
+      question={`Discard ${prompt.n} card${prompt.n === 1 ? "" : "s"}.`}
+      answers={
         <button className="primary" disabled={cards.length !== prompt.n} onClick={() => send({ kind: "discard", seat: p.seat, cards })}>
           Done
         </button>
-      </div>
+      }
+    >
       {hand(
         (i) => toggle(`hand${i}`),
         (i) => chosen.has(`hand${i}`),
       )}
-    </div>
+    </Asking>
   );
 }

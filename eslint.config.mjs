@@ -3,22 +3,4 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import prettierRecommended from "eslint-plugin-prettier/recommended";
 
-export default defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  prettierRecommended,
-  {
-    rules: {
-      "react-hooks/refs": "off", // react-spring targets ref.current from render
-      "react-hooks/set-state-in-effect": "off", // client-only Math.random(), keeps SSR hydration matching
-    },
-  },
-  {
-    files: ["**/*.spec.ts", "test/**"],
-    rules: {
-      // Playwright fixtures also call a `use` function — not React hooks.
-      "react-hooks/rules-of-hooks": "off",
-    },
-  },
-  globalIgnores(["convex/_generated/**"]),
-]);
+export default defineConfig([...nextVitals, ...nextTs, prettierRecommended, globalIgnores(["convex/_generated/**"])]);

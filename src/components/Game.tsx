@@ -90,7 +90,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
       <section className="panel mx-auto w-full max-w-sm p-6">
         <h1 className="m-0 text-center text-3xl font-bold">Monopoly Deal</h1>
         <p className="mt-2 mb-5 text-center text-sm opacity-70">Share this page&apos;s address to bring people to the table.</p>
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+        <ul className="flex flex-col gap-2">
           {players.map((p) =>
             p._id === me ? (
               <li key={p._id} className={row}>
