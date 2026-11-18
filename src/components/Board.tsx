@@ -180,6 +180,29 @@ export function Board({ game, me }: Props) {
   );
 }
 
+/** A row of sets that scrolls sideways, fading at the right while there's more that way. */
+function Scroller({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  const check = () => {
+    const el = ref.current;
+    // less the right padding, which scrolling doesn't reach
+    if (el) setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+  useLayoutEffect(check);
+  useEffect(() => {
+    const observer = new ResizeObserver(check);
+    observer.observe(ref.current!);
+    return () => observer.disconnect();
+  }, []);
+  // padded so a full set's outline isn't clipped
+  return (
+    <div ref={ref} onScroll={check} className={`-m-[3px] mt-auto flex gap-[0.6em] overflow-x-auto p-[3px] ${more ? "[mask-image:linear-gradient(to_right,black_calc(100%_-_3em),transparent)]" : ""}`}>
+      {children}
+    </div>
+  );
+}
+
 /** A card on the table that can fill a blank, with a radio button on its band. */
 function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
   if (!pick) return children;
@@ -195,13 +218,12 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   const full = fullColors(game, p).length;
   return (
-    <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${mine ? "col-span-full" : ""} ${current ? "outline-2 outline-[gold]" : ""}`}>
+    <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
       <h2 className="flex items-baseline justify-between text-base font-bold">
         {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
       <div className="text-sm font-bold">{Math.min(full, 3)} of 3 sets</div>
-      {/* padded so a full set's outline isn't clipped by the scroller */}
-      <div className="-m-[3px] mt-auto flex gap-[0.6em] overflow-x-auto p-[3px]">
+      <Scroller>
         {colors.map((c) => (
           <div key={c} className={`flex flex-col self-end *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
             {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
@@ -221,7 +243,7 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
               .reverse()}
           </div>
         ))}
-      </div>
+      </Scroller>
       <div className="text-sm font-bold">{money(`$${banked(p)}M`)} banked</div>
       <div className="flex min-h-[5.36rem] *:not-first:-ml-[2.25rem]">
         {p.bank.map((c, i) => (
