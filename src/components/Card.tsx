@@ -52,8 +52,8 @@ export function Slot({ color }: { color: Color }) {
   return <div className="box-border h-[6.3em] w-[4.5em] shrink-0 rounded-[0.4em] border-2 border-dashed text-[0.85rem] opacity-60" style={{ borderColor: PAINT[color] }} />;
 }
 
-/** A card; `banked` grays its name and darkens its value, which is all it's worth in a bank. */
-export function Card({ card, color, selected, banked, onClick }: { card: CardType; color?: Color; selected?: boolean; banked?: boolean; onClick?: () => void }) {
+/** A card; `banked` grays its name and darkens its value, which is all it's worth in a bank, and `rent` goes on its band. */
+export function Card({ card, color, selected, banked, rent, onClick }: { card: CardType; color?: Color; selected?: boolean; banked?: boolean; rent?: number; onClick?: () => void }) {
   const cash = banked && card.kind !== "money";
   const colors = color && card.kind === "wild" ? [color] : colorsOf(card);
   const band =
@@ -73,7 +73,9 @@ export function Card({ card, color, selected, banked, onClick }: { card: CardTyp
       onClick={onClick}
       title={explain(card)}
     >
-      <span className="h-[1.4em]" style={{ background: band }} />
+      <span className="h-[1.4em] text-[0.85em] leading-[1.65em] font-extrabold text-white [text-shadow:0_0_2px_black,0_0_2px_black]" style={{ background: band }}>
+        {rent !== undefined && `$${rent}M`}
+      </span>
       <span className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold ${cash ? "text-gray-400" : ""}`}>{label(card)}</span>
       <span className={`pb-[0.3em] text-[0.75em] ${cash ? "font-extrabold" : "opacity-60"}`}>{card.kind === "money" ? " " : `$${card.value}M`}</span>
     </Tag>

@@ -2,6 +2,7 @@ import { useMutation } from "convex/react";
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { COLORS } from "../cards.ts";
 import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, moves, type Move, payable, type Player, rent, size } from "../game.ts";
 import { type Choice, choose, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, Slot } from "./Card";
@@ -152,7 +153,7 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
             {p.props
               .filter((x) => x.color === c)
               .map((x, i) => (
-                <Card key={i} card={x.card} />
+                <Card key={i} card={x.card} rent={COLORS[c].rent[i % size(c)]} />
               ))}
             {p.built
               .filter((x) => x.color === c)
