@@ -4,7 +4,7 @@ import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { COLORS } from "../cards.ts";
 import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, payable, type Placed, type Player, rent, size } from "../game.ts";
-import { type Choice, choose, type Ref, ref, replay, setup } from "../replay.ts";
+import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, Slot } from "./Card";
 
 type Props = { game: Doc<"games"> & { log: Choice[] }; me: Id<"players"> };
@@ -280,15 +280,18 @@ function Ask({
   setSteal: (s?: Steal) => void;
 }) {
   const [picked, setPicked] = useState<number>();
+  // What the default player would do here: a move, null to end the turn, or undefined before asking
+  const [hint, setHint] = useState<Move | null>();
   const card = picked === undefined || prompt.kind !== "move" ? undefined : p.hand[picked];
   // moves() lists one of each identical card, so match the picked card by what it is
   const list = card ? moves(game, p, (prompt as { left: number }).left).filter((m) => JSON.stringify(m.card) === JSON.stringify(card)) : [];
   const steals = list.filter(stealing);
   useEffect(() => {
-    setSteal(steals.length ? { moves: steals } : undefined);
+    setSteal(steals.length ? { moves: steals, ...(hint && stealing(hint) && { take: takes(hint), give: gives(p.seat, hint) || undefined }) } : undefined);
     return () => setSteal(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [picked]);
+  }, [picked, hint]);
+  const hinted = (m: Move | null) => (hint !== undefined && key(encode(game, p, m)) === key(encode(game, p, hint)) ? "outline-3 outline-[gold]" : "");
   const [chosen, setChosen] = useState<Set<string>>(() => {
     if (prompt.kind === "pay") return new Set(defaultPolicy.pay(game, p, prompt.amount).map((x) => id(ref(p, x))));
     if (prompt.kind === "discard") return new Set(defaultPolicy.discard(game, p, prompt.n).map((c) => `hand${p.hand.indexOf(c)}`));
@@ -313,7 +316,10 @@ function Ask({
         <div className="flex items-end gap-[0.8em]">
           <div className="flex-1">
             {hand(
-              (i) => setPicked(i === picked ? undefined : i),
+              (i) => {
+                setHint(undefined);
+                setPicked(i === picked ? undefined : i);
+              },
               (i) => i === picked,
             )}
           </div>
@@ -321,7 +327,18 @@ function Ask({
             <span>
               {prompt.left} play{prompt.left === 1 ? "" : "s"} left
             </span>
-            <button onClick={() => send({ kind: "move", seat: p.seat, move: null })}>End turn</button>
+            <button className={hinted(null)} onClick={() => send({ kind: "move", seat: p.seat, move: null })}>
+              End turn
+            </button>
+            <button
+              onClick={() => {
+                const m = defaultPolicy.move(game, p, prompt.left);
+                setHint(m);
+                setPicked(m ? p.hand.indexOf(m.card) : undefined);
+              }}
+            >
+              Hint
+            </button>
           </div>
         </div>
         {picked !== undefined && (
@@ -336,7 +353,7 @@ function Ask({
                 ].map(([text, os]) =>
                   os[0].group === undefined ? (
                     os.map((o, i) => (
-                      <button key={`${text}${i}`} className="mb-[0.4em] justify-self-center" onClick={() => play(o.m)}>
+                      <button key={`${text}${i}`} className={`mb-[0.4em] justify-self-center ${hinted(o.m)}`} onClick={() => play(o.m)}>
                         {money(text)}
                       </button>
                     ))
@@ -344,7 +361,7 @@ function Ask({
                     <div key={text} className="flex flex-wrap items-center justify-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
                       <span className="w-full px-[0.3em]">{money(text)}</span>
                       {os.map((o, i) => (
-                        <button key={i} onClick={() => play(o.m)}>
+                        <button key={i} className={hinted(o.m)} onClick={() => play(o.m)}>
                           {o.label}
                         </button>
                       ))}
