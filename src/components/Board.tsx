@@ -131,7 +131,7 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
   const full = fullColors(game, p).length;
   return (
     <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
-      <h2 className="text-base font-bold">
+      <h2 className="flex items-baseline justify-between text-base font-bold">
         {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
       <div className="text-sm font-bold">{Math.min(full, 3)} of 3 sets</div>
