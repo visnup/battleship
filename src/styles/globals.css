@@ -115,17 +115,6 @@
     box-shadow: 0 0 6px 1px var(--gold);
   }
 
-  /* Holds a panel stuck where it starts, below the page's padding, on felt that fills that gap
-     and its corners so the table doesn't scroll by around it */
-  .pinned {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    margin: -0.8em -0.8em 0;
-    padding: 0.8em 0.8em 0;
-    background: var(--felt);
-  }
-
   .seat {
     border-radius: 0.75rem;
     background: var(--seat);
