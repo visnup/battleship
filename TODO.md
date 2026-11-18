@@ -102,7 +102,7 @@
       quietly change the default player.
 - [ ] Log some real games and compare: game length, first-player advantage. Needs real games.
 - [ ] A staller: a strategy that tries to make the game stall, from the list in the README's
-      "Stalled games". Count its stalls at 5 players against the pacifist's 41 in 100,000, and
+      "Stalled games". Count its stalls at 5 players against the pacifist's 68 in 100,000, and
       see which of its rules matter most.
 - [ ] Online play (Next and Convex, `pnpm dev`): works with default-player bots against a dev
       deployment. Still to do: a Vercel project and production deployment, names, and harder

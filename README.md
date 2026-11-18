@@ -12,8 +12,8 @@ keeping, which sets to chase, whether to build houses, and when to lay your prop
 
 The answers come from the model, not from real tables. It follows the rule sheet of the 2023 US
 edition (G0351), and the rules the sheet leaves open are measured both ways (see "Rules
-questions"). Most tables were played under the 2014 sheet (B0965), which differs in three
-readings that together move the first player's share by 0.3 points at most. It hasn't been checked against logged real games yet.
+questions"). The 2014 sheet (B0965) differs in three readings that together move the first
+player's share by 0.4 points at most. It hasn't been checked against logged real games yet.
 
 The simulator and this analysis were written with Claude Opus 5.5 at medium effort, working in Claude
 Code throughout.
@@ -79,19 +79,19 @@ The charts are drawn from this README's own tables, so they stay in step with th
 
 | players | first | second | third | fourth | fifth | turns per game | draw pile reshuffled |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2 | 57.1% | 42.9% | | | | 16.2 | 0.0% |
-| 3 | 38.1% | 32.4% | 29.5% | | | 21.1 | 0.3% |
-| 4 | 28.8% | 25.6% | 23.6% | 22.0% | | 25.2 | 11.2% |
-| 5 | 23.5% | 21.4% | 19.5% | 17.8% | 17.9% | 28.6 | 38.9% |
+| 2 | 57.0% | 43.0% | | | | 16.4 | 0.0% |
+| 3 | 38.1% | 32.5% | 29.5% | | | 21.4 | 0.4% |
+| 4 | 28.8% | 25.3% | 23.8% | 22.1% | | 25.7 | 14.5% |
+| 5 | 23.9% | 21.4% | 19.2% | 17.8% | 17.8% | 29.3 | 47.3% |
 
-**Going first is worth 14.2 points at 2 players.** That's 33% more wins than the second player.
-At 5 players the edge is 3.5 points over a fair share, and later seats win less, down to 17.8%
-and 17.9% for the last two. The first player starts drawing and playing a turn ahead, and in a 16-turn
+**Going first is worth 14.0 points at 2 players.** That's 33% more wins than the second player.
+At 5 players the edge is 3.9 points over a fair share, and later seats win less, down to 17.8%
+for the last two. The first player starts drawing and playing a turn ahead, and in a 16-turn
 2-player game, that turn matters more.
 
 **A game lasts about 8 rounds at 2 players and 5 to 6 at 5.** A round is a turn for each player.
 
-**The draw pile runs out in more than a third of 5-player games.** It holds 106 − 5 × 5 = 81
+**The draw pile runs out in nearly half of 5-player games.** It holds 106 − 5 × 5 = 81
 cards after the deal. It almost never runs out at 2 or 3 players.
 
 ## Which strategy wins
@@ -104,11 +104,11 @@ slow, so they play 10,000 games per cell, which is good to about ±1 point.
 
 | strategy | 2 players (fair 50.0%) | 3 players (fair 33.3%) | 4 players (fair 25.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- | --- | --- |
-| default | 49.7% | 33.1% | 24.7% | 20.0% |
-| builder | 38.7% | 21.1% | 14.3% | 11.5% |
-| banker | 49.6% | 33.2% | 24.9% | 19.9% (1 stalled) |
-| pacifist | 10.3% | 1.9% (3 stalled) | 0.3% (10 stalled) | 0.0% (41 stalled) |
-| random | 5.6% | 1.8% | 0.6% | 0.3% |
+| default | 49.6% | 33.4% | 24.8% | 19.9% |
+| builder | 38.4% | 20.8% | 14.2% | 11.5% |
+| banker | 49.6% | 32.9% | 24.7% | 19.7% |
+| pacifist | 10.8% | 2.0% (2 stalled) | 0.2% (13 stalled) | 0.0% (68 stalled) |
+| random | 5.4% | 1.7% | 0.6% | 0.3% |
 | playouts | 61.2% | 49.9% | 46.4% | 41.8% |
 | quick playouts | 54.1% | 40.8% | 36.0% | 33.7% |
 
@@ -171,37 +171,38 @@ change from it gained.
 
 | variant | 2 players (fair 50.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- |
-| the builder | 38.7% | 11.5% |
-| lay down properties before charging (previous) | 41.2% | 12.8% |
-| lay down properties before banking (previous) | 43.2% | 14.3% |
-| build houses and hotels, never bank them (previous) | 46.9% | 18.3% |
-| build, else bank them | 49.7% | 20.0% |
-| Pass Go only as the last play | 45.3% | 16.9% |
-| bank Pass Go | 39.4% | 14.0% |
-| Deal Breaker before Pass Go | 49.7% | 20.3% |
+| the builder | 38.4% | 11.5% |
+| lay down properties before charging (previous) | 40.9% | 12.9% |
+| lay down properties before banking (previous) | 42.8% | 14.2% |
+| build houses and hotels, never bank them (previous) | 46.7% | 18.0% |
+| build, else bank them | 49.6% | 19.9% |
+| Pass Go only as the last play | 44.9% | 17.0% |
+| bank Pass Go | 38.9% | 14.0% |
+| Deal Breaker before Pass Go | 49.7% | 20.4% |
 | Sly Deal before Pass Go | 49.7% | 20.2% |
-| Debt Collector on the richest (previous) | 49.7% | 18.2% |
-| any-color Rent on the richest (previous) | 49.7% | 16.9% |
-| bank all money before laying down properties (previous) | 47.9% | 19.4% |
-| Debt Collector on the most money banked | 49.7% | 18.1% |
-| any-color Rent on the most money banked | 49.7% | 16.8% |
-| lay down wilds before charging | 48.9% | 18.9% |
-| any-color Rent and Debt Collector on the leader (previous) | 49.7% | 17.4% |
-| any-color Rent and Debt Collector on the most paid in property | 49.7% | 19.9% |
-| any-color Rent on the least banked | 49.7% | 19.5% |
-| charge rent worth $2M or more at 2 players (previous) | 48.4% | 20.0% |
-| play Forced Deal in the first round (previous) | 49.7% | 19.6% |
-| hold Double the Rent (previous) | 49.7% | 20.1% |
-| bank Rent cards for colors we have none of | 48.5% | 14.1% |
-| Deal Breaker on the leader first | 49.7% | 20.4% |
+| Debt Collector on the richest (previous) | 49.6% | 18.0% |
+| any-color Rent on the richest (previous) | 49.6% | 16.9% |
+| bank all money before laying down properties (previous) | 47.9% | 19.3% |
+| Debt Collector on the most money banked | 49.6% | 17.9% |
+| any-color Rent on the most money banked | 49.6% | 16.7% |
+| lay down wilds before charging | 49.0% | 18.9% |
+| lay down the first in hand, wild or not (previous) | 48.9% | 19.6% |
+| any-color Rent and Debt Collector on the leader (previous) | 49.6% | 17.5% |
+| any-color Rent and Debt Collector on the most paid in property | 49.6% | 19.9% |
+| any-color Rent on the least banked | 49.6% | 19.6% |
+| charge rent worth $2M or more at 2 players (previous) | 48.4% | 19.9% |
+| play Forced Deal in the first round (previous) | 49.6% | 19.5% |
+| hold Double the Rent (previous) | 49.6% | 19.9% |
+| bank Rent cards for colors we have none of | 48.5% | 13.9% |
+| Deal Breaker on the leader first | 49.6% | 20.4% |
 | end the turn holding what it won't play (previous) | 49.2% | 19.7% |
-| Birthday in the first round too (previous) | 49.8% | 19.2% |
-| hold the card that completes a set unless it wins | 34.0% | 17.3% |
+| Birthday in the first round too (previous) | 49.7% | 19.1% |
+| hold the card that completes a set unless it wins | 32.4% | 17.1% |
 | Just Say No only against Deal Breaker | 48.2% | 19.3% |
 | keep one Just Say No for a Deal Breaker | 48.8% | 19.5% |
-| keep two Just Say Nos for a Deal Breaker | 48.2% | 19.3% |
-| lay down properties once $5M is banked | 49.4% | 18.8% |
-| lay down properties once $15M is banked | 49.4% | 20.1% |
+| keep two Just Say Nos for a Deal Breaker | 48.3% | 19.3% |
+| lay down properties once $5M is banked | 49.2% | 18.9% |
+| lay down properties once $15M is banked | 49.4% | 20.0% |
 
 **Charge before you lay properties down, and bank before that too.** This is the biggest lesson,
 worth 9 points at 2 players and 7 at 5. A property laid down can be taken by Sly Deal, Forced Deal
@@ -209,7 +210,7 @@ or as payment. One held in hand can't, and it can go down later in a single turn
 still lays a property down right away when it completes a set.
 
 **Don't build.** Banking a house ($3M) or hotel ($4M) as money beats putting it on a set. Never
-banking them costs 2.8 points at 2 players. Building when you can and banking otherwise is no
+banking them costs 2.9 points at 2 players. Building when you can and banking otherwise is no
 better than never building. A house adds $3M to one rent card's charge, but the play spent placing
 it could have charged rent itself. A set with a house is also the first thing a Deal Breaker
 takes.
@@ -217,21 +218,21 @@ takes.
 **Charge one player who has to pay in property.** The any-color Rent and Debt Collector hit one
 player. Aim them at someone whose bank can't cover the charge but whose table can, since the
 properties they pay with come to you. Among those, pick whoever pays the most, then the leader,
-the player with the most full sets. Aiming both at the leader instead costs 2.6 points at 5
+the player with the most full sets. Aiming both at the leader instead costs 2.4 points at 5
 players, and aiming them at whoever has the most to pay with costs more. At 2 players there's
 only one target. At 5 players, playouts at each any-color Rent found this rule gaining 8 points
 each time it chose differently from aiming at the leader, more than any other rule tried: the
 least banked, the richest, the next or previous seat, the most or fewest cards in hand, and others.
 
 **Don't save Pass Go.** Playing it first, while plays are left to use what it draws, beats holding
-it for the last play by 4 points at 2 players. Banking it costs 10.
+it for the last play by 5 points at 2 players. Banking it costs 11.
 
 **Bank about $10M, then lay properties down before banking more.** This beats banking everything
-first by 1.8 points at 2 players and 0.6 at 5. $5M is too little, and $15M is about the same as
+first by 1.7 points at 2 players and 0.6 at 5. $5M is too little, and $15M is about the same as
 $10M.
 
 **Charge even $1M at 2 players.** The default used to skip a rent that collected less than $2M.
-At 2 players, charging it anyway is worth 1.3 points; at 3 and 4 it costs a little, so the rule
+At 2 players, charging it anyway is worth 1.2 points; at 3 and 4 it costs a little, so the rule
 stays there.
 
 **Bank a Forced Deal in the first round at 3+ players, and Double the Rent when there's no rent
@@ -240,28 +241,31 @@ lay down later. Each gains 0.3 to 0.5 points where it applies (400,000 games). B
 cards for colors you have none of loses badly: 6 points at 5 players, where those cards charge
 everyone.
 
-**Empty your hand when you can, and hold Birthday in the first round.** Both came from where a
-model trained on the dataset (`src/learned.ts`) overrules the default. When the plays
-left can empty the hand, banking what the default wouldn't play draws 5 cards next turn instead
-of 2: +0.3 to +0.8 points at 2–5 players. In the first round nobody has much to pay a Birthday
-with, and holding it gains 0.3 to 0.9 points at 3–5 players (100,000 games each).
+**Empty your hand when you can, hold Birthday in the first round, and lay down properties
+before wilds.** All three came from where a model trained on the dataset (`src/learned.ts`,
+`scripts/overrules.ts`) overrules the default. When the plays left can empty the hand, banking
+what the default wouldn't play draws 5 cards next turn instead of 2: +0.3 to +0.8 points at 2–5
+players. In the first round nobody has much to pay a Birthday with, and holding it gains 0.3 to
+0.9 points at 3–5 players (100,000 games each). A wild held in hand can still go wherever it's
+needed later; laying down plain properties first gains 0.2 to 0.8 points at 2–5 players
+(400,000 games).
 
 **Two pieces of table advice lose.** Players online say to hold the property that completes a
 set, so a Deal Breaker can't take the set, and to keep a Just Say No for a Deal Breaker instead
-of spending it on rent. Holding the card costs 15 points at 2 players and 3 at 5: a set in hand
+of spending it on rent. Holding the card costs 17 points at 2 players and 3 at 5: a set in hand
 charges no rent and counts toward no win. Keeping a Just Say No, even only while holding two,
-costs 0.9 to 1.5 points at 2 players and 0.5 to 0.7 at 5. What you lose by paying now is worth more than the Deal Breaker it might stop later.
+costs 0.8 to 1.4 points at 2 players and 0.4 to 0.6 at 5. What you lose by paying now is worth more than the Deal Breaker it might stop later.
 
-Tried and rejected, besides the alternatives in the table (at 2 and 5 players, against 49.7% and
-20.0% for the default):
+Tried and rejected, besides the alternatives in the table (at 2 and 5 players, against 49.6% and
+19.9% for the default):
 
-- Choosing which property to lay down first: by the most progress toward a set, the least, wilds
-  first, the cheapest or the dearest (by the $M printed in its corner), the highest rent or the
-  smallest set. All were within noise of taking the first one in hand, the one held longest, or
-  worse (wilds first: 19.4% at 5 players). The most progress first with wilds last gains 0.4 points at 2 players, but 0.2 at 3
-  and −0.2 at 5 (400,000 games each). Plain properties before wilds, found where the learned
-  model overrules the default, gains 0.2 to 0.8 points at 2–5 players and is now the default's.
-- Laying down a property of a color a Rent card in hand charges, then charging: 49.5% and 19.3%.
+- Choosing which property to lay down first, beyond properties before wilds: by the most
+  progress toward a set, the least, wilds first, the cheapest or the dearest (by the $M printed
+  in its corner), the highest rent or the smallest set. All tie the default or lose (wilds
+  first: 47.9% and 18.9%). The dearest first with wilds last ties it.
+- Laying down properties before Sly Deal, the model's next most common overrule at 3–5 players:
+  47.3% and 17.7%, and 48.7% and 19.2% only in rounds 2–3.
+- Laying down a property of a color a Rent card in hand charges, then charging: 49.0% and 19.4%.
 - Laying down properties before Debt Collector and Birthday: 45.8% and 15.1%.
 
 **What's left of the placement gap has no pattern.** At 5 players, `decisions.ts` finds playouts
@@ -294,8 +298,8 @@ better. Banking all your money first is even at 5 players, as it nearly was befo
 at 5 players, where every player is losing more of their games to the strong ones.
 
 **Going first is worth about the same among strong players.** With quick playouts in every seat,
-the first player wins 55.8% at 2 players, against the default's 57.1%, and 24.0% at 5, against
-23.5%. The last two seats win 18.5% and 17.0%.
+the first player wins 56.6% at 2 players, against the default's 57.0%, and 23.3% at 5, against
+23.9%. The last two seats win 18.6% and 18.5%.
 
 ### How good could the choices be?
 
@@ -351,9 +355,9 @@ beat quick playouts at 2 and 3 players. On games they never saw, their picks sco
 points of win chance a decision above the default's, and they pick something else 35% to 42% of
 the time (the trees) and about 60% (the network).
 
-**Where they overrule the default became two rules.** The model ended its turn by banking a card
-the default would hold, when that emptied its hand, and it held Birthday in the first round. Both
-are now in the default player.
+**Where they overrule the default became three rules.** The model ended its turn by banking a
+card the default would hold, when that emptied its hand, and it held Birthday in the first round.
+Round 4's model laid down plain properties before wilds. All three are now in the default player.
 
 **As a filter it makes playouts stronger.** Playing out only the trees' top 5 moves, with twice
 the shuffles (160), wins 1.3 to 3.1 points more than playing out every move on 80 (59.1%,
@@ -382,7 +386,8 @@ round 2 2,500, and round 3 5,000 with the playouts paying by the learned payer (
 Round 4 played 10,000 on 16 shuffles a move instead of 32, with only the mover paying that way.
 That beat 5,000 games on 32 (+0.1 to +0.3) and 10,000 with half the decisions played out (0 to
 +0.6), each against round 3: more decisions beat less noise in each. Ranked playouts gain nothing
-from rounds 2 to 4 (±1 to ±1.4 at 4,000 games).
+from rounds 2 to 4 (±1 to ±1.4 at 4,000 games). Against today's default, which lays properties
+down before wilds, round 4's trees win 57.7%, 45.8%, 40.1% and 35.5% (100,000 games).
 
 ## What each card is worth
 
@@ -397,48 +402,48 @@ worth as money. Sorted by 4 players:
 
 | card | $M | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |
-| Deal Breaker | 5 | +27.6 | +26.2 | +21.1 | +15.4 |
-| It's My Birthday | 2 | +3.3 | +5.6 | +7.4 | +8.8 |
-| Just Say No | 4 | +12.3 | +10.0 | +7.2 | +5.1 |
-| Rent, dark blue/green | 1 | +2.2 | +4.3 | +6.1 | +7.6 |
-| Property Wild, any color | 0 | +9.2 | +8.1 | +5.6 | +4.6 |
-| Rent, red/yellow | 1 | +1.6 | +3.1 | +4.6 | +5.7 |
-| Rent, any color | 3 | +3.5 | +3.8 | +3.9 | +3.1 |
-| Rent, light blue/brown | 1 | +1.0 | +2.1 | +3.4 | +3.8 |
-| Debt Collector | 3 | +8.0 | +4.5 | +3.2 | +1.9 |
-| Property Wild, dark blue/green | 4 | +6.7 | +4.8 | +3.2 | +1.5 |
-| Rent, pink/orange | 1 | +0.8 | +2.3 | +3.2 | +3.9 |
-| Rent, railroad/utility | 1 | +0.8 | +2.1 | +3.1 | +4.1 |
-| Property Wild, light blue/brown | 1 | +4.2 | +3.6 | +2.8 | +1.7 |
-| Property Wild, railroad/utility | 2 | +4.0 | +3.5 | +2.5 | +1.5 |
-| dark blue | 4 | +5.2 | +3.9 | +2.4 | +1.4 |
-| utility | 2 | +3.4 | +2.5 | +1.8 | +1.0 |
-| Property Wild, red/yellow | 3 | +3.4 | +2.8 | +1.7 | +0.9 |
-| brown | 1 | +3.2 | +2.3 | +1.6 | +0.7 |
-| Property Wild, pink/orange | 2 | +3.0 | +2.5 | +1.6 | +0.6 |
-| $5M | 5 | +1.5 | +2.0 | +1.5 | +0.6 |
-| Pass Go | 1 | +3.5 | +2.5 | +1.2 | −0.1 |
-| Property Wild, light blue/railroad | 4 | +1.8 | +1.4 | +1.0 | +0.1 |
-| Forced Deal | 3 | +2.4 | +1.2 | +1.0 | +0.6 |
-| $4M | 4 | +0.7 | +1.6 | +0.9 | +0.5 |
-| Property Wild, green/railroad | 4 | +2.4 | +1.8 | +0.8 | +0.3 |
-| House | 3 | +0.6 | +1.1 | +0.8 | +0.4 |
-| Sly Deal | 3 | +7.5 | +2.7 | +0.8 | −0.0 |
-| $2M | 2 | +0.2 | +1.0 | +0.8 | +0.1 |
-| $3M | 3 | +0.2 | +1.2 | +0.8 | +0.1 |
-| Hotel | 4 | +0.6 | +1.5 | +0.6 | +0.5 |
-| red | 3 | +1.8 | +0.9 | +0.3 | −0.2 |
-| yellow | 3 | +2.1 | +1.2 | +0.3 | +0.0 |
-| pink | 2 | +1.0 | +0.6 | +0.1 | −0.5 |
-| orange | 2 | +1.7 | +0.6 | +0.1 | −0.1 |
-| Double the Rent | 1 | −0.3 | +0.2 | +0.1 | −0.1 |
-| green | 4 | +2.0 | +0.8 | +0.0 | −0.3 |
-| $1M | 1 | −0.5 | +0.1 | −0.1 | −0.6 |
-| $10M | 10 | +1.0 | +0.4 | −0.2 | −0.5 |
-| light blue | 1 | +0.9 | +0.1 | −0.3 | −0.7 |
-| railroad | 2 | +0.5 | −0.4 | −0.8 | −1.1 |
+| Deal Breaker | 5 | +27.3 | +24.9 | +20.2 | +15.1 |
+| It's My Birthday | 2 | +3.5 | +5.0 | +7.3 | +8.5 |
+| Just Say No | 4 | +12.0 | +9.5 | +6.9 | +5.2 |
+| Property Wild, any color | 0 | +10.6 | +8.1 | +6.3 | +5.0 |
+| Rent, dark blue/green | 1 | +2.0 | +3.8 | +6.0 | +7.8 |
+| Rent, red/yellow | 1 | +1.6 | +2.9 | +4.4 | +5.8 |
+| Property Wild, dark blue/green | 4 | +7.5 | +5.8 | +4.3 | +2.6 |
+| Rent, light blue/brown | 1 | +1.0 | +2.0 | +3.6 | +4.1 |
+| Rent, any color | 3 | +3.4 | +3.5 | +3.4 | +3.4 |
+| Rent, railroad/utility | 1 | +0.7 | +1.9 | +3.3 | +4.6 |
+| Property Wild, railroad/utility | 2 | +5.0 | +3.8 | +3.3 | +2.1 |
+| Property Wild, light blue/brown | 1 | +5.5 | +4.6 | +3.2 | +2.0 |
+| Debt Collector | 3 | +7.8 | +3.9 | +3.2 | +2.2 |
+| Rent, pink/orange | 1 | +1.1 | +2.2 | +3.0 | +4.1 |
+| dark blue | 4 | +5.2 | +2.9 | +2.0 | +1.1 |
+| Property Wild, pink/orange | 2 | +4.0 | +2.3 | +1.9 | +1.2 |
+| Property Wild, red/yellow | 3 | +4.0 | +3.0 | +1.8 | +1.2 |
+| brown | 1 | +3.4 | +1.8 | +1.5 | +1.2 |
+| utility | 2 | +3.2 | +2.0 | +1.4 | +1.0 |
+| $5M | 5 | +1.6 | +1.3 | +1.1 | +0.9 |
+| Pass Go | 1 | +3.9 | +2.2 | +1.1 | +0.5 |
+| Property Wild, light blue/railroad | 4 | +2.6 | +1.4 | +1.1 | +0.4 |
+| House | 3 | +0.6 | +0.8 | +1.0 | +0.8 |
+| Forced Deal | 3 | +2.2 | +0.6 | +1.0 | +0.8 |
+| $4M | 4 | +1.0 | +1.2 | +0.9 | +0.6 |
+| Property Wild, green/railroad | 4 | +2.8 | +2.1 | +0.8 | +0.7 |
+| $2M | 2 | +0.3 | +0.6 | +0.7 | +0.5 |
+| Hotel | 4 | +0.5 | +1.0 | +0.6 | +0.5 |
+| $3M | 3 | +0.4 | +0.6 | +0.6 | +0.6 |
+| Sly Deal | 3 | +6.8 | +2.0 | +0.5 | −0.1 |
+| yellow | 3 | +2.3 | +0.8 | +0.4 | +0.1 |
+| red | 3 | +2.1 | +0.7 | +0.4 | +0.1 |
+| pink | 2 | +1.4 | +0.0 | +0.3 | −0.0 |
+| green | 4 | +2.2 | +0.5 | +0.3 | −0.1 |
+| orange | 2 | +2.0 | +0.6 | +0.1 | +0.2 |
+| Double the Rent | 1 | −0.0 | +0.1 | +0.1 | +0.1 |
+| light blue | 1 | +1.4 | +0.1 | −0.1 | −0.3 |
+| $1M | 1 | −0.3 | −0.4 | −0.1 | +0.0 |
+| $10M | 10 | +1.1 | −0.1 | −0.3 | −0.1 |
+| railroad | 2 | +0.8 | −0.3 | −0.8 | −0.9 |
 
-**Deal Breaker is worth the most by far.** With it, a 2-player game goes from a coin flip to 78%
+**Deal Breaker is worth the most by far.** With it, a 2-player game goes from a coin flip to 77%
 for the holder. It's a third of a win, taken from someone else.
 
 **Two-color Rent cards gain value with more players**, from +1 to +2 at 2 players to +4 to +8 at 5.
@@ -449,7 +454,7 @@ players, after Deal Breaker and Birthday. Yet each is worth just $1M as money.
 **Cards that hit one player lose value with more players.** Just Say No, Debt Collector and Sly
 Deal are each worth far more at 2 players, where the one player they hit is the only opponent.
 
-**Money is worth little**, never more than 2.0 points, and $10M is worth barely more than $1M. One
+**Money is worth little**, never more than 1.6 points, and $10M is worth barely more than $1M. One
 more card of money mostly sits in the bank as insurance against rent.
 
 **The two multicolored Property Wilds are worth nothing as money, but they're among the most
@@ -471,33 +476,33 @@ it:
 
 | card | $M | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |
-| Deal Breaker | 5 | +2.0 (+27.6) | +2.0 (+26.2) | +1.7 (+21.1) | +1.0 (+15.4) |
-| It's My Birthday | 2 | −0.0 (+3.3) | +0.9 (+5.6) | +0.9 (+7.4) | +0.8 (+8.8) |
-| Just Say No | 4 | +0.7 (+12.3) | +1.1 (+10.0) | +0.8 (+7.2) | +0.7 (+5.1) |
-| Rent, dark blue/green | 1 | −0.4 (+2.2) | +0.4 (+4.3) | +0.4 (+6.1) | −0.1 (+7.6) |
-| Rent, red/yellow | 1 | −0.5 (+1.6) | +0.2 (+3.1) | +0.5 (+4.6) | +0.1 (+5.7) |
-| Rent, any color | 3 | +0.3 (+3.5) | +0.9 (+3.8) | +0.7 (+3.9) | +0.4 (+3.1) |
-| Rent, light blue/brown | 1 | −0.5 (+1.0) | +0.0 (+2.1) | +0.2 (+3.4) | −0.6 (+3.8) |
-| Debt Collector | 3 | +0.2 (+8.0) | +1.0 (+4.5) | +1.0 (+3.2) | +0.4 (+1.9) |
-| Rent, pink/orange | 1 | −0.5 (+0.8) | +0.2 (+2.3) | −0.1 (+3.2) | −0.2 (+3.9) |
-| Rent, railroad/utility | 1 | −0.5 (+0.8) | +0.3 (+2.1) | +0.2 (+3.1) | −0.3 (+4.1) |
-| Pass Go | 1 | −0.6 (+3.5) | +0.7 (+2.5) | +0.2 (+1.2) | +0.1 (−0.1) |
-| Forced Deal | 3 | +0.6 (+2.4) | +1.2 (+1.2) | +1.0 (+1.0) | +0.6 (+0.6) |
-| House | 3 | +0.7 (+0.6) | +1.1 (+1.1) | +0.9 (+0.8) | +0.3 (+0.4) |
-| Sly Deal | 3 | +0.6 (+7.5) | +1.0 (+2.7) | +0.8 (+0.8) | +0.4 (−0.0) |
-| Hotel | 4 | +0.8 (+0.6) | +1.6 (+1.5) | +0.8 (+0.6) | +0.8 (+0.5) |
-| Double the Rent | 1 | −0.2 (−0.3) | +0.2 (+0.2) | +0.1 (+0.1) | −0.1 (−0.1) |
+| Deal Breaker | 5 | +1.8 (+27.3) | +1.8 (+24.9) | +1.7 (+20.2) | +1.1 (+15.1) |
+| It's My Birthday | 2 | +0.4 (+3.5) | +0.6 (+5.0) | +1.0 (+7.3) | +0.8 (+8.5) |
+| Just Say No | 4 | +0.7 (+12.0) | +1.0 (+9.5) | +0.7 (+6.9) | +0.7 (+5.2) |
+| Rent, dark blue/green | 1 | −0.3 (+2.0) | +0.0 (+3.8) | −0.2 (+6.0) | +0.1 (+7.8) |
+| Rent, red/yellow | 1 | −0.1 (+1.6) | −0.1 (+2.9) | +0.5 (+4.4) | +0.4 (+5.8) |
+| Rent, light blue/brown | 1 | −0.1 (+1.0) | −0.2 (+2.0) | +0.5 (+3.6) | −0.0 (+4.1) |
+| Rent, any color | 3 | +0.6 (+3.4) | +0.7 (+3.5) | +0.3 (+3.4) | +0.7 (+3.4) |
+| Rent, railroad/utility | 1 | −0.6 (+0.7) | +0.1 (+1.9) | +0.2 (+3.3) | +0.2 (+4.6) |
+| Debt Collector | 3 | +0.4 (+7.8) | +0.4 (+3.9) | +0.8 (+3.2) | +0.7 (+2.2) |
+| Rent, pink/orange | 1 | −0.3 (+1.1) | +0.1 (+2.2) | +0.1 (+3.0) | −0.1 (+4.1) |
+| Pass Go | 1 | −0.3 (+3.9) | +0.5 (+2.2) | +0.5 (+1.1) | +0.3 (+0.5) |
+| House | 3 | +0.8 (+0.6) | +0.9 (+0.8) | +1.0 (+1.0) | +1.1 (+0.8) |
+| Forced Deal | 3 | +0.7 (+2.2) | +0.6 (+0.6) | +1.0 (+1.0) | +0.8 (+0.8) |
+| Hotel | 4 | +0.8 (+0.5) | +0.9 (+1.0) | +0.7 (+0.6) | +0.8 (+0.5) |
+| Sly Deal | 3 | +0.7 (+6.8) | +0.7 (+2.0) | +0.9 (+0.5) | +0.5 (−0.1) |
+| Double the Rent | 1 | +0.0 (−0.0) | −0.3 (+0.1) | +0.1 (+0.1) | +0.2 (+0.1) |
 
 **Play your action cards; don't bank them.** Banked on the first play, none is worth more than
-2.0 points, about what money is. Played, Deal Breaker is worth ten times that, and most Rent
+1.8 points, about what money is. Played, Deal Breaker is worth ten times that, and most Rent
 cards several times. A Rent card's $1M is the least of it.
 
 **Except Forced Deal and Double the Rent, early.** Forced Deal was worth more banked on the first
 play than as the default played it at 3 or more players, so the default now banks it in the first
 round there, and Double the Rent whenever there's no rent to double: the two columns now match.
-Banking every Forced Deal still loses, 1.3 points at 5 players and 2.9 at 2 (`variants.ts`). Sly
-Deal at 5 players is worth a little more banked too, but banking every Sly Deal loses 2.6 to 7
-points.
+Banking every Forced Deal still loses, 1.3 points at 5 players and 2.8 at 2 (`variants.ts`). Sly
+Deal at 4 and 5 players is worth a little more banked too, but banking every Sly Deal loses 2.8
+to 7 points.
 
 Houses and hotels come out the same either way: the default banks them already.
 
@@ -512,15 +517,15 @@ full set at the end.
 
 | color | cards in a set | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- | --- |
-| dark blue | 2 | 50% (12%) | 52% (13%) | 54% (11%) | 56% (9%) |
-| brown | 2 | 49% (16%) | 49% (16%) | 49% (15%) | 49% (13%) |
+| dark blue | 2 | 50% (13%) | 53% (13%) | 55% (12%) | 58% (9%) |
+| brown | 2 | 50% (16%) | 49% (17%) | 49% (15%) | 49% (13%) |
 | utility | 2 | 45% (15%) | 46% (15%) | 45% (14%) | 45% (12%) |
-| pink | 3 | 27% (7%) | 26% (7%) | 26% (6%) | 26% (5%) |
-| red | 3 | 26% (7%) | 26% (7%) | 26% (6%) | 26% (5%) |
-| light blue | 3 | 24% (7%) | 24% (7%) | 24% (6%) | 25% (5%) |
-| green | 3 | 23% (6%) | 24% (6%) | 23% (5%) | 23% (4%) |
-| orange | 3 | 22% (6%) | 22% (6%) | 22% (5%) | 22% (4%) |
-| yellow | 3 | 22% (6%) | 22% (6%) | 22% (5%) | 21% (4%) |
+| pink | 3 | 26% (8%) | 25% (7%) | 25% (6%) | 25% (5%) |
+| red | 3 | 26% (8%) | 25% (7%) | 25% (6%) | 24% (5%) |
+| light blue | 3 | 24% (7%) | 23% (7%) | 24% (6%) | 24% (5%) |
+| green | 3 | 23% (6%) | 24% (6%) | 24% (5%) | 24% (4%) |
+| orange | 3 | 22% (6%) | 22% (6%) | 22% (6%) | 22% (4%) |
+| yellow | 3 | 22% (6%) | 22% (6%) | 22% (5%) | 22% (4%) |
 | railroad | 4 | 13% (4%) | 12% (3%) | 11% (3%) | 11% (2%) |
 
 **Each 2-card set, dark blue, brown and utility, is in about half of all wins.** That's about twice
@@ -528,7 +533,7 @@ as often as any 3-card set.
 
 **Railroads, the one 4-card set, are in only one win in eight.**
 
-**Dark blue rises to 56% at 5 players.** It's a 2-card set and charges the highest rent, 8. So
+**Dark blue rises to 58% at 5 players.** It's a 2-card set and charges the highest rent, 8. So
 it's the set most worth finishing, and the one most worth taking with a Deal Breaker.
 
 So: chase 2-card sets, especially dark blue, and leave railroads for last. The default player only
@@ -546,21 +551,21 @@ ahead wins them, and in parentheses how often the one furthest behind does. 100,
 
 | after round | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
-| 1 | 100%: 63% (37%) | 100%: 46% (25%) | 100%: 37% (18%) | 100%: 31% (14%) |
-| 2 | 100%: 67% (33%) | 100%: 52% (21%) | 100%: 43% (14%) | 100%: 38% (10%) |
-| 3 | 100%: 71% (29%) | 100%: 57% (17%) | 100%: 49% (10%) | 99%: 46% (6%) |
-| 4 | 99%: 74% (26%) | 98%: 62% (13%) | 96%: 56% (7%) | 92%: 53% (4%) |
-| 5 | 95%: 77% (23%) | 90%: 66% (11%) | 81%: 60% (5%) | 71%: 56% (2%) |
-| 6 | 85%: 79% (21%) | 71%: 67% (9%) | 56%: 60% (4%) | 39%: 53% (2%) |
-| 7 | 68%: 79% (21%) | 47%: 65% (9%) | 28%: 56% (4%) | 12%: 51% (2%) |
-| 8 | 47%: 78% (22%) | 23%: 62% (10%) | 9%: 50% (5%) | 2%: 52% (2%) |
+| 1 | 100%: 63% (37%) | 100%: 46% (25%) | 100%: 36% (18%) | 100%: 30% (14%) |
+| 2 | 100%: 67% (33%) | 100%: 51% (21%) | 100%: 42% (15%) | 100%: 37% (10%) |
+| 3 | 100%: 70% (30%) | 100%: 56% (18%) | 100%: 49% (11%) | 99%: 45% (7%) |
+| 4 | 99%: 74% (26%) | 98%: 61% (14%) | 97%: 55% (7%) | 94%: 52% (4%) |
+| 5 | 96%: 77% (23%) | 91%: 65% (11%) | 84%: 59% (5%) | 75%: 55% (3%) |
+| 6 | 86%: 79% (21%) | 74%: 67% (9%) | 59%: 60% (4%) | 43%: 52% (2%) |
+| 7 | 70%: 79% (21%) | 50%: 65% (9%) | 31%: 56% (4%) | 14%: 52% (2%) |
+| 8 | 49%: 78% (22%) | 25%: 63% (10%) | 10%: 52% (5%) | 3%: 50% (2%) |
 
-**Nothing is decided early.** After three rounds the player ahead wins 71% of 2-player games and
-46% at 5, where a fair share is 20%. Whoever is furthest behind still wins 29% at 2 players and
-6% at 5.
+**Nothing is decided early.** After three rounds the player ahead wins 70% of 2-player games and
+45% at 5, where a fair share is 20%. Whoever is furthest behind still wins 30% at 2 players and
+7% at 5.
 
 **Comebacks run out at big tables.** At 2 players, the player behind after round 5 still wins
-one game in five, as often as after round 8. At 5 players it's 2%: four others can take from
+one game in five, as often as after round 8. At 5 players it's 3%: four others can take from
 the leader, but the last player rarely catches all of them.
 
 **The lead stops growing after round 5 or so.** Games still going then are the close ones, so
@@ -574,20 +579,20 @@ being ahead says less. At 5 players three games in five are over by round 6.
 
 | | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
-| payments a game | 7.6 | 16.4 | 27.9 | 42.1 |
+| payments a game | 7.6 | 16.6 | 28.2 | 42.6 |
 | bank when charged | $11.0M | $10.1M | $9.3M | $8.7M |
 | paid partly in property | 11% | 15% | 19% | 22% |
-| property paid a game | $2.6M | $7.8M | $16.8M | $29.2M |
-| winner ever paid in property | 18% | 26% | 34% | 39% |
+| property paid a game | $2.6M | $7.7M | $16.8M | $29.4M |
+| winner ever paid in property | 18% | 27% | 34% | 40% |
 | each loser ever paid in property | 31% | 43% | 57% | 67% |
 
 **Big tables are expensive.** Two-color Rent cards and Birthday charge everyone, so at 5 players
-there are more than five times as many payments as at 2, and $29.2M of property changes hands a
+there are more than five times as many payments as at 2, and $29.4M of property changes hands a
 game.
 
 **The bank runs dry with more players.** The default banks about $10M before laying properties
 down, and at 2 players that's what it has when charged. At 5 it's $8.7M, and one payment in five
-costs property. Most losers at 5 players pay in property at least once, and so do 39% of winners:
+costs property. Most losers at 5 players pay in property at least once, and so do 40% of winners:
 paying in property hurts, but it doesn't decide the game.
 
 ## Opening hands
@@ -600,31 +605,31 @@ parentheses) how many hands that was. Rent cards count as actions and wilds as p
 
 | actions | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
-| 0 | 0.88 (5%) | 0.79 (5%) | 0.74 (5%) | 0.68 (5%) |
-| 1 | 0.94 (21%) | 0.90 (21%) | 0.87 (21%) | 0.82 (21%) |
+| 0 | 0.89 (5%) | 0.81 (5%) | 0.73 (5%) | 0.67 (5%) |
+| 1 | 0.94 (21%) | 0.91 (21%) | 0.87 (21%) | 0.83 (21%) |
 | 2 | 0.99 (35%) | 0.99 (35%) | 0.98 (35%) | 0.97 (35%) |
-| 3 | 1.04 (27%) | 1.07 (27%) | 1.09 (27%) | 1.12 (27%) |
-| 4 | 1.09 (10%) | 1.15 (10%) | 1.20 (10%) | 1.28 (10%) |
-| 5 | 1.09 (1%) | 1.18 (1%) | 1.32 (2%) | 1.37 (2%) |
+| 3 | 1.04 (27%) | 1.06 (27%) | 1.09 (27%) | 1.11 (27%) |
+| 4 | 1.08 (10%) | 1.13 (10%) | 1.18 (10%) | 1.26 (10%) |
+| 5 | 1.09 (1%) | 1.18 (1%) | 1.30 (2%) | 1.36 (2%) |
 
 | properties | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
-| 0 | 0.98 (9%) | 1.05 (9%) | 1.10 (10%) | 1.14 (9%) |
-| 1 | 1.00 (30%) | 1.04 (29%) | 1.07 (29%) | 1.09 (30%) |
-| 2 | 1.01 (35%) | 1.01 (35%) | 1.00 (35%) | 1.00 (35%) |
-| 3 | 1.00 (20%) | 0.95 (20%) | 0.91 (20%) | 0.89 (20%) |
-| 4 | 0.95 (6%) | 0.86 (5%) | 0.79 (6%) | 0.73 (5%) |
-| 5 | 0.88 (1%) | 0.73 (1%) | 0.71 (1%) | 0.58 (1%) |
+| 0 | 0.98 (9%) | 1.04 (9%) | 1.08 (10%) | 1.11 (9%) |
+| 1 | 1.00 (30%) | 1.02 (29%) | 1.05 (29%) | 1.08 (30%) |
+| 2 | 1.01 (35%) | 1.01 (35%) | 1.01 (35%) | 1.00 (35%) |
+| 3 | 1.00 (20%) | 0.97 (20%) | 0.93 (20%) | 0.91 (20%) |
+| 4 | 0.98 (6%) | 0.89 (5%) | 0.81 (6%) | 0.76 (5%) |
+| 5 | 0.93 (1%) | 0.85 (1%) | 0.70 (1%) | 0.62 (1%) |
 
 | money cards | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
-| 0 | 1.07 (34%) | 1.06 (34%) | 1.06 (34%) | 1.08 (34%) |
-| 1 | 1.00 (42%) | 1.00 (42%) | 1.00 (42%) | 1.00 (42%) |
-| 2 | 0.93 (19%) | 0.93 (19%) | 0.93 (19%) | 0.91 (19%) |
-| 3 | 0.84 (4%) | 0.83 (4%) | 0.84 (4%) | 0.82 (4%) |
+| 0 | 1.07 (34%) | 1.06 (34%) | 1.08 (34%) | 1.09 (34%) |
+| 1 | 1.00 (42%) | 1.00 (42%) | 0.99 (42%) | 1.00 (42%) |
+| 2 | 0.92 (19%) | 0.93 (19%) | 0.93 (19%) | 0.89 (19%) |
+| 3 | 0.84 (4%) | 0.83 (4%) | 0.81 (4%) | 0.81 (4%) |
 
 **Action cards make a hand.** A hand of four or five action cards wins 1.1 to 1.4 fair shares,
-and one with none 0.68 to 0.88. Properties and money are the weak cards to open with.
+and one with none 0.67 to 0.89. Properties and money are the weak cards to open with.
 
 **The opening hand matters more at big tables.** At 2 players every hand is within 16% of a fair
 share; at 5, the best and worst are more than twice apart.
@@ -643,14 +648,14 @@ then any change in the number of stalled games:
 | reading | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
 | One Double the Rent per Rent card | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
-| Just Say No on your turn isn't a play (B0965) | 1.8%: +0.0, +0.0 | 3.8%: −0.1, −0.1 | 5.9%: +0.0, −0.1 | 9.0%: −0.1, −0.2 |
+| Just Say No on your turn isn't a play (B0965) | 1.9%: +0.1, +0.0 | 3.9%: +0.0, −0.1 | 6.0%: −0.1, −0.1 | 9.4%: +0.0, −0.1 |
 | A broken set's house and hotel stay (B0965) | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
 | A broken set's house and hotel go to the bank | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
-| Cards past 7 in hand go under the draw pile (B0965) | 0.0%: +0.0, +0.0 | 0.1%: +0.0, +0.0 | 4.7%: +0.1, +0.0 | 18.8%: −0.3, +0.0 |
-| All three of B0965's (2014) readings | 1.8%: +0.0, +0.0 | 3.8%: −0.1, −0.1 | 9.5%: +0.1, −0.1 | 23.0%: −0.3, −0.1 |
+| Cards past 7 in hand go under the draw pile (B0965) | 0.0%: +0.0, +0.0 | 0.1%: +0.0, +0.0 | 5.1%: +0.1, +0.0 | 20.5%: −0.4, +0.0 |
+| All three of B0965's (2014) readings | 1.9%: +0.1, +0.0 | 4.0%: +0.0, −0.1 | 10.0%: +0.0, −0.1 | 24.6%: −0.4, −0.1 |
 | Deal Breaker leaves the house and hotel | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
-| A set of only multicolored wilds is full | 0.3%: +0.0, +0.0 | 1.0%: +0.0, +0.0 | 2.0%: +0.0, +0.0 | 3.3%: +0.0, +0.0 |
-| No reshuffle | 0.0%: +0.0, +0.0 | 0.2%: +0.0, +0.2, +119 stalled | 9.7%: −2.1, +11.8, +7073 stalled | 36.2%: −8.1, +48.6, +29352 stalled |
+| A set of only multicolored wilds is full | 0.2%: +0.0, +0.0 | 0.8%: +0.0, +0.0 | 1.5%: +0.0, +0.0 | 2.6%: +0.0, +0.0 |
+| No reshuffle | 0.0%: +0.0, +0.0 | 0.2%: +0.0, +0.2, +117 stalled | 10.6%: −2.3, +13.0, +7854 stalled | 38.7%: −8.7, +52.1, +31545 stalled |
 
 Once a reading changes one play, the rest of the game goes differently, and the winner then
 changes about as often as in an unrelated game. So the first number tracks how often the rule
@@ -659,9 +664,8 @@ comes up at all.
 **None of the readings favors a seat.** That's expected when every player plays the same way. The
 one exception is the reshuffle, which changes how long games last.
 
-**The 2014 sheet's readings come up in up to 23% of games at 5 players, and lean nowhere.**
-Together they move the first player's share by 0.3 points at most and games by 0.1 turns, which
-is why the tables played under them weren't rerun. Just Say No as a play only bites when you
+**The 2014 sheet's readings come up in up to 25% of games at 5 players, and lean nowhere.**
+Together they move the first player's share by 0.4 points at most and games by 0.1 turns. Just Say No as a play only bites when you
 counter a No on your own turn after using all three plays. Discarding past 7 keeps those cards
 out of the draw until the next reshuffle, so it comes up mostly at 4 and 5 players, where the
 draw pile runs out.
@@ -673,8 +677,8 @@ builds. They'd matter only for a player that does.
 only 2 multicolored wilds and 2 Double the Rents in the deck, and the default banks a Double the
 Rent when there's no rent to double.
 
-**No reshuffle breaks 4- and 5-player games.** At 5 players the draw pile runs out in more than a
-third of games. Without a reshuffle, nearly 3 in 10 games end with no winner after 200 turns.
+**No reshuffle breaks 4- and 5-player games.** At 5 players the draw pile runs out in nearly half
+of games. Without a reshuffle, nearly a third of games end with no winner after 200 turns.
 Neither sheet says what happens then, so reshuffling is our house rule.
 
 ## Stalled games
@@ -685,9 +689,9 @@ hands. A banked card never comes back, and a full bank holds many action cards. 
 draw, the cards left in hand can't finish anyone's third set, and the game never ends.
 
 **Players who bank their action cards cause it.** Default players alone never stalled in 400,000
-games. One pacifist, which banks every action card, stalls 10 games in 100,000 at 4 players and
-41 at 5. Without the reshuffle the draw pile empties for good, and nearly 3 in 10 5-player games
-stall ("Rules questions").
+games. One pacifist, which banks every action card, stalls 13 games in 100,000 at 4 players and
+68 at 5. Without the reshuffle the draw pile empties for good, and nearly a third of 5-player
+games stall ("Rules questions").
 
 **A player out to stall the game would, untested:**
 
@@ -697,7 +701,7 @@ stall ("Rules questions").
 - lay properties down without completing sets, since properties can't be banked;
 - spend Just Say No on any steal that would complete someone's set, and pay with money before
   property, never with a property that finishes someone's set;
-- play at 5 players, where the draw pile already runs out in more than a third of games.
+- play at 5 players, where the draw pile already runs out in nearly half of games.
 
 ## Next
 
