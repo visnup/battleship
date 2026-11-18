@@ -93,6 +93,23 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `TODO.md` is the plan: checking the model first, then the analysis.
 - `README.md` is what the simulator has shown so far.
 
+## Long runs
+
+Anything that takes more than an hour (a round, a dataset, a big table) gets these, so a
+mistake costs minutes, not the night:
+
+- **A smoke test first:** the whole pipeline at a tiny size (a few dozen games, 2 deals), end
+  to end, before the real run starts. `overnight.sh` does this; 2026-11-18 it caught a
+  hard-coded shard count and an exit trap that failed the script, both of which would only have
+  broken after hours.
+- **Progress in a log file:** a line at least every 10 minutes, with what's been written so far,
+  appended to `dataset/rN/log.txt` (`round.sh` does this during the data step), so a stall shows.
+- **A status page:** `node scripts/status.ts --round N` at localhost:3001, with a bar per stage
+  and an ETA from the recent rate. Open it in the browser pane.
+- **Timeouts sized to the run** (`HOURS=` for `round.sh`'s data step), and a timing run on a
+  sample first: learned-player rollouts were 30–60× the default's, not the 9–20× guessed.
+- **Nothing in `src/` changes** while it runs, unless the change can't alter results.
+
 ## Playing online
 
 A Next.js (pages router) and Convex app laid out like `../poker`: `pnpm dev` runs both, against
