@@ -145,18 +145,18 @@ export function Board({ game, me }: Props) {
       </section>
       <div className="mb-[9em] grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {others.map((n) => (
-          <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!view.result && g.current === n} mine={false} pick={past ? undefined : pick} />
+          <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={false} pick={past ? undefined : pick} />
         ))}
-        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={who(seat)} current={!view.result && g.current === seat} mine pick={past ? undefined : pick} />}
+        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={`${who(seat)}${view.result?.winner === seat ? " 🏆" : ""}`} current={!view.result && g.current === seat} mine pick={past ? undefined : pick} />}
       </div>
       <section className="sticky bottom-0 z-10 rounded-[0.6em] bg-[#123f2c] text-white shadow-[0_-4px_12px_rgba(0,0,0,0.3)]">
         <div className="px-[0.8em] pb-[0.6em]">
           {past ? (
-            <p className="flex items-center justify-between">
+            <p className="m-0 flex items-center justify-between pt-[0.6em]">
               Viewing the board after an earlier play. <button onClick={() => setPast(undefined)}>Back to now</button>
             </p>
           ) : result ? (
-            <p>{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
+            <p className="m-0 pt-[0.6em]">{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
           ) : prompt && prompt.seat === seat ? (
             <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} steal={steal} setSteal={setSteal} />
           ) : (
