@@ -127,6 +127,26 @@
     mask-composite: intersect;
   }
 
+  /* A card's tooltip, in the top layer so rows that scroll don't clip it; `Card` places it */
+  .tip {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    width: max-content;
+    max-width: 15em;
+    border: none;
+    border-radius: 0.5em;
+    background: var(--bar);
+    box-shadow: var(--shadow);
+    padding: 0.6em 0.8em;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: normal;
+    line-height: 1.35;
+    text-align: left;
+    pointer-events: none;
+  }
+
   .seat {
     border-radius: 0.75rem;
     background: var(--seat);

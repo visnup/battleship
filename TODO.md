@@ -251,6 +251,11 @@
             4,000 games, ±1.5). Round 6 (10,000 games with those rollouts, trained on r4b and r6)
             ties round 4: +0.1, +0.1, +0.1 and +0.6 (±0.3–0.4, 50,000 deals); as playouts'
             filter −0.3 ± 0.9 at 2 and +1.7 ± 1.2 at 5 (4,000). Not adopted.
+            Retrained all three on playouts where seat 0 already decides them by the models
+            (`--learned`, 2026-11-18, same game counts, trained on both rounds' data): with the
+            default's moves, 53.3%, 37.3%, 29.3% and 24.2% against 53.1%, 37.1%, 29.1% and 24.1%
+            for the current models (400,000 games), and each alone within 0.2 of its current
+            model. Not adopted: inside the noise, in files 1.5–2× bigger.
       - [ ] Only if the model plateaus against cleaner labels: features beyond the 94
             hand-made ones.
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
