@@ -232,8 +232,7 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
 
 function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
-  const done = fullColors(game, p).length;
-  const louder = done >= 2 ? `near ${done >= 3 ? "won" : ""}` : "";
+  const near = fullColors(game, p).length >= 2;
   // every set, full or started, in the table's order
   const pills = colors.flatMap((c) => {
     const full = fullSets(game, p, c);
@@ -247,7 +246,11 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
       </h2>
       <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em]">
         {pills.map(({ c, n, full }, k) => (
-          <span key={k} title={full ? `${colorName(c)}: full set` : `${colorName(c)}: ${n} of ${size(c)}`} className={`flex overflow-hidden rounded-full ${full ? `full ${louder}` : "outline outline-white/50"}`}>
+          <span
+            key={k}
+            title={full ? `${colorName(c)}: full set` : `${colorName(c)}: ${n} of ${size(c)}`}
+            className={`flex overflow-hidden rounded-full ${full ? `full ${near ? "near" : ""}` : "outline outline-white/50"}`}
+          >
             {Array.from({ length: size(c) }, (_, i) => (
               <span key={i} className="h-[0.7em] w-[0.6em] bg-white/20 not-first:border-l not-first:border-white/50" style={i < n ? { background: PAINT[c] } : undefined} />
             ))}
