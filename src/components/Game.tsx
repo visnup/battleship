@@ -52,6 +52,14 @@ export function Game({ table }: { table: string }) {
   );
 }
 
+type Level = "builder" | "default" | "learned";
+const LEVELS: Record<Level, { name: string; title: string }> = {
+  builder: { name: "Easy", title: "Lays properties down early and builds, like a new player" },
+  default: { name: "Medium", title: "Plays by rules tuned against playouts" },
+  learned: { name: "Hard", title: "Plays by the learned model" },
+};
+const NEXT: Record<Level, Level> = { builder: "default", default: "learned", learned: "builder" };
+
 /** Who's at the table and the bots to deal in; `alone` centers it in the window when there's no board above. */
 function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: boolean }) {
   const start = useMutation(api.games.start);
@@ -74,7 +82,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
     return () => clearTimeout(timeout);
   }, [rename, me, name]);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 5e3) * 5e3);
-  const [bots, setBots] = useState<("default" | "learned")[]>(["default"]);
+  const [bots, setBots] = useState<Level[]>(["default"]);
   // each new `now` is a new query, so keep showing the last list while it loads
   const active = useQuery(api.players.active, { table, now });
   const [players, setPlayers] = useState<NonNullable<typeof active>>([]);
@@ -113,12 +121,8 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
           {bots.map((kind, i) => (
             <li key={`bot${i}`} className={row}>
               <span className="flex-1">🤖 Bot</span>
-              <button
-                className="quiet px-2 py-0.5 text-sm"
-                title={kind === "learned" ? "Plays by the learned model" : "Plays by simple rules"}
-                onClick={() => setBots(bots.map((k, j) => (j === i ? (k === "learned" ? "default" : "learned") : k)))}
-              >
-                {kind === "learned" ? "Hard" : "Easy"}
+              <button className="quiet w-[4.5em] px-2 py-0.5 text-sm" title={LEVELS[kind].title} onClick={() => setBots(bots.map((k, j) => (j === i ? NEXT[k] : k)))}>
+                {LEVELS[kind].name}
               </button>
               <button className="quiet px-2 py-0.5 text-sm" aria-label="Remove bot" onClick={() => setBots(bots.filter((_, j) => j !== i))}>
                 Remove

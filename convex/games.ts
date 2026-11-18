@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { shuffle } from "../src/game.ts";
 import { hard } from "../src/hard.ts";
+import { STRATEGIES } from "../src/strategies.ts";
 import { type Choice, deal, replay, setup } from "../src/replay.ts";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server.js";
@@ -8,7 +9,7 @@ import { window } from "./players.js";
 import { bot } from "./schema.js";
 
 async function play(db: MutationCtx["db"], game: Doc<"games">, log: Choice[], made: Choice[]) {
-  const { result, decisions } = replay(setup(game), [...log, ...made], { learned: hard() });
+  const { result, decisions } = replay(setup(game), [...log, ...made], { builder: STRATEGIES.builder(0), learned: hard() });
   for (const [i, d] of decisions.entries()) await db.insert("decisions", { game: game._id, n: log.length + i, ...d });
   if (result) await db.patch("games", game._id, { winner: result.winner });
 }

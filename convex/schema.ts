@@ -1,8 +1,8 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-/** A bot's kind: the default player, or the learned one (`src/hard.ts`). */
-export const bot = v.union(v.literal("default"), v.literal("learned"));
+/** A bot's kind: easy (`builder` in `src/strategies.ts`), medium (the default player), or hard (the learned one, `src/hard.ts`). */
+export const bot = v.union(v.literal("builder"), v.literal("default"), v.literal("learned"));
 
 export default defineSchema({
   players: defineTable({
