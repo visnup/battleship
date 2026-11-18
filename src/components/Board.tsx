@@ -153,8 +153,9 @@ export function Board({ game, me }: Props) {
   const view = useMemo(() => (past ? until(game, past.decisions) : stepping ? until(game, shown) : state), [past, stepping, shown, game, state]);
   // what landed in the last step, or once caught up, everything since your last decision
   const glow = useMemo(() => {
+    if (past) return past.decisions > 0 ? arrivals(until(game, past.decisions - 1).game, view.game) : new Set<CardType>();
     const from = stepping ? shown - 1 : seat >= 0 ? game.log.findLastIndex((c) => c.seat === seat) + 1 : shown;
-    return !past && from >= 0 && from < shown && game.log[from].seat !== seat ? arrivals(until(game, from).game, view.game) : new Set<CardType>();
+    return from >= 0 && from < shown && game.log[from].seat !== seat ? arrivals(until(game, from).game, view.game) : new Set<CardType>();
   }, [past, stepping, shown, seat, game, view]);
   const g = view.game;
   const entries = turns((past ? state : view).game.log ?? [], who);
