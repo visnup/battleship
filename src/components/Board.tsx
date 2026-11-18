@@ -12,14 +12,14 @@ type Props = { game: Doc<"games"> & { log: Choice[]; names?: (string | null)[] }
 const id = (r: Ref) => `${r.pile}${r.i}`;
 
 function Row({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap gap-[0.4em] pt-[0.6em]">{children}</div>;
+  return <Scroller className="gap-[0.4em] pt-[0.8em]">{children}</Scroller>;
 }
 
 const deck = "box-border flex h-[6.3em] w-[4.5em] shrink-0 flex-col items-center justify-center rounded-[0.4em] px-[0.3em] text-center text-[0.85rem] leading-[1.2]";
 const drawn = "border-[0.3em] border-white bg-[#b8292f] font-extrabold text-white shadow-[2px_2px_0_-1px_white,2px_2px_0_0_rgba(0,0,0,0.3),4px_4px_0_-1px_white,4px_4px_0_0_rgba(0,0,0,0.3)]";
 const empty = "border-2 border-dashed border-white/40";
 /** Floats over the table, just above the bottom bar. */
-const panel = "absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[1.2em] rounded-[0.6em] bg-[var(--bar)] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)]";
+const floating = "panel absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[1.2em] p-[0.8em]";
 
 /**
  * A Sly Deal, Forced Deal or Deal Breaker being filled in on the table: the moves it could be,
@@ -114,17 +114,17 @@ export function Board({ game, me }: Props) {
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[90em] flex-col gap-[0.8em] p-[0.8em]">
-      <section className="flex items-start justify-center gap-[1em] rounded-[0.6em] bg-[var(--bar)] px-[0.8em] py-[0.6em] shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+      <section className="panel flex items-start justify-center gap-[1em] p-[0.8em]">
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>
         {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className={`${deck} ${empty}`}>Discard</span>}
-        <ul className="m-0 h-[5.4rem] list-none overflow-y-auto p-0 text-[small] opacity-80" ref={log}>
+        <ul className="m-0 h-[5.4rem] list-none overflow-y-auto p-0 text-sm opacity-80" ref={log}>
           {entries.map(({ turn, text, line }, i) => (
             <li
               key={i}
               onClick={() => visit(line)}
-              className={`cursor-pointer hover:bg-white/10 ${past?.line === line && !turn ? "bg-white/20" : ""} ${
+              className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line && !turn ? "bg-white/20" : ""} ${
                 turn
                   ? "mt-[0.3em] flex items-center gap-[0.5em] font-semibold first:mt-0 before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
                   : ""
@@ -152,19 +152,22 @@ export function Board({ game, me }: Props) {
         ))}
         {seat >= 0 && <Seat game={g} p={g.players[seat]} name={`${who(seat)}${view.result?.winner === seat ? " 🏆" : ""}`} current={!view.result && g.current === seat} mine pick={past ? undefined : pick} />}
       </div>
-      <section className="sticky bottom-0 z-10 rounded-[0.6em] bg-[var(--bar)] text-white shadow-[0_-4px_12px_rgba(0,0,0,0.3)]">
-        <div className="px-[0.8em] pb-[0.6em]">
+      <section className="panel sticky bottom-0 z-10 text-white">
+        <div className="px-[0.8em] pb-[0.8em]">
           {past ? (
-            <p className="m-0 flex items-center justify-between pt-[0.6em]">
-              Viewing the board after an earlier play. <button onClick={() => setPast(undefined)}>Back to now</button>
+            <p className="m-0 flex items-center justify-between pt-[0.8em]">
+              Viewing the board after an earlier play.{" "}
+              <button className="primary" onClick={() => setPast(undefined)}>
+                Back to now
+              </button>
             </p>
           ) : result ? (
-            <p className="m-0 pt-[0.6em]">{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
+            <p className="m-0 pt-[0.8em] font-bold">{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
           ) : prompt && prompt.seat === seat ? (
             <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} steal={steal} setSteal={setSteal} />
           ) : (
             <div className="flex items-end gap-[0.8em]">
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 {seat >= 0 && (
                   <Row>
                     {g.players[seat].hand.map((c, i) => (
@@ -173,7 +176,9 @@ export function Board({ game, me }: Props) {
                   </Row>
                 )}
               </div>
-              <div className="flex shrink-0 flex-col items-center justify-center self-stretch pt-[0.6em] text-sm">Waiting for {prompt ? who(prompt.seat) : "…"}</div>
+              <div className="flex shrink-0 flex-col items-center justify-center self-stretch pt-[0.8em]">
+                <span className="label">Waiting for {prompt ? who(prompt.seat) : "…"}</span>
+              </div>
             </div>
           )}
           {error && <p className="text-[#ff8a8a]">{error}</p>}
@@ -183,8 +188,8 @@ export function Board({ game, me }: Props) {
   );
 }
 
-/** A row of sets that scrolls sideways, fading at either end while there's more that way. */
-function Scroller({ children }: { children: ReactNode }) {
+/** A row of cards or sets that scrolls sideways, fading at either end while there's more that way. */
+function Scroller({ children, className }: { children: ReactNode; className: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState({ left: false, right: false });
   const check = () => {
@@ -202,12 +207,12 @@ function Scroller({ children }: { children: ReactNode }) {
     observer.observe(ref.current!);
     return () => observer.disconnect();
   }, []);
-  // padded so a full set's outline isn't clipped
+  // padded so a full set's or a picked card's outline isn't clipped
   return (
     <div
       ref={ref}
       onScroll={check}
-      className="-m-[3px] mt-auto flex gap-[0.6em] overflow-x-auto p-[3px]"
+      className={`-m-[3px] flex overflow-x-auto p-[3px] ${className}`}
       style={{ maskImage: `linear-gradient(to right, ${fade(more.left)}, black 3em, black calc(100% - 3em), ${fade(more.right)})` }}
     >
       {children}
@@ -221,7 +226,7 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
   return (
     <div role="radio" aria-checked={pick.on} tabIndex={0} className="relative cursor-pointer" onClick={pick.click} onKeyDown={(e) => (e.key === " " || e.key === "Enter") && pick.click()}>
       {children}
-      <span className={`absolute top-[0.25em] right-[0.3em] size-[0.9em] rounded-full border-2 border-[gold] shadow-[0_0_2px_black] ${pick.on ? "bg-[gold]" : "bg-white"}`} />
+      <span className={`absolute top-[0.25em] right-[0.3em] size-[0.9em] rounded-full border-2 border-gold shadow-[0_0_2px_black] ${pick.on ? "bg-gold" : "bg-white"}`} />
     </div>
   );
 }
@@ -232,12 +237,12 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
   // sets started but not full, in the table's order
   const pending = colors.map((c) => ({ c, n: count(p, c) % size(c), of: size(c) })).filter((s) => s.n);
   return (
-    <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
-      <h2 className="flex items-baseline justify-between text-base font-bold">
-        {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
+    <section className={`seat flex flex-col gap-[0.5em] ${current ? "current" : ""}`}>
+      <h2 className="m-0 flex items-baseline justify-between text-base font-bold">
+        {name} {!mine && <small className="label">{p.hand.length} in hand</small>}
       </h2>
-      <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em] text-sm font-bold">
-        {Math.min(full, 3)} of 3 sets
+      <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em]">
+        <span className="label">{Math.min(full, 3)} of 3 sets</span>
         {pending.map(({ c, n, of }) => (
           <span key={c} title={`${colorName(c)}: ${n} of ${of}`} className="flex overflow-hidden rounded-full outline outline-white/50">
             {Array.from({ length: of }, (_, i) => (
@@ -246,7 +251,7 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
           </span>
         ))}
       </div>
-      <Scroller>
+      <Scroller className="mt-auto gap-[0.6em]">
         {colors.map((c) => (
           <div key={c} className={`flex flex-col self-end *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
             {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
@@ -267,7 +272,7 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
           </div>
         ))}
       </Scroller>
-      <div className="text-sm font-bold">{money(`$${banked(p)}M`)} banked</div>
+      <div className="label">{money(`$${banked(p)}M`)} banked</div>
       <div className="flex min-h-[5.36rem] *:not-first:-ml-[2.25rem]">
         {p.bank.map((c, i) => (
           <Card key={i} card={c} banked />
@@ -330,7 +335,7 @@ function Blanks({ p, steal, who, play }: { p: Player; steal: Steal; who: (n: num
         Take {blank(took?.type === "action" ? (breaks(took) ? `${who(took.target!)}'s ${colorName(took.color!)} set` : `${who(took.target!)}'s ${named(took.take!)}`) : undefined)}
         {forced && <> for your {blank(gave?.type === "action" ? named(gave.give!) : undefined)}</>}
       </span>
-      <button disabled={!move} onClick={() => move && play(move)}>
+      <button className="primary" disabled={!move} onClick={() => move && play(move)}>
         {forced ? "Swap" : "Take it"}
       </button>
     </div>
@@ -366,7 +371,7 @@ function Ask({
     return () => setSteal(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picked, hint]);
-  const hinted = (m: Move | null) => (hint !== undefined && key(encode(game, p, m)) === key(encode(game, p, hint)) ? "outline-3 outline-[gold]" : "");
+  const hinted = (m: Move | null) => (hint !== undefined && key(encode(game, p, m)) === key(encode(game, p, hint)) ? "outline-3 outline-gold" : "");
   const [chosen, setChosen] = useState<Set<string>>(() => {
     if (prompt.kind === "pay") return new Set(defaultPolicy.pay(game, p, prompt.amount).map((x) => id(ref(p, x))));
     if (prompt.kind === "discard") return new Set(defaultPolicy.discard(game, p, prompt.n).map((c) => `hand${p.hand.indexOf(c)}`));
@@ -389,7 +394,7 @@ function Ask({
     return (
       <div className="relative">
         <div className="flex items-end gap-[0.8em]">
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             {hand(
               (i) => {
                 setHint(undefined);
@@ -398,14 +403,15 @@ function Ask({
               (i) => i === picked,
             )}
           </div>
-          <div className="flex shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.6em] text-sm">
-            <span>
+          <div className="flex shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.8em]">
+            <span className="label">
               {prompt.left} play{prompt.left === 1 ? "" : "s"} left
             </span>
             <button className={hinted(null)} onClick={() => send({ kind: "move", seat: p.seat, move: null })}>
               End turn
             </button>
             <button
+              className="quiet"
               onClick={() => {
                 const m = defaultPolicy.move(game, p, prompt.left);
                 setHint(m);
@@ -417,7 +423,7 @@ function Ask({
           </div>
         </div>
         {picked !== undefined && (
-          <div className={`${panel} grid grid-cols-2 items-end gap-[0.6em] sm:grid-cols-4`}>
+          <div className={`${floating} grid grid-cols-2 items-end gap-[0.6em] sm:grid-cols-4`}>
             {list.length ? (
               <>
                 {[
@@ -433,7 +439,7 @@ function Ask({
                       </button>
                     ))
                   ) : (
-                    <div key={text} className="flex flex-wrap items-center justify-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
+                    <div key={text} className="flex flex-wrap items-center justify-center gap-[0.4em] rounded-lg bg-white/10 p-[0.4em]">
                       <span className="w-full px-[0.3em]">{money(text)}</span>
                       {os.map((o, i) => (
                         <button key={i} className={hinted(o.m)} onClick={() => play(o.m)}>
@@ -463,11 +469,11 @@ function Ask({
     const total = picks.reduce((s, x) => s + ("kind" in x ? x : x.card).value, 0);
     return (
       <div className="relative">
-        <div className={`${panel} flex flex-wrap items-center justify-center gap-[0.6em]`}>
+        <div className={`${floating} flex flex-wrap items-center justify-center gap-[0.6em]`}>
           <span>
             You owe {who(prompt.to)} {money(`$${prompt.amount}M`)}. Picked {money(`$${total}M`)}.
           </span>
-          <button disabled={total < prompt.amount && picks.length < all.length} onClick={() => send({ kind: "pay", seat: p.seat, paid: picks.map((x) => ref(p, x)) })}>
+          <button className="primary" disabled={total < prompt.amount && picks.length < all.length} onClick={() => send({ kind: "pay", seat: p.seat, paid: picks.map((x) => ref(p, x)) })}>
             Pay
           </button>
         </div>
@@ -483,7 +489,7 @@ function Ask({
   if (prompt.kind === "sayNo")
     return (
       <div className="relative">
-        <div className={`${panel} flex flex-wrap items-center justify-center gap-[0.6em]`}>
+        <div className={`${floating} flex flex-wrap items-center justify-center gap-[0.6em]`}>
           <span>
             {who(prompt.from)}: {money(describe(game, game.players[prompt.from], prompt.move, who))}. Just Say No?
           </span>
@@ -499,11 +505,11 @@ function Ask({
   const cards = [...chosen].filter((k) => k.startsWith("hand")).map((k) => Number(k.slice(4)));
   return (
     <div className="relative">
-      <div className={`${panel} flex flex-wrap items-center justify-center gap-[0.6em]`}>
+      <div className={`${floating} flex flex-wrap items-center justify-center gap-[0.6em]`}>
         <span>
           Discard {prompt.n} card{prompt.n === 1 ? "" : "s"}.
         </span>
-        <button disabled={cards.length !== prompt.n} onClick={() => send({ kind: "discard", seat: p.seat, cards })}>
+        <button className="primary" disabled={cards.length !== prompt.n} onClick={() => send({ kind: "discard", seat: p.seat, cards })}>
           Done
         </button>
       </div>

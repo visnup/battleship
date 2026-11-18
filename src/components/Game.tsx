@@ -87,7 +87,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
   const row = "flex min-h-11 items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5";
   return (
     <div className={alone ? "grid min-h-dvh place-items-center p-4" : "p-4"}>
-      <section className="mx-auto w-full max-w-sm rounded-2xl bg-[var(--bar)] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+      <section className="panel mx-auto w-full max-w-sm p-6">
         <h1 className="m-0 text-center text-3xl font-bold">Monopoly Deal</h1>
         <p className="mt-2 mb-5 text-center text-sm opacity-70">Share this page&apos;s address to bring people to the table.</p>
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
@@ -96,7 +96,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
               <li key={p._id} className={row}>
                 <input
                   aria-label="Your name"
-                  className="min-w-0 flex-1 rounded-md bg-[var(--card)] px-2 py-1 text-black"
+                  className="min-w-0 flex-1 rounded-lg bg-card px-2 py-1 text-black"
                   value={name}
                   placeholder={`Player ${p.seat + 1}`}
                   maxLength={24}
@@ -113,7 +113,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
           {Array.from({ length: bots }, (_, i) => (
             <li key={`bot${i}`} className={row}>
               <span className="flex-1">🤖 Bot</span>
-              <button className="bg-white/15 px-2 py-0.5 text-sm text-white" aria-label="Remove bot" onClick={() => setBots(bots - 1)}>
+              <button className="quiet px-2 py-0.5 text-sm" aria-label="Remove bot" onClick={() => setBots(bots - 1)}>
                 Remove
               </button>
             </li>
@@ -126,7 +126,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
             </li>
           )}
         </ul>
-        <button className="mt-5 w-full bg-[gold] py-2 text-lg font-bold" disabled={total < 2} onClick={() => start({ table, players: players.map((p) => p._id), bots })}>
+        <button className="primary mt-5 w-full py-2 text-lg" disabled={total < 2} onClick={() => start({ table, players: players.map((p) => p._id), bots })}>
           Deal {total} players
         </button>
       </section>

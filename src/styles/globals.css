@@ -2,20 +2,28 @@
 
 @theme {
   --font-sans: Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;
+  --color-bar: var(--bar);
+  --color-card: var(--card);
+  --color-gold: var(--gold);
 }
 
 @layer base {
   :root {
     --felt: #1d6b4a;
     --bar: #123f2c;
+    --seat: rgb(0 0 0 / 0.15);
     --card: white;
+    --gold: #f2c94c;
+    --shadow: 0 4px 16px rgb(0 0 0 / 0.3);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
       --felt: #0f3a28;
       --bar: #0a2419;
+      --seat: rgb(0 0 0 / 0.2);
       --card: #d8d4c8;
+      --gold: #d9b443;
       color-scheme: dark;
     }
   }
@@ -37,7 +45,7 @@
 
   button {
     padding: 0.3em 0.8em;
-    border-radius: 0.4em;
+    border-radius: 0.5em;
     background: var(--card);
     color: black;
     cursor: pointer;
@@ -50,5 +58,46 @@
 
   li button {
     margin: 0.15em 0;
+  }
+}
+
+@layer components {
+  /* The bars, the floating panel and the lobby */
+  .panel {
+    border-radius: 0.75rem;
+    background: var(--bar);
+    box-shadow: var(--shadow);
+  }
+
+  .seat {
+    border-radius: 0.75rem;
+    background: var(--seat);
+    padding: 0.8em;
+  }
+
+  /* Whoever's turn it is */
+  .current {
+    outline: 2px solid var(--gold);
+  }
+
+  /* A seat's small headings: sets, bank, cards in hand */
+  .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  /* The one thing to do next */
+  button.primary {
+    background: var(--gold);
+    font-weight: 700;
+  }
+
+  /* Secondary actions that shouldn't compete with the cards */
+  button.quiet {
+    background: rgb(255 255 255 / 0.15);
+    color: white;
   }
 }
