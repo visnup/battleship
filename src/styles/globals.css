@@ -104,6 +104,26 @@
     }
   }
 
+  /* A full set's pill, louder as its player nears the win: white with one, then gold, and
+     pulsing with two, one set away. */
+  .full {
+    outline: 2px solid white;
+  }
+
+  .full.near {
+    outline-color: var(--gold);
+  }
+
+  .full.near:not(.won) {
+    animation: near 1.6s ease-in-out infinite;
+  }
+
+  @keyframes near {
+    50% {
+      box-shadow: 0 0 8px 2px var(--gold);
+    }
+  }
+
   .seat {
     border-radius: 0.75rem;
     background: var(--seat);

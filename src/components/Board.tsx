@@ -232,19 +232,23 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
 
 function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
-  const full = fullColors(game, p).length;
-  // sets started but not full, in the table's order
-  const pending = colors.map((c) => ({ c, n: count(p, c) % size(c), of: size(c) })).filter((s) => s.n);
+  const done = fullColors(game, p).length;
+  const louder = done >= 2 ? `near ${done >= 3 ? "won" : ""}` : "";
+  // every set, full or started, in the table's order
+  const pills = colors.flatMap((c) => {
+    const full = fullSets(game, p, c);
+    const rest = count(p, c) - full * size(c);
+    return [...Array.from({ length: full }, () => ({ c, n: size(c), full: true })), ...(rest ? [{ c, n: Math.min(rest, size(c)), full: false }] : [])];
+  });
   return (
     <section className={`seat flex flex-col gap-[0.5em] ${current ? "current" : ""}`}>
       <h2 className="m-0 flex items-baseline justify-between text-base font-bold">
         {name} {!mine && <small className="label">{p.hand.length} in hand</small>}
       </h2>
       <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em]">
-        <span className="label">{Math.min(full, 3)} of 3 sets</span>
-        {pending.map(({ c, n, of }) => (
-          <span key={c} title={`${colorName(c)}: ${n} of ${of}`} className="flex overflow-hidden rounded-full outline outline-white/50">
-            {Array.from({ length: of }, (_, i) => (
+        {pills.map(({ c, n, full }, k) => (
+          <span key={k} title={full ? `${colorName(c)}: full set` : `${colorName(c)}: ${n} of ${size(c)}`} className={`flex overflow-hidden rounded-full ${full ? `full ${louder}` : "outline outline-white/50"}`}>
+            {Array.from({ length: size(c) }, (_, i) => (
               <span key={i} className="h-[0.7em] w-[0.6em] bg-white/20 not-first:border-l not-first:border-white/50" style={i < n ? { background: PAINT[c] } : undefined} />
             ))}
           </span>
