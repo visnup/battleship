@@ -1,12 +1,14 @@
 import { v } from "convex/values";
 import { shuffle } from "../src/game.ts";
+import { hard } from "../src/hard.ts";
 import { type Choice, deal, replay, setup } from "../src/replay.ts";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server.js";
 import { window } from "./players.js";
+import { bot } from "./schema.js";
 
 async function play(db: MutationCtx["db"], game: Doc<"games">, log: Choice[], made: Choice[]) {
-  const { result, decisions } = replay(setup(game), [...log, ...made]);
+  const { result, decisions } = replay(setup(game), [...log, ...made], { learned: hard() });
   for (const [i, d] of decisions.entries()) await db.insert("decisions", { game: game._id, n: log.length + i, ...d });
   if (result) await db.patch("games", game._id, { winner: result.winner });
 }
@@ -20,9 +22,9 @@ const log = async (db: QueryCtx["db"], game: Id<"games">) =>
   ).map((d) => d.choice as Choice);
 
 export const start = mutation({
-  args: { table: v.string(), players: v.array(v.id("players")), bots: v.number() },
+  args: { table: v.string(), players: v.array(v.id("players")), bots: v.array(bot) },
   handler: async ({ db }, { table, players, bots }) => {
-    const seats = shuffle([...players.map((player) => ({ player })), ...Array.from({ length: bots }, () => ({ bot: "default" as const }))], Math.random);
+    const seats = shuffle([...players.map((player) => ({ player })), ...bots.map((bot) => ({ bot }))], Math.random);
     if (seats.length < 2 || seats.length > 5) throw new Error("2 to 5 players");
     const seed = Math.floor(Math.random() * 2 ** 32);
     const first = Math.floor(Math.random() * seats.length);

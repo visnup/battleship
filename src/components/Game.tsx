@@ -74,7 +74,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
     return () => clearTimeout(timeout);
   }, [rename, me, name]);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 5e3) * 5e3);
-  const [bots, setBots] = useState(1);
+  const [bots, setBots] = useState<("default" | "learned")[]>(["default"]);
   // each new `now` is a new query, so keep showing the last list while it loads
   const active = useQuery(api.players.active, { table, now });
   const [players, setPlayers] = useState<NonNullable<typeof active>>([]);
@@ -83,7 +83,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
     const interval = setInterval(() => setNow(Math.floor(Date.now() / 5e3) * 5e3), 5e3);
     return () => clearInterval(interval);
   }, []);
-  const total = players.length + bots;
+  const total = players.length + bots.length;
   const row = "flex min-h-11 items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5";
   return (
     <div className={alone ? "grid min-h-dvh place-items-center p-4" : "p-4"}>
@@ -110,17 +110,24 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
               </li>
             ),
           )}
-          {Array.from({ length: bots }, (_, i) => (
+          {bots.map((kind, i) => (
             <li key={`bot${i}`} className={row}>
               <span className="flex-1">🤖 Bot</span>
-              <button className="quiet px-2 py-0.5 text-sm" aria-label="Remove bot" onClick={() => setBots(bots - 1)}>
+              <button
+                className="quiet px-2 py-0.5 text-sm"
+                title={kind === "learned" ? "Plays by the learned model" : "Plays by simple rules"}
+                onClick={() => setBots(bots.map((k, j) => (j === i ? (k === "learned" ? "default" : "learned") : k)))}
+              >
+                {kind === "learned" ? "Hard" : "Easy"}
+              </button>
+              <button className="quiet px-2 py-0.5 text-sm" aria-label="Remove bot" onClick={() => setBots(bots.filter((_, j) => j !== i))}>
                 Remove
               </button>
             </li>
           ))}
           {total < 5 && (
             <li>
-              <button className="w-full border-2 border-dashed border-white/30 bg-transparent py-2 text-white/80" onClick={() => setBots(bots + 1)}>
+              <button className="w-full border-2 border-dashed border-white/30 bg-transparent py-2 text-white/80" onClick={() => setBots([...bots, bots.at(-1) ?? "default"])}>
                 + Add a bot
               </button>
             </li>

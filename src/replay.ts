@@ -57,10 +57,16 @@ export type Prompt =
 /** A decision as saved: the choice, whether a bot made it, and every hand when it was made. */
 export type Decision = { choice: Choice; bot: boolean; hands: string[][] };
 
-export type Setup = { players: number; seed: number; first: number; bots: boolean[] };
+/** A game to replay, with each seat's kind of bot, or false for a person. */
+export type Setup = { players: number; seed: number; first: number; bots: (string | false)[] };
 
 /** A saved game's setup, from its seats: a player's or a bot's. */
-export const setup = ({ seats, seed, first }: { seats: object[]; seed: number; first: number }): Setup => ({ players: seats.length, seed, first, bots: seats.map((s) => "bot" in s) });
+export const setup = ({ seats, seed, first }: { seats: ({ bot: string } | object)[]; seed: number; first: number }): Setup => ({
+  players: seats.length,
+  seed,
+  first,
+  bots: seats.map((s) => ("bot" in s ? s.bot : false)),
+});
 
 /** Where `x`, something `p` pays with, is. */
 export const ref = (p: Player, x: Card | Placed): Ref => ("kind" in x ? { pile: "bank", i: p.bank.indexOf(x) } : p.built.includes(x) ? { pile: "built", i: p.built.indexOf(x) } : { pile: "props", i: p.props.indexOf(x) });
@@ -123,11 +129,13 @@ function paying(p: Player, amount: number, paid: Ref[]): (Card | Placed)[] {
 }
 
 /**
- * Plays `setup` through `log`, with bots deciding for their seats as the default player. Returns
- * the game, the decision it's waiting on, and the bots' decisions made past `log`.
+ * Plays `setup` through `log`, with bots deciding for their seats as the player of their kind in
+ * `bots`, or the default player. Returns the game, the decision it's waiting on, and the bots'
+ * decisions made past `log`.
  */
-export function replay(setup: Setup, log: Choice[]) {
+export function replay(setup: Setup, log: Choice[], bots: Record<string, Policy> = {}) {
   const decisions: Decision[] = [];
+  const bot = (p: Player) => bots[setup.bots[p.seat] || ""] ?? defaultPolicy;
   let next = 0;
   const decide = <C extends Choice>(game: Game, prompt: Prompt, bot: () => C): C => {
     const hands = game.players.map((p) => p.hand.map(name));
@@ -146,22 +154,30 @@ export function replay(setup: Setup, log: Choice[]) {
   };
   const policy: Policy = {
     move(game, p, left) {
-      const c = decide(game, { kind: "move", seat: p.seat, left }, () => ({ kind: "move", seat: p.seat, move: choose(game, p, defaultPolicy.move(game, p, left)) }));
+      const c = decide(game, { kind: "move", seat: p.seat, left }, () => ({ kind: "move", seat: p.seat, move: choose(game, p, bot(p).move(game, p, left)) }));
       return resolve(game, p, left, c.move);
     },
     pay(game, p, amount) {
       const c = decide(game, { kind: "pay", seat: p.seat, amount, to: game.current }, () => ({
         kind: "pay",
         seat: p.seat,
-        paid: defaultPolicy.pay(game, p, amount).map((x) => ref(p, x)),
+        paid: bot(p)
+          .pay(game, p, amount)
+          .map((x) => ref(p, x)),
       }));
       return paying(p, amount, c.paid);
     },
     sayNo(game, p, move, from) {
-      return decide(game, { kind: "sayNo", seat: p.seat, move, from: from.seat }, () => ({ kind: "sayNo", seat: p.seat, no: defaultPolicy.sayNo(game, p, move, from) })).no;
+      return decide(game, { kind: "sayNo", seat: p.seat, move, from: from.seat }, () => ({ kind: "sayNo", seat: p.seat, no: bot(p).sayNo(game, p, move, from) })).no;
     },
     discard(game, p, n) {
-      const c = decide(game, { kind: "discard", seat: p.seat, n }, () => ({ kind: "discard", seat: p.seat, cards: defaultPolicy.discard(game, p, n).map((x) => p.hand.indexOf(x)) }));
+      const c = decide(game, { kind: "discard", seat: p.seat, n }, () => ({
+        kind: "discard",
+        seat: p.seat,
+        cards: bot(p)
+          .discard(game, p, n)
+          .map((x) => p.hand.indexOf(x)),
+      }));
       if (new Set(c.cards).size !== n || c.cards.some((i) => !p.hand[i])) throw new Error(`discard ${n} cards`);
       return c.cards.map((i) => p.hand[i]);
     },

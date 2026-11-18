@@ -1,10 +1,10 @@
-import { readFileSync } from "node:fs";
 import { COLORS, type Color, DECK } from "./cards.ts";
 import { COLOR_NAMES, defaultPolicy, type Game, type Move, moves, name, payable, type Player, type Policy, size as sizeOf } from "./game.ts";
 import { discarding, discards } from "./discarding.ts";
 import { payment, payments } from "./paying.ts";
 import { refusal } from "./refusing.ts";
 import { encode, key, observe } from "./replay.ts";
+import { type Forest, flatten, score } from "./trees.ts";
 
 // A move scorer learned from the dataset: gradient-boosted trees (`scripts/learn.py`) over what
 // the mover sees and what each move does, fitted to its two-round playout value.
@@ -102,37 +102,6 @@ export function move(obs: Obs, m: Enc, isDefault: boolean): number[] {
   return x;
 }
 
-type Node = { split_feature?: number; threshold?: number; left_child?: Node; right_child?: Node; leaf_value?: number };
-/** Every tree's nodes in flat arrays, a leaf marked by feature −1 with its value as the threshold. */
-type Forest = { roots: number[]; feature: Int32Array; threshold: Float64Array; left: Int32Array; right: Int32Array };
-
-function flatten(trees: Node[]): Forest {
-  const feature: number[] = [];
-  const threshold: number[] = [];
-  const left: number[] = [];
-  const right: number[] = [];
-  const add = (t: Node): number => {
-    const i = feature.length;
-    feature.push(t.leaf_value !== undefined ? -1 : t.split_feature!);
-    threshold.push(t.leaf_value ?? t.threshold!);
-    left.push(0);
-    right.push(0);
-    if (t.leaf_value === undefined) [left[i], right[i]] = [add(t.left_child!), add(t.right_child!)];
-    return i;
-  };
-  const roots = trees.map(add);
-  return { roots, feature: Int32Array.from(feature), threshold: Float64Array.from(threshold), left: Int32Array.from(left), right: Int32Array.from(right) };
-}
-
-function score({ roots, feature, threshold, left, right }: Forest, x: number[]) {
-  let s = 0;
-  for (let i of roots) {
-    for (let f = feature[i]; f >= 0; f = feature[i]) i = x[f] <= threshold[i] ? left[i] : right[i];
-    s += threshold[i];
-  }
-  return s;
-}
-
 type Layer = { w: number[][]; b: number[] };
 
 /** `learn_mlx.py`'s network: standardize, then ReLU layers, with weights as [out][in]. */
@@ -157,25 +126,31 @@ function network({ mean, std, layers }: { mean: number[]; std: number[]; layers:
   };
 }
 
-export const MODEL = `${import.meta.dirname}/model.json`;
-export const PAY = `${import.meta.dirname}/pay.json`;
-export const NO = `${import.meta.dirname}/sayno.json`;
-export const DISCARD = `${import.meta.dirname}/discard.json`;
+// from the repo's root, where scripts run, since Convex can't load a module that uses import.meta
+export const MODEL = "src/model.json";
+export const PAY = "src/pay.json";
+export const NO = "src/sayno.json";
+export const DISCARD = "src/discard.json";
 const loaded: Record<string, (x: number[]) => number> = {};
 
+// fetched here rather than imported, so Convex and browsers can load this module, given trees
 function load(file: string) {
-  const json = JSON.parse(readFileSync(file, "utf8"));
+  const fs = (globalThis as unknown as { process: { getBuiltinModule(id: "node:fs"): { readFileSync(file: string, encoding: "utf8"): string } } }).process.getBuiltinModule("node:fs");
+  const json = JSON.parse(fs.readFileSync(file, "utf8"));
   if (json.layers) return network(json);
-  const trees = flatten(json.tree_info.map((t: { tree_structure: Node }) => t.tree_structure));
+  const trees = flatten(json);
   return (x: number[]) => score(trees, x);
 }
 
-/** The model in `file` as a function of `board` and `move`'s numbers. */
-export const scorer = (file = MODEL) => (loaded[file] ??= load(file));
+/** A model to score by: a JSON file's path, or packed trees (`src/packed`). */
+export type Model = string | Forest;
 
-/** Every legal move, best first by the model in `file`: `learn.py`'s trees or `learn_mlx.py`'s network. */
-export function ranked(file = MODEL) {
-  const rate = scorer(file);
+/** `model` as a function of `board` and `move`'s numbers. */
+export const scorer = (model: Model = MODEL) => (typeof model === "string" ? (loaded[model] ??= load(model)) : (x: number[]) => score(model, x));
+
+/** Every legal move, best first by `model`: `learn.py`'s trees or `learn_mlx.py`'s network. */
+export function ranked(model: Model = MODEL) {
+  const rate = scorer(model);
   return (game: Game, p: Player, left: number): (Move | null)[] => {
     const options = [null, ...moves(game, p, left)];
     if (options.length === 1) return options;
@@ -193,9 +168,9 @@ export function ranked(file = MODEL) {
   };
 }
 
-/** The payment the model in `file` (`learn.py` on `paydata.ts`'s features) scores highest, of `payments`' first 24. */
-export function paid(file = PAY): Policy["pay"] {
-  const rate = scorer(file);
+/** The payment `model` (`learn.py` on `paydata.ts`'s features) scores highest, of `payments`' first 24. */
+export function paid(model: Model = PAY): Policy["pay"] {
+  const rate = scorer(model);
   return (game, p, amount) => {
     const all = payable(p);
     const options = payments(game, p, amount, 24);
@@ -206,9 +181,9 @@ export function paid(file = PAY): Policy["pay"] {
   };
 }
 
-/** The discard the model in `file` (`learn.py` on `discarddata.ts`'s features) scores highest, of `discards`' first 24. */
-export function discarded(file = DISCARD): Policy["discard"] {
-  const rate = scorer(file);
+/** The discard `model` (`learn.py` on `discarddata.ts`'s features) scores highest, of `discards`' first 24. */
+export function discarded(model: Model = DISCARD): Policy["discard"] {
+  const rate = scorer(model);
   return (game, p, n) => {
     const options = discards(game, p, n);
     if (options.length === 1) return options[0].map((j) => p.hand[j]);
@@ -218,17 +193,17 @@ export function discarded(file = DISCARD): Policy["discard"] {
   };
 }
 
-/** Whether to Just Say No, by the model in `file` (`learn.py` on `saynodata.ts`'s features): whichever it scores higher. */
-export function said(file = NO): Policy["sayNo"] {
-  const rate = scorer(file);
+/** Whether to Just Say No, by `model` (`learn.py` on `saynodata.ts`'s features): whichever it scores higher. */
+export function said(model: Model = NO): Policy["sayNo"] {
+  const rate = scorer(model);
   return (game, p, move, to) => {
     const features = refusal(game, p, move, to);
     return rate(features(true)) > rate(features(false));
   };
 }
 
-/** The default player, except that every move is the one the model in `file` scores highest, and every payment the one `src/pay.json` does. */
-export function learned(file: string): Policy {
-  const rank = ranked(file);
-  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0], pay: paid(), sayNo: said(), discard: discarded() };
+/** The default player, except that it moves, pays, says no and discards by the models. */
+export function learned(model: Model = MODEL, pay: Model = PAY, no: Model = NO, discard: Model = DISCARD): Policy {
+  const rank = ranked(model);
+  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0], pay: paid(pay), sayNo: said(no), discard: discarded(discard) };
 }
