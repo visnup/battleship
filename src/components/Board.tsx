@@ -259,7 +259,7 @@ function Scroller({ children, className }: { children: ReactNode; className: str
     if (!el) return;
     // less the right padding, which scrolling doesn't reach
     const left = el.scrollLeft > 1;
-    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 9;
     setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
   };
   const fade = (on: boolean) => (on ? "transparent" : "black");
@@ -269,12 +269,12 @@ function Scroller({ children, className }: { children: ReactNode; className: str
     observer.observe(ref.current!);
     return () => observer.disconnect();
   }, []);
-  // padded so a full set's or a picked card's outline isn't clipped
+  // padded so a full set's outline, or a picked or glowing card's, isn't clipped
   return (
     <div
       ref={ref}
       onScroll={check}
-      className={`-m-[3px] flex overflow-x-auto p-[3px] ${className}`}
+      className={`-m-[8px] flex overflow-x-auto p-[8px] ${className}`}
       style={{ maskImage: `linear-gradient(to right, ${fade(more.left)}, black 3em, black calc(100% - 3em), ${fade(more.right)})` }}
     >
       {children}

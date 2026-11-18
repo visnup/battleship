@@ -148,12 +148,11 @@
   }
 }
 
-/* A card that just landed where it is, from someone else's play. Inset, since rows clip what's
-   outside, and unlayered to win over the card's shadow utility. */
+/* A card that just landed where it is, from someone else's play. Unlayered to win over the
+   card's shadow utility. */
 .card.glow {
-  box-shadow:
-    inset 0 0 0 3px var(--gold),
-    inset 0 0 12px 3px var(--gold);
+  outline: 3px solid var(--gold);
+  box-shadow: 0 0 6px 1px var(--gold);
   animation: land 0.5s ease-out;
 }
 
