@@ -21,7 +21,7 @@ import {
   shuffle,
   type Step,
 } from "./game.ts";
-import { paid, ranked, said } from "./learned.ts";
+import { discarded, paid, ranked, said } from "./learned.ts";
 
 /** `defaultPolicy`'s steps, in its order. */
 const DEFAULT = Object.keys(STEPS) as (keyof typeof STEPS)[];
@@ -63,7 +63,7 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
   /** Plays out the 5 moves `src/model.json` ranks highest on 160 deals, and makes the one that wins most. Pays as `src/pay.json` says. */
   playouts: (seed) => {
     const rank = ranked();
-    return { ...playouts(160, seed, defaultPolicy, 2, 2, (game, p, left) => rank(game, p, left).slice(0, 5)), pay: paid(), sayNo: said() };
+    return { ...playouts(160, seed, defaultPolicy, 2, 2, (game, p, left) => rank(game, p, left).slice(0, 5)), pay: paid(), sayNo: said(), discard: discarded() };
   },
 
   /** Playouts on 16 deals, each cut off after one round: a strong player that's still quick. */
