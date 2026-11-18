@@ -218,8 +218,12 @@
             Round 4's (2026-11-17, `scripts/overrules.ts` on held-out r4b shards): laying a wild
             where a plain property would do, at every count. Properties before wilds gains +0.8,
             +0.6, +0.5 and +0.2 at 2–5 players (400,000 games), adopted. Laying down before Sly
-            Deal, the next biggest at 3–5 players, loses 0.7 to 2.4. Still to do: rerun the
-            README's tables, refit `chance`, and round 5.
+            Deal, the next biggest at 3–5 players, loses 0.7 to 2.4. Tables rerun and `chance`
+            refit. Round 5 (10,000 games on 16 deals with the new default inside the rollouts)
+            ties round 4: trained on r5 alone −0.1 to −1.2, on r4b and r5 +0.4, −0.2, 0.0, −0.1
+            (±0.3–0.4, `compare.ts`, 50,000 deals). Held out it gains +0.41 to +0.79 a decision,
+            as round 4 did. So one more rule in the default didn't move the labels enough;
+            `round.sh`'s window also looks for `features-r4`, which is `features-r4b`.
       - [ ] Then Just Say No and discarding (the "Learn the other decisions" item below), used
             in the rollouts like the payer.
       - [ ] Only if the model plateaus against cleaner labels: features beyond the 94
