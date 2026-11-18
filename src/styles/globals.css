@@ -115,20 +115,14 @@
     box-shadow: 0 0 6px 1px var(--gold);
   }
 
-  /* Stuck where it starts, below the page's padding, with felt over that gap so the table
-     doesn't scroll by above it */
+  /* Holds a panel stuck where it starts, below the page's padding, on felt that fills that gap
+     and its corners so the table doesn't scroll by around it */
   .pinned {
     position: sticky;
-    top: 0.8em;
-  }
-
-  .pinned::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    inset-inline: -0.8em;
-    top: -0.8em;
-    height: calc(0.8em + 0.75rem);
+    top: 0;
+    z-index: 10;
+    margin: -0.8em -0.8em 0;
+    padding: 0.8em 0.8em 0;
     background: var(--felt);
   }
 
