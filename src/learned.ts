@@ -106,7 +106,7 @@ const unseen = (c: string) => (c.startsWith("rent(") ? "rent" : c);
 const TOTAL = Map.groupBy(DECK.map(name), unseen);
 
 /**
- * What the mover can't see yet, after `move`: how many of each action and of the Rent cards
+ * What the mover can't see yet: how many of each action and of the Rent cards
  * aren't in their hand, a bank, a house or hotel, or the discard pile, and how many cards that
  * leaves in the draw pile and the others' hands.
  */

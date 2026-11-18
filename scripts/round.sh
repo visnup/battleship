@@ -1,7 +1,7 @@
 #!/bin/bash
 # One round of training on the learned player's own games, from round $1's model:
 # $GAMES new games a player count (10000), only its top $TOP (6) moves (plus the default's and one at
-# random) played out on $DEALS deals (16), the mover paying by src/pay.json, $EXTRA passed to
+# random) played out on $DEALS deals (16), the mover paying, saying no and discarding by the learned models, $EXTRA passed to
 # dataset.ts, trees fit to the rounds in $WINDOW (the previous and this one), then the new model
 # compared with the old on the same deals, and as playouts' filter only if the learned player
 # gained. $NEXT names the round (default $1 + 1). Logs go to dataset/r$NEXT/. The data step

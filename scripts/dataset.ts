@@ -15,7 +15,7 @@ export const shardName = (players: number, seed: number) => `${players}p-${Strin
  * default's pick, and whether the mover went on to win. With `model`, the learned player plays
  * the games, and with `top` too, only its `top` moves, the default's pick and one other at random
  * are played out, and with `label` only that fraction of decisions is. With `pay`, the mover
- * pays as `src/pay.json` says in the playouts. With `strong`, everyone in the playouts is the
+ * pays, says no and discards by the learned models in the playouts. With `strong`, everyone in the playouts is the
  * learned player of that model, so each label asks which move is best if good players play on.
  */
 export function shard(players: number, deals: number, model: string, top: number, pay: boolean, label: number, out: string, strong: string, seed: number, n: number) {

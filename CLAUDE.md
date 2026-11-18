@@ -6,7 +6,7 @@ the TypeScript directly, and the engine has no dependencies.
 The rules are the 2023 US edition's sheet (G0351, `rules/g0351.pdf`), which settles three
 things the 2014 sheet (B0965, `rules/b0965-*.jpg`) left open or read otherwise. Neither is
 committed. Most of `README.md` was measured under B0965; switching changed the first player's
-share by at most 0.3 points and games by 0.2 turns, so it wasn't rerun. The deck in
+share by at most 0.4 points and games by 0.1 turns, so it wasn't rerun. The deck in
 `src/cards.ts` follows B0965's contents list (G0351's has none), with values and rent tables
 from photos of one card of each property color and each wild (`rules/properties.jpg`,
 `rules/wilds.jpg`).
@@ -76,6 +76,10 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `refusing.ts`: whether to Just Say No, as numbers, the same way. `scripts/saynodata.ts` plays
   out both answers at every chance (in `dataset/sayno/`), `learn.py … dataset/sayno` fits
   `src/sayno.json`, and `said()` in `learned.ts` answers by it.
+- `discarding.ts`: what to discard past 7, as numbers, the same way. `scripts/discarddata.ts`
+  plays out each discard (in `dataset/discard/`), `learn.py … dataset/discard` fits
+  `src/discard.json`, and `discarded()` in `learned.ts` discards by it.
+- `scripts/table.ts`: the markdown table header the scripts print their results under.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;
@@ -107,7 +111,8 @@ mistake costs minutes, not the night:
 - **A status page:** `node scripts/status.ts --round N` at localhost:3001, with a bar per stage
   and an ETA from the recent rate. Open it in the browser pane.
 - **Timeouts sized to the run** (`HOURS=` for `round.sh`'s data step), and a timing run on a
-  sample first: learned-player rollouts were 30–60× the default's, not the 9–20× guessed.
+  sample first: learned-player rollouts were 30–60× the default's, not the 9–20× measured
+  earlier for small models inside quick playouts.
 - **Nothing in `src/` changes** while it runs, unless the change can't alter results.
 
 ## Playing online
@@ -127,6 +132,8 @@ their browsers; it's for friends.
   next person. Clients replay the log themselves.
 - `src/pages/` and `src/components/`: `Game` joins and shows the lobby, `Board` the table and
   the prompt. Playwright specs sit next to components and need `pnpm dev` running.
+  `src/streets.ts` gives each property in an online game its street name, and `src/words.ts`
+  names new tables.
 - Prettier is 220 wide, to match the engine.
 
 ## Rules worth knowing

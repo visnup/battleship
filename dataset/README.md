@@ -31,7 +31,7 @@ winning, the simulator's hand-written player's pick, and whether the player to m
 win.
 
 The games, rules and estimates come from [a simulator](https://github.com/visnup/monopoly-deal)
-of the 2014 US edition (B0965). `scripts/dataset.ts` there regenerates this dataset, and `game_seed` replays any game.
+of the 2014 US edition (B0965). `scripts/dataset.ts` there regenerates a dataset like this one, now under the 2023 sheet's (G0351) readings: Just Say No is a play, and overflow goes on the discard pile. `game_seed` replays a game only under the rules it was played by.
 
 The simulator, its analysis and this card were written with Claude Opus 5.5 at medium effort,
 working in Claude Code throughout.

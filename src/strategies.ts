@@ -60,7 +60,7 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
   /** Plays a legal move at random, or ends the turn. */
   random: (seed) => random(seed),
 
-  /** Plays out the 5 moves `src/model.json` ranks highest on 160 deals, and makes the one that wins most. Pays as `src/pay.json` says. */
+  /** Plays out the 5 moves `src/model.json` ranks highest on 160 deals, and makes the one that wins most. Pays, says no and discards by the learned models. */
   playouts: (seed) => {
     const rank = ranked();
     return { ...playouts(160, seed, defaultPolicy, 2, 2, (game, p, left) => rank(game, p, left).slice(0, 5)), pay: paid(), sayNo: said(), discard: discarded() };

@@ -50,9 +50,9 @@ win at best.
 instead of 20.0% is +1.7 points.
 
 **One hand-written player** plays every seat, or every seat but one: `defaultPolicy` in
-`src/game.ts`. It tries a list of rules in order and makes the first move one allows: complete a
-set, Deal Breaker, Sly Deal, charge rent, Debt Collector, Birthday, Forced Deal, bank, and only
-then lay down properties. Every table depends on how well it plays, and "Playing well" shows how
+`src/game.ts`. It tries a list of rules in order and makes the first move one allows: Pass Go,
+complete a set, Deal Breaker, Sly Deal, charge rent, Debt Collector, Birthday, Forced Deal, lay
+down once $10M is banked, bank, and only then lay down properties. Every table depends on how well it plays, and "Playing well" shows how
 that list was found and how far it is from the best play we know.
 
 **Noise.** Most tables are 100,000 games per cell, so a share of wins is good to about ±0.3
@@ -62,7 +62,7 @@ on the same deals.
 **Stalled** games are ones with no winner after 200 turns. They count as a win for no one.
 "Stalled games" says where they come from.
 
-Node 24 runs everything with no dependencies, and each section names the script behind it:
+Node 26 runs everything with no dependencies, and each section names the script behind it:
 
 ```bash
 node scripts/sim.ts --n 100000 --players 4
@@ -111,6 +111,9 @@ slow, so they play 10,000 games per cell, which is good to about ±1 point.
 | random | 5.4% | 1.7% | 0.6% | 0.3% |
 | playouts | 61.0% | 50.8% | 47.2% | 44.0% |
 | quick playouts | 53.5% | 40.3% | 36.0% | 33.8% |
+
+The playouts row predates the learned Just Say No and discard; with them, playouts win 62.0% and
+44.7% at 2 and 5 players (4,000 games, ±1.5).
 
 **Builder** plays the way the default player first did. It lays down properties as soon as it
 draws them, builds houses and hotels, and only then charges rent. It wins 11 points less than the
@@ -340,7 +343,7 @@ playouts that play each deal to the end:
 ### A learned player
 
 Playouts are strong but slow. *`scripts/learn.ts`* turns the dataset (every move of 10,000
-default games at each player count, scored by two-round playouts) into 94 numbers per move, and
+default games at each player count, scored by two-round playouts) into 94 numbers per move (106 since card memory, below), and
 fits a model that predicts each move's playout score. The learned player then makes the move it
 scores highest. It never looks ahead, so a game with one learned player takes about 4 ms of CPU
 with the trees and 60 ms with the network.
@@ -408,12 +411,12 @@ default everywhere else (100,000 games; the default itself wins 50.0%, 33.3%, 24
 
 None of them is a rule anyone could write down: the discard model disagrees with the default's
 on 82% to 86% of discards at 3 to 5 players. With all three, round 4's trees win 59.6%, 47.5%,
-41.6% and 37.1% (100,000 games), 1.6 to 1.9 points more than with the default's. Retraining all
+41.6% and 37.1% (100,000 games), 1.5 to 1.9 points more than with the default's. Retraining all
 three on playouts where the mover already decides them by the models gains only 0.1 to 0.2.
 
 **Its edge isn't just exploiting the default.** At a table of learned players instead
 (`scripts/field.ts`, 100,000 games), the default player wins 39.9%, 21.6%, 13.1% and 9.6%: 10 to
-12 points under a fair share, about the same gap as the learned player's over a table of defaults.
+12 points under a fair share, where the learned player is 10 to 17 over one at a table of defaults.
 
 **Remembering what's been played helps a little.** Twelve more numbers, how many of each action
 and of the Rent cards the mover hasn't seen in a hand, bank, building or the discard pile, and how
@@ -734,7 +737,6 @@ games stall ("Rules questions").
 
 - bank every money and action card, and never play an action, since played ones are reshuffled
   back in;
-- use all three plays every turn, since cards over the 7-card limit go back to the draw pile;
 - lay properties down without completing sets, since properties can't be banked;
 - spend Just Say No on any steal that would complete someone's set, and pay with money before
   property, never with a property that finishes someone's set;

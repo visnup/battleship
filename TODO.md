@@ -64,12 +64,12 @@
       worse. Every table was then rerun on the new default. Done before: placement
       (no pattern beat the default) and the any-color Rent (aim it, and Debt Collector, at
       whoever has to pay in property). Forced Deal's gap is real, about 1.6 points a game at 5
-      players and mostly in what to take, but 15 rules for it didn't beat the default. Also
-      untouched: what to pay with. Saving Just Say No for a Deal Breaker loses; playouts at
-      each Just Say No decision might still find a rule.
+      players and mostly in what to take, but 15 rules for it didn't beat the default. Paying and
+      Just Say No were later learned rather than ruled (below). Saving Just Say No for a Deal
+      Breaker loses.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
-- [ ] Playouts of every move won 59.1% at 2 players, 9 points over the default (61.2% now,
+- [ ] Playouts of every move won 59.1% at 2 players, 9 points over the default (61.0% now,
       pruned by the model); playing to the end, they tied it. More deals per move still help, about 2 points each time they double: at 80,
       160 and 320, 43.1%, 45.7% and 47.2% at 5 players, and 60.2%, 60.7% and 62.1% at 2 (4,000
       games each, ±1.5). Two rounds is best at 80 deals; with fewer deals, fewer rounds win
@@ -86,8 +86,8 @@
       seat, 8,000 games): never building, banking before laying down, and playing the card
       that completes a set all hold. Going first is worth about the same among strong players
       at 5 (24.0% against 23.4%).
-- [ ] Remember what's been played. No player tracks it, so none knows when the Just Say Nos
-      and Deal Breakers are gone and a full set is safe. Try it as a variant, and in playouts'
+- [ ] Remember what's been played. The learned player's move model has it since 2026-11-18
+      (card memory, below); still to try as a variant of the default, and in playouts'
       guesses at the hidden cards.
 - [x] What to pay with, by playouts (`pay.ts`, 2026-11-16). At 5 players it paid with a loose
       property where the default paid money in 904 of 3,251 payments, +0.8 points each by its
@@ -108,7 +108,7 @@
 - [ ] A staller: a strategy that tries to make the game stall, from the list in the README's
       "Stalled games". Count its stalls at 5 players against the pacifist's 68 in 100,000, and
       see which of its rules matter most.
-- [ ] Online play (Next and Convex, `pnpm dev`): works with default-player bots, deployed at
+- [ ] Online play (Next and Convex, `pnpm dev`): works with bots at three levels, deployed at
       monopoly.visnup.com (Vercel project `visnu/monopoly-deal`, 2026-11-17). Bots come in three
       levels (2026-11-18): Easy is `builder`, Medium the default, Hard the learned player from
       `src/packed` (`scripts/pack.ts`, rerun after retraining), which a Convex mutation runs in
@@ -124,9 +124,10 @@
             `arrange` then moves every wild to its best color after each play, for people as
             well as bots: a lone railroad/utility wild always goes to utility. People's wilds
             should skip `arrange`. Games in progress may replay differently once this ships.
-      - [x] Show what just happened: others' decisions step by every 0.7s, each card that
-            lands glows, and once caught up everything since your last decision stays lit;
-            clicking a log line glows that play's cards too (2026-11-18).
+      - [x] Show what just happened: others' decisions step by (Fast 0.4s, Slow 0.9s or Off in
+            the lobby, with a Skip button), each card that lands glows, and once caught up
+            everything since your last decision stays lit; clicking a log line glows that
+            play's cards too (2026-11-18).
       - [ ] Laying down a wild says "Lay it down", then `arrange` picks its color. Say so on the
             button (or its tooltip) until people can pick the color themselves.
       - [ ] Others as a compact strip: each one a row at the top (name, level, hand count, bank,
@@ -252,6 +253,14 @@
             (±0.3–0.4, `compare.ts`, 50,000 deals). Held out it gains +0.41 to +0.79 a decision,
             as round 4 did. So one more rule in the default didn't move the labels enough;
             `round.sh`'s window also looks for `features-r4`, which is `features-r4b`.
+            Round 6's (2026-11-18, held out): its biggest overrule at 5 players is which set to
+            Deal Breaker. It breaks a set of whoever is one set from winning, where the default
+            takes the highest rent (81 times to 9 the other way, 8 points each by stored value).
+            As a rule it's even (100,000 games, `variants.ts`): 49.6%, 33.5%, 25.0% and 20.2%,
+            against the default's 50.0%, 33.3%, 24.9% and 19.9%; also breaking colors we have
+            full is even too. Deal Breakers are rare enough that 8 points on 2% of 5-player
+            decisions is under 0.2 a game. Next at 2–4 players: Forced Deal before Pass Go after
+            round 3, which a dozen Forced Deal rules have already failed to capture.
       - [x] Then Just Say No and discarding (the "Learn the other decisions" item below), used
             in the rollouts like the payer (2026-11-17). `saynodata.ts` on 131,072 default games
             a player count (about 1.5 chances a game, 32 shuffles each way) to `src/sayno.json`:
@@ -305,15 +314,6 @@
             (`src/pay.json`): on the same deals (`compare.ts`-style, 50,000), +1.1 to +2.2 for
             the learned player, and +0.4 ± 0.5 and +0.6 ± 1.3 for `playouts` at 2 and 5 players
             (4,000).
-      - [ ] Mine the retrained model for rules again, as was done for `emptyHand` and Birthday.
-            Round 6's (2026-11-18, held out): its biggest overrule at 5 players is which set to
-            Deal Breaker. It breaks a set of whoever is one set from winning, where the default
-            takes the highest rent (81 times to 9 the other way, 8 points each by stored value).
-            As a rule it's even (100,000 games, `variants.ts`): 49.6%, 33.5%, 25.0% and 20.2%,
-            against the default's 50.0%, 33.3%, 24.9% and 19.9%; also breaking colors we have
-            full is even too. Deal Breakers are rare enough that 8 points on 2% of 5-player
-            decisions is under 0.2 a game. Next at 2–4 players: Forced Deal before Pass Go after
-            round 3, which a dozen Forced Deal rules have already failed to capture.
 
 ## Analysis
 
@@ -325,7 +325,7 @@
 - [x] How long games last, and how often the draw pile runs out.
 - [x] Charts in `charts/` (`scripts/charts.ts`), drawn from the README's tables.
 - [x] How much is luck: playouts win 1.22 fair shares against the default at 2 players and
-      2.09 at 5, so skill counts for more at big tables.
+      2.20 at 5, so skill counts for more at big tables.
 - [x] When a game is decided (`decided.ts`): the player ahead after round 3 wins 72% at 2
       players and 46% at 5. Comebacks last at 2 players and run out at 5.
 - [x] Played or banked (`cards.ts`): every action card is worth far more played, except
