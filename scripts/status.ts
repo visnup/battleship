@@ -105,6 +105,8 @@ ${evs.map((e) => `<div>✓ ${e.name} <small>${new Date(e.t).toLocaleTimeString([
 <div><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores · <span class="key"></span>load ${now.load.toFixed(1)}</div>`,
     usage,
     cores: CORES,
+    // the machine's, since the page may be viewed somewhere set to another, like UTC
+    zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     events: evs,
   };
 }
@@ -169,7 +171,7 @@ const draw = (s) => {
     Plot.plot({
       height: 160,
       style: { background: "transparent", color: "#fff" },
-      x: { domain: [new Date(now - 2 * 3600e3), new Date(now)], label: null },
+      x: { domain: [new Date(now - 2 * 3600e3), new Date(now)], label: null, tickFormat: (d) => d.toLocaleTimeString([], { timeZone: s.zone, hour: "numeric", minute: "2-digit" }) },
       y: { domain: [0, Math.max(2 * s.cores, ...rows.map((r) => r.v))], label: null, grid: true },
       color: { domain: ["cores used", "load"], range: ["#f2c94c", "#ffffff99"] },
       marks: [
