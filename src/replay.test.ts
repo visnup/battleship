@@ -52,6 +52,17 @@ test("a property can't be laid down as another color", () => {
   assert.equal(as(own).game.players[p.seat].props[0].color, own);
 });
 
+test("bots play and log the same game as the engine, wilds' colors included", () => {
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    const players = 2 + (seed % 4);
+    const game = new Game({ players, rng: mulberry32(seed), first: seed % players, log: true });
+    const expected = game.run();
+    const replayed = replay(setup(players, seed, true), []);
+    assert.deepEqual(replayed.result, expected);
+    assert.deepEqual(replayed.game.log, game.log);
+  }
+});
+
 test("an illegal decision is refused", () => {
   const { prompt } = replay(setup(2, 1, false), []);
   assert.equal(prompt?.kind, "move");

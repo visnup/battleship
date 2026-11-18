@@ -1,5 +1,6 @@
 import { type Card, DECK } from "./cards.ts";
-import { defaultPolicy, Game, type GameResult, moves, mulberry32, name, type Move, payable, type Placed, type Player, type Policy, shuffle } from "./game.ts";
+import type { Color } from "./cards.ts";
+import { colorsOf, defaultPolicy, Game, type GameResult, moves, mulberry32, name, type Move, payable, type Placed, type Player, type Policy, shuffle } from "./game.ts";
 
 // A game played by people is its seed and every decision made in it. The state is the game
 // replayed from the seed through those decisions, stopped at the next one nobody has made.
@@ -102,6 +103,10 @@ export function resolve(game: Game, p: Player, left: number, c: MoveChoice | nul
   const wanted = key(encode(game, p, { ...c, card, doubles, take, give } as Move));
   const listed = moves(game, p, left).find((m) => key(encode(game, p, m)) === wanted);
   if (!listed) throw new Error(`can't ${c.type} ${name(card)}`);
+  if (listed.type === "place" && card.kind === "wild" && c.color) {
+    if (!colorsOf(card).includes(c.color as Color)) throw new Error(`${name(card)} can't be ${c.color}`);
+    return { ...listed, card, color: c.color as Color };
+  }
   // moves() lists one of identical cards, and lays wilds down as their first color
   return { ...listed, card, ...(listed.type === "rent" && { doubles }), ...(listed.type === "action" && { take, give }) } as Move;
 }
