@@ -239,12 +239,12 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
                 };
                 return target(ms[0]) === undefined ? (
                   ms.map((m, i) => (
-                    <button key={`${text}${i}`} className="justify-self-start" onClick={play(m)}>
+                    <button key={`${text}${i}`} className="justify-self-center" onClick={play(m)}>
                       {money(text)}
                     </button>
                   ))
                 ) : (
-                  <div key={text} className="flex flex-wrap items-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
+                  <div key={text} className="flex flex-wrap items-center justify-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
                     <span className="w-full px-[0.3em]">{money(text)}</span>
                     {ms.map((m, i) => (
                       <button key={i} onClick={play(m)}>
