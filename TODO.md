@@ -275,7 +275,11 @@
             Round 6's (2026-11-18, held out): its biggest overrule at 5 players is which set to
             Deal Breaker. It breaks a set of whoever is one set from winning, where the default
             takes the highest rent (81 times to 9 the other way, 8 points each by stored value).
-            Next at 2–4 players: Forced Deal before Pass Go after round 3.
+            As a rule it's even (100,000 games, `variants.ts`): 49.6%, 33.5%, 25.0% and 20.2%,
+            against the default's 50.0%, 33.3%, 24.9% and 19.9%; also breaking colors we have
+            full is even too. Deal Breakers are rare enough that 8 points on 2% of 5-player
+            decisions is under 0.2 a game. Next at 2–4 players: Forced Deal before Pass Go after
+            round 3, which a dozen Forced Deal rules have already failed to capture.
 
 ## Analysis
 

@@ -195,6 +195,9 @@ change from it gained.
 | hold Double the Rent (previous) | 49.6% | 19.9% |
 | bank Rent cards for colors we have none of | 48.5% | 13.9% |
 | Deal Breaker on the leader first | 49.6% | 20.4% |
+| Deal Breaker on whoever is one set from winning first | 49.6% | 20.2% |
+| Deal Breaker on whoever is one set from winning first, colors we have full too | 49.7% | 20.1% |
+| Deal Breaker, colors we have full too | 49.7% | 19.8% |
 | end the turn holding what it won't play (previous) | 49.2% | 19.7% |
 | Birthday in the first round too (previous) | 49.7% | 19.1% |
 | hold the card that completes a set unless it wins | 32.4% | 17.1% |

@@ -217,6 +217,18 @@ const breakLeader: Step = (game, p) => {
   return pick ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
 };
 
+/** Deal Breaker like the default, but on a set of someone one set from winning first; with `ours`, also colors we have full. */
+const breakNearest =
+  (ours = false): Step =>
+  (game, p) => {
+    const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
+    if (!breaker) return null;
+    const near = (q: Player) => +(fullColors(game, q).length >= 2);
+    const sets = game.players.filter((q) => q !== p).flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
+    const pick = sets.filter((s) => ours || !fullSets(game, p, s.color)).sort((a, b) => near(b.q) - near(a.q) || rent(game, b.q, b.color) - rent(game, a.q, a.color))[0];
+    return pick ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
+  };
+
 /** `step`, only after the first `rounds` rounds. */
 const after =
   (rounds: number, step: Step): Step =>
@@ -296,6 +308,14 @@ export const VARIANTS: Record<string, () => Policy> = {
   "hold Double the Rent (previous)": () => heuristic(...without(STEPS.bankDoubleRent)),
   "bank Rent cards for colors we have none of": beforeBank(deadRent),
   "Deal Breaker on the leader first": withStep(STEPS.dealBreaker, breakLeader),
+  "Deal Breaker on whoever is one set from winning first": withStep(STEPS.dealBreaker, breakNearest()),
+  "Deal Breaker on whoever is one set from winning first, colors we have full too": withStep(STEPS.dealBreaker, breakNearest(true)),
+  "Deal Breaker, colors we have full too": withStep(STEPS.dealBreaker, (game, p) => {
+    const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
+    const sets = game.players.filter((q) => q !== p).flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
+    const pick = sets.sort((a, b) => rent(game, b.q, b.color) - rent(game, a.q, a.color))[0];
+    return breaker && pick ? { type: "action", card: breaker, target: pick.q.seat, color: pick.color } : null;
+  }),
   "pay with one loose property when it covers the charge": () => ({ ...defaultPolicy, pay: payOneLoose }),
   "pay with loose properties before money": () => ({ ...defaultPolicy, pay: payLooseFirst }),
   "pay with loose properties before money when the bank can't cover it": () => ({ ...defaultPolicy, pay: payTableFirst }),
