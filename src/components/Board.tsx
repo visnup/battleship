@@ -48,12 +48,18 @@ function turns(log: string[], who: (n: number) => string) {
   return entries;
 }
 
+/** The game through its first `n` decisions, stopped there even when a bot is next, since replay would play bots on. */
+const until = (game: Props["game"], n: number) => {
+  const s = setup(game);
+  return replay({ ...s, bots: s.bots.map(() => false) }, game.log.slice(0, n));
+};
+
 /** How many of a game's decisions it takes for its log to reach `line`. */
 function decisionsTo(game: Props["game"], line: number) {
   let [lo, hi] = [0, game.log.length];
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
-    if ((replay(setup(game), game.log.slice(0, mid)).game.log?.length ?? 0) > line) hi = mid;
+    if ((until(game, mid).game.log?.length ?? 0) > line) hi = mid;
     else lo = mid + 1;
   }
   return lo;
@@ -90,7 +96,7 @@ export function Board({ game, me }: Props) {
   }, [waiting, replaceGone, game._id]);
   // A past board, replayed up to the decision that wrote the log line clicked
   const [past, setPast] = useState<{ decisions: number; line: number }>();
-  const view = useMemo(() => (past ? replay(setup(game), game.log.slice(0, past.decisions)) : state), [past, game, state]);
+  const view = useMemo(() => (past ? until(game, past.decisions) : state), [past, game, state]);
   const g = view.game;
   const entries = turns(state.game.log ?? [], who);
   const visit = (line: number) => {
