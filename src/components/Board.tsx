@@ -136,7 +136,10 @@ export function Board({ game, me }: Props) {
                     text
                       .replace(/P(\d)/g, (_, n) => who(Number(n)))
                       .replace(/\bYou (\w+)s\b/g, "You $1")
+                      .replace(/\b(\w+) as \1\b/g, "$1")
+                      .replace(/\b(wild|rent)\(/g, (_, w) => `${w[0].toUpperCase()}${w.slice(1)} (`)
                       .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
+                      .replace(new RegExp(`\\b(${COLOR_NAMES.join("|")})\\b`, "g"), colorName)
                       .replace(/^./, (c) => c.toUpperCase()),
                   )}
             </li>
