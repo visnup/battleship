@@ -77,8 +77,9 @@ ${counts.map((c) => `${c.p} players: ${c.games.toLocaleString()} of ${games.toLo
 ${after.map((a) => `<div>${a.done ? "✓" : "○"} ${a.name}</div>`).join("\n")}
 <p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>
 <pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>
-<div><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores · <span class="key"></span>load ${now.load.toFixed(1)}</div>
-${chart()}`,
+<div><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores · <span class="key"></span>load ${now.load.toFixed(1)}</div>`,
+    usage,
+    cores: CORES,
   };
 }
 
@@ -89,25 +90,34 @@ const sample = () => {
   if (usage.length > 240) usage.shift();
 };
 
-/** Cores used and the load over the last two hours, against the core count (dashed). */
-function chart() {
-  const [w, h, top] = [240, 60, 2 * CORES];
-  const x = (t: number) => (w * (t - usage[0].t)) / Math.max(1, Date.now() - usage[0].t);
-  const y = (v: number) => h - (h * Math.min(v, top)) / top;
-  const line = (k: "cores" | "load") => usage.map((u) => `${x(u.t).toFixed(1)},${y(u[k]).toFixed(1)}`).join(" ");
-  const since = Math.round((Date.now() - usage[0].t) / 60e3);
-  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:6em;margin-top:.5em">
-<line x1="0" x2="${w}" y1="${y(CORES)}" y2="${y(CORES)}" stroke="#fff6" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
-<polyline points="${line("load")}" fill="none" stroke="#fff9" vector-effect="non-scaling-stroke"/>
-<polyline points="${line("cores")}" fill="none" stroke="#f2c94c" stroke-width="2" vector-effect="non-scaling-stroke"/>
-</svg><small>the last ${since} min, up to ${top}</small>`;
-}
-
+// The chart is drawn in the page by Observable Plot: cores used and the load over the last two
+// hours, against the core count (dashed).
 const page = (s: ReturnType<typeof status>) => `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>${s.title}</title>
 <style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.bar{background:#ffffff26;border-radius:6px;height:10px;margin:.3em 0 1em}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}.key{display:inline-block;width:.8em;height:2px;margin:0 .3em .25em 0;background:#fff9}.key.gold{background:#f2c94c}</style>
 <main>${s.body}</main>
-<script>setInterval(async () => { try { const s = await (await fetch("/status")).json(); document.querySelector("main").innerHTML = s.body; document.title = s.title; } catch {} }, 15e3);</script>`;
+<div id="chart"></div>
+<script type="module">
+import * as Plot from "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6.19/+esm";
+const draw = (s) => {
+  document.querySelector("main").innerHTML = s.body;
+  document.title = s.title;
+  const now = Date.now();
+  const rows = s.usage.flatMap((u) => [{ t: new Date(u.t), v: u.cores, k: "cores used" }, { t: new Date(u.t), v: u.load, k: "load" }]);
+  document.querySelector("#chart").replaceChildren(
+    Plot.plot({
+      height: 160,
+      style: { background: "transparent", color: "#fff" },
+      x: { domain: [new Date(now - 2 * 3600e3), new Date(now)], label: null },
+      y: { domain: [0, Math.max(2 * s.cores, ...rows.map((r) => r.v))], label: null, grid: true },
+      color: { domain: ["cores used", "load"], range: ["#f2c94c", "#ffffff99"] },
+      marks: [Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }), Plot.lineY(rows, { x: "t", y: "v", z: "k", stroke: "k", strokeWidth: 2 })],
+    }),
+  );
+};
+draw(${JSON.stringify(s)});
+setInterval(async () => { try { draw(await (await fetch("/status")).json()); } catch {} }, 15e3);
+</script>`;
 
 sample();
 setInterval(sample, 30e3);
