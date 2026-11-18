@@ -297,6 +297,11 @@
       - [x] Adopted the card-memory model (`model-r6m`, rounds 4b and 6 with `memory()`) as
             `src/model.json` and `src/packed/model.ts`: +0.3, +0.4, +0.5 and +1.0 over round 4
             (±0.3–0.5, 50,000 deals).
+      - [x] Card memory in the Just Say No and discard numbers too (2026-11-18,
+            `scripts/memory.sh`, 30 minutes): refit on regenerated data, each ties today's model
+            to 0.1 at 2–5 players (400,000 games), though they decide differently (6% of chances
+            to say no, 14% of discards). Not adopted; the features stay, since the old models
+            ignore them.
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
             margin, instead of only dropping moves `z` standard errors behind. Not yet run;
             needs quiet cores.

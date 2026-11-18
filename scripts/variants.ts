@@ -234,6 +234,21 @@ const RETRAINED = Object.fromEntries(["pay", "sayno", "discard"].map((m) => [m, 
 /** The Just Say No and discard models fit with card memory (`memory()`) among their numbers. */
 const MEMORY = Object.fromEntries(["sayno", "discard"].map((m) => [m, new URL(`../dataset/${m}-m.json`, import.meta.url).pathname]));
 
+/** The default's Just Say No, but on rent of `min` or more, and with `letDebt`, never on Debt Collector. */
+const rentNo =
+  (min: number, letDebt: boolean): Policy["sayNo"] =>
+  (game, p, move, from) =>
+    move.type === "rent" ? rent(game, game.players[game.current], move.color) * 2 ** move.doubles.length >= min : letDebt && isAction(move.card, "debtCollector") ? false : defaultPolicy.sayNo(game, p, move, from);
+
+/** The default's discard with Rent cards, and with `small` money of $2M or less, kept as these (properties 3, Just Say No and Deal Breaker 2, money 1, the rest 0). */
+const discardBy =
+  ({ rent: r, small }: { rent: number; small?: number }): Policy["discard"] =>
+  (game, p, n) => {
+    const keep = (c: Card) =>
+      c.kind === "property" || c.kind === "wild" ? 3 : isAction(c, "justSayNo") || isAction(c, "dealBreaker") ? 2 : c.kind === "rent" ? r : c.kind === "money" ? (small !== undefined && c.value <= 2 ? small : 1) : 0;
+    return [...p.hand].sort((a, b) => keep(a) - keep(b) || a.value - b.value).slice(0, n);
+  };
+
 /** `step`, only after the first `rounds` rounds. */
 const after =
   (rounds: number, step: Step): Step =>
@@ -338,6 +353,11 @@ export const VARIANTS: Record<string, () => Policy> = {
   "discard by the card-memory model": () => ({ ...defaultPolicy, discard: discarded(MEMORY.discard) }),
   "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),
   "never counter a Just Say No": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => game.players[game.current] !== p && defaultPolicy.sayNo(game, p, move, from) }),
+  ...Object.fromEntries(
+    [3, 4].flatMap((min) => [false, true].map((letDebt) => [`say no to rent of $${min}M or more${letDebt ? ", and let Debt Collector through" : ""}`, (): Policy => ({ ...defaultPolicy, sayNo: rentNo(min, letDebt) })])),
+  ),
+  "discard money before Rent cards": () => ({ ...defaultPolicy, discard: discardBy({ rent: 1.5 }) }),
+  "discard $1M and $2M before Rent cards": () => ({ ...defaultPolicy, discard: discardBy({ rent: 0.75, small: 0.5 }) }),
   "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),
   "Forced Deal for the best chance, if it raises it": withStep(STEPS.forcedDeal, byChance("forcedDeal", true)),
   "Sly Deal for the best chance": withStep(STEPS.slyDeal, byChance("slyDeal")),
