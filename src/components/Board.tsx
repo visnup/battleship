@@ -95,7 +95,7 @@ export function Board({ game, me }: Props) {
           ))}
         </ul>
       </section>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] items-start gap-[0.8em]">
+      <div className="grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {others.map((n) => (
           <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={false} />
         ))}
