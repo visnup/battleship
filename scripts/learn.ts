@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { board, type Enc, learned, MODEL, move } from "../src/learned.ts";
+import { board, type Enc, learned, memory, MODEL, move } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { headToHead } from "../src/strategies.ts";
 import { shardName } from "./dataset.ts";
@@ -19,8 +19,9 @@ export function extract(players: number, data: string, features: string, seed: n
   for (const line of lines) {
     const r = JSON.parse(line);
     const b = board(players, r);
+    const mem = memory(r);
     r.moves.forEach((m: Enc & { value: number }, j: number) => {
-      x.push(...b, ...move(r, m, j === r.default));
+      x.push(...b, ...move(r, m, j === r.default), ...mem);
       y.push(m.value, +(j === r.default));
     });
     groups.push(r.moves.length);

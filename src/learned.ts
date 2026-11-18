@@ -102,6 +102,19 @@ export function move(obs: Obs, m: Enc, isDefault: boolean): number[] {
   return x;
 }
 
+const unseen = (c: string) => (c.startsWith("rent(") ? "rent" : c);
+const TOTAL = Map.groupBy(DECK.map(name), unseen);
+
+/**
+ * What the mover can't see yet, after `move`: how many of each action and of the Rent cards
+ * aren't in their hand, a bank, a house or hotel, or the discard pile, and how many cards that
+ * leaves in the draw pile and the others' hands.
+ */
+export function memory(obs: Obs): number[] {
+  const seen = Map.groupBy([...obs.hand, ...obs.pile, ...obs.table.flatMap((q) => [...q.bank, ...q.built.map((x) => x.card)])], unseen);
+  return [...[...ACTIONS, "rent"].map((a) => TOTAL.get(a)!.length - (seen.get(a)?.length ?? 0)), obs.draw_size + obs.table.slice(1).reduce((s, q) => s + q.hand_size, 0)];
+}
+
 type Layer = { w: number[][]; b: number[] };
 
 /** `learn_mlx.py`'s network: standardize, then ReLU layers, with weights as [out][in]. */
@@ -156,10 +169,11 @@ export function ranked(model: Model = MODEL) {
     if (options.length === 1) return options;
     const obs = observe(game, p, left);
     const b = board(game.players.length, obs);
+    const mem = memory(obs);
     const pick = key(encode(game, p, defaultPolicy.move(game, p, left)));
     const scores = options.map((m) => {
       const e = encode(game, p, m);
-      return rate([...b, ...move(obs, e, key(e) === pick)]);
+      return rate([...b, ...move(obs, e, key(e) === pick), ...mem]);
     });
     return options
       .map((m, i) => [m, scores[i]] as const)
