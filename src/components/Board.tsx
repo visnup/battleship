@@ -200,9 +200,9 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
         {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
       <div className="text-sm font-bold">{Math.min(full, 3)} of 3 sets</div>
-      <div className="mt-auto flex flex-wrap gap-[0.6em]">
+      <div className="mt-auto flex gap-[0.6em]">
         {colors.map((c) => (
-          <div key={c} className={`flex flex-col self-end *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
+          <div key={c} className={`flex min-w-0 flex-col self-end last:min-w-fit *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
             {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
               <Slot key={`s${i}`} color={c} rent={COLORS[c].rent[size(c) - 1 - i]} />
             ))}
