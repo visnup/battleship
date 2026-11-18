@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState }
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { COLORS } from "../cards.ts";
-import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, moves, type Move, payable, type Player, rent, size } from "../game.ts";
+import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, payable, type Placed, type Player, rent, size } from "../game.ts";
 import { type Choice, choose, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, Slot } from "./Card";
 
@@ -20,6 +20,19 @@ const drawn = "border-[0.3em] border-white bg-[#b8292f] font-extrabold text-whit
 const empty = "border-2 border-dashed border-white/40";
 /** Floats over the table, just above the bottom bar. */
 const panel = "absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[1.2em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)]";
+
+/**
+ * A Sly Deal, Forced Deal or Deal Breaker being filled in on the table: the moves it could be,
+ * and the cards picked for what to take and what to give, by `slot`.
+ */
+type Steal = { moves: Move[]; take?: string; give?: string };
+type Pick = { on: boolean; click: () => void };
+
+const breaks = (m: Move) => isAction(m.card, "dealBreaker");
+/** A table card as the blank it fills: a Deal Breaker takes the whole set, so any card of it will do. */
+const slot = (seat: number, x: Placed, set: boolean) => `${seat}:${set ? x.color : JSON.stringify(x)}`;
+const takes = (m: Move) => (m.type === "action" ? `${m.target}:${breaks(m) ? m.color : JSON.stringify(m.take)}` : "");
+const gives = (seat: number, m: Move) => (m.type === "action" && m.give ? slot(seat, m.give, false) : "");
 
 /** The log with a heading for each turn, and the mover's own lines without their name. */
 function turns(log: string[], who: (n: number) => string) {
@@ -66,6 +79,14 @@ export function Board({ game, me }: Props) {
   }, [waiting, replaceGone, game._id]);
   const g = state.game;
   const entries = turns(g.log ?? [], who);
+  const [steal, setSteal] = useState<Steal>();
+  const pick =
+    steal &&
+    ((q: Player, x: Placed): Pick | undefined => {
+      const k = slot(q.seat, x, breaks(steal.moves[0]));
+      if (q.seat !== seat && steal.moves.some((m) => takes(m) === k)) return { on: steal.take === k, click: () => setSteal({ ...steal, take: steal.take === k ? undefined : k }) };
+      if (q.seat === seat && steal.moves.some((m) => gives(seat, m) === k)) return { on: steal.give === k, click: () => setSteal({ ...steal, give: steal.give === k ? undefined : k }) };
+    });
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[90em] flex-col gap-[0.8em] p-[0.8em]">
@@ -99,16 +120,16 @@ export function Board({ game, me }: Props) {
       </section>
       <div className="mb-[9em] grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {others.map((n) => (
-          <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={false} />
+          <Seat key={n} game={g} p={g.players[n]} name={who(n)} current={!result && g.current === n} mine={false} pick={pick} />
         ))}
-        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={who(seat)} current={!result && g.current === seat} mine />}
+        {seat >= 0 && <Seat game={g} p={g.players[seat]} name={who(seat)} current={!result && g.current === seat} mine pick={pick} />}
       </div>
       <section className="sticky bottom-0 z-10 rounded-[0.6em] bg-[#123f2c] text-white shadow-[0_-4px_12px_rgba(0,0,0,0.3)]">
         <div className="px-[0.8em] pb-[0.6em]">
           {result ? (
             <p>{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
           ) : prompt && prompt.seat === seat ? (
-            <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} />
+            <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} steal={steal} setSteal={setSteal} />
           ) : (
             <div className="flex items-end gap-[0.8em]">
               <div className="flex-1">
@@ -130,7 +151,18 @@ export function Board({ game, me }: Props) {
   );
 }
 
-function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: string; current: boolean; mine: boolean }) {
+/** A card on the table that can fill a blank, with a radio button on its band. */
+function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
+  if (!pick) return children;
+  return (
+    <div role="radio" aria-checked={pick.on} tabIndex={0} className="relative cursor-pointer" onClick={pick.click} onKeyDown={(e) => (e.key === " " || e.key === "Enter") && pick.click()}>
+      {children}
+      <span className={`absolute top-[0.25em] right-[0.3em] size-[0.9em] rounded-full border-2 border-[gold] shadow-[0_0_2px_black] ${pick.on ? "bg-[gold]" : "bg-white"}`} />
+    </div>
+  );
+}
+
+function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   const full = fullColors(game, p).length;
   return (
@@ -151,7 +183,11 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
               .reverse()}
             {p.props
               .filter((x) => x.color === c)
-              .map((x, i) => <Card key={i} card={x.card} rent={COLORS[c].rent[i % size(c)]} />)
+              .map((x, i) => (
+                <Pickable key={i} pick={pick?.(p, x)}>
+                  <Card card={x.card} rent={COLORS[c].rent[i % size(c)]} />
+                </Pickable>
+              ))
               .reverse()}
           </div>
         ))}
@@ -200,21 +236,59 @@ function describe(game: Game, p: Player, m: Move, who: (n: number) => string): s
 function option(game: Game, p: Player, m: Move, who: (n: number) => string): { group?: string; label: string } {
   const t = target(m);
   if (t === undefined) return { label: describe(game, p, m, who) };
-  const card = (x: { card: Parameters<typeof label>[0]; color: string }) => `${label(x.card)}${x.card.kind === "wild" ? ` (${colorName(x.color)})` : ""}`;
-  if (m.type === "action" && m.card.kind === "action")
-    switch (m.card.action) {
-      case "slyDeal":
-        return { group: `Sly Deal from ${who(t)}`, label: card(m.take!) };
-      case "forcedDeal":
-        return { group: `Take ${who(t)}'s ${card(m.take!)}`, label: `for your ${card(m.give!)}` };
-      case "dealBreaker":
-        return { group: `Deal Breaker on ${who(t)}`, label: `${colorName(m.color!)} set` };
-    }
   return { group: describe(game, p, m, () => "\0").replace(/ (to|from) \0/, ""), label: who(t) };
 }
 
-function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: NonNullable<ReturnType<typeof replay>["prompt"]>; who: (n: number) => string; send: (c: Choice) => void }) {
+const named = (x: Placed) => `${label(x.card)}${x.card.kind === "wild" ? ` (${colorName(x.color)})` : ""}`;
+const stealing = (m: Move) => m.type === "action" && ["slyDeal", "forcedDeal", "dealBreaker"].some((a) => isAction(m.card, a));
+
+/** "Take ___ for your ___", its blanks filled from the table, and the button that plays it. */
+function Blanks({ p, steal, who, play }: { p: Player; steal: Steal; who: (n: number) => string; play: (m: Move) => void }) {
+  const took = steal.moves.find((m) => takes(m) === steal.take);
+  const gave = steal.moves.find((m) => gives(p.seat, m) === steal.give);
+  const forced = isAction(steal.moves[0].card, "forcedDeal");
+  const move = steal.moves.find((m) => takes(m) === steal.take && (!forced || gives(p.seat, m) === steal.give));
+  const blank = (text?: string) => <span className="inline-block min-w-[7em] border-b-2 border-white/60 px-[0.3em] text-center font-bold">{text ?? " "}</span>;
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-[0.6em]">
+      <span>
+        Take {blank(took?.type === "action" ? (breaks(took) ? `${who(took.target!)}'s ${colorName(took.color!)} set` : `${who(took.target!)}'s ${named(took.take!)}`) : undefined)}
+        {forced && <> for your {blank(gave?.type === "action" ? named(gave.give!) : undefined)}</>}
+      </span>
+      <button disabled={!move} onClick={() => move && play(move)}>
+        {forced ? "Swap" : "Take it"}
+      </button>
+    </div>
+  );
+}
+
+function Ask({
+  game,
+  p,
+  prompt,
+  who,
+  send,
+  steal,
+  setSteal,
+}: {
+  game: Game;
+  p: Player;
+  prompt: NonNullable<ReturnType<typeof replay>["prompt"]>;
+  who: (n: number) => string;
+  send: (c: Choice) => void;
+  steal?: Steal;
+  setSteal: (s?: Steal) => void;
+}) {
   const [picked, setPicked] = useState<number>();
+  const card = picked === undefined || prompt.kind !== "move" ? undefined : p.hand[picked];
+  // moves() lists one of each identical card, so match the picked card by what it is
+  const list = card ? moves(game, p, (prompt as { left: number }).left).filter((m) => JSON.stringify(m.card) === JSON.stringify(card)) : [];
+  const steals = list.filter(stealing);
+  useEffect(() => {
+    setSteal(steals.length ? { moves: steals } : undefined);
+    return () => setSteal(undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picked]);
   const [chosen, setChosen] = useState<Set<string>>(() => {
     if (prompt.kind === "pay") return new Set(defaultPolicy.pay(game, p, prompt.amount).map((x) => id(ref(p, x))));
     if (prompt.kind === "discard") return new Set(defaultPolicy.discard(game, p, prompt.n).map((c) => `hand${p.hand.indexOf(c)}`));
@@ -229,8 +303,11 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     </Row>
   );
   if (prompt.kind === "move") {
-    // moves() lists one of each identical card, so match the picked card by what it is
-    const list = picked === undefined ? [] : moves(game, p, prompt.left).filter((m) => JSON.stringify(m.card) === JSON.stringify(p.hand[picked]));
+    const play = (m: Move) => {
+      const c = choose(game, p, { ...m, card: p.hand[picked!] } as Move);
+      setPicked(undefined);
+      send({ kind: "move", seat: p.seat, move: c });
+    };
     return (
       <div className="relative">
         <div className="flex items-end gap-[0.8em]">
@@ -250,34 +327,36 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
         {picked !== undefined && (
           <div className={`${panel} grid grid-cols-2 items-end gap-[0.6em] sm:grid-cols-4`}>
             {list.length ? (
-              [
-                ...Map.groupBy(
-                  list.map((m) => ({ m, ...option(game, p, m, who) })),
-                  (o) => o.group ?? o.label,
-                ),
-              ].map(([text, os]) => {
-                const play = (m: Move) => () => {
-                  const c = choose(game, p, { ...m, card: p.hand[picked] } as Move);
-                  setPicked(undefined);
-                  send({ kind: "move", seat: p.seat, move: c });
-                };
-                return os[0].group === undefined ? (
-                  os.map((o, i) => (
-                    <button key={`${text}${i}`} className="mb-[0.4em] justify-self-center" onClick={play(o.m)}>
-                      {money(text)}
-                    </button>
-                  ))
-                ) : (
-                  <div key={text} className="flex flex-wrap items-center justify-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
-                    <span className="w-full px-[0.3em]">{money(text)}</span>
-                    {os.map((o, i) => (
-                      <button key={i} onClick={play(o.m)}>
-                        {o.label}
+              <>
+                {[
+                  ...Map.groupBy(
+                    list.filter((m) => !stealing(m)).map((m) => ({ m, ...option(game, p, m, who) })),
+                    (o) => o.group ?? o.label,
+                  ),
+                ].map(([text, os]) =>
+                  os[0].group === undefined ? (
+                    os.map((o, i) => (
+                      <button key={`${text}${i}`} className="mb-[0.4em] justify-self-center" onClick={() => play(o.m)}>
+                        {money(text)}
                       </button>
-                    ))}
+                    ))
+                  ) : (
+                    <div key={text} className="flex flex-wrap items-center justify-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
+                      <span className="w-full px-[0.3em]">{money(text)}</span>
+                      {os.map((o, i) => (
+                        <button key={i} onClick={() => play(o.m)}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  ),
+                )}
+                {steal && (
+                  <div className="col-span-full sm:col-span-3">
+                    <Blanks p={p} steal={steal} who={who} play={play} />
                   </div>
-                );
-              })
+                )}
+              </>
             ) : (
               <p>Nothing to do with it now.</p>
             )}
