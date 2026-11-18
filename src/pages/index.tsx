@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <main className="grid min-h-dvh place-items-center p-4">
       <section className="panel w-full max-w-sm px-6 pt-10 pb-6 text-center">
-        <div className="mb-6 flex justify-center" aria-hidden>
+        <div className="mb-10 flex justify-center" aria-hidden>
           {FAN.map((card, i) => (
             <div key={i} className="-mx-3 origin-bottom" style={{ transform: `rotate(${(i - 2) * 9}deg) translateY(${Math.abs(i - 2) * 6}px)` }}>
               <Card card={card} />
