@@ -175,8 +175,10 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
   );
 }
 
+const target = (m: Move) => ("target" in m ? m.target : undefined);
+
 function describe(game: Game, p: Player, m: Move, who: (n: number) => string): string {
-  const to = "target" in m && m.target !== undefined ? who(m.target) : "";
+  const to = target(m) !== undefined ? who(target(m)!) : "";
   const theirs = to === "You" ? "your" : `${to}'s`;
   if (m.type === "bank") return "Bank it";
   if (m.type === "place") return m.card.kind === "action" ? `Build on ${colorName(m.color)}` : "Lay it down";
@@ -231,25 +233,35 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
           (i) => i === picked,
         )}
         {picked !== undefined && (
-          <ul>
+          <div className="grid grid-cols-2 items-start gap-[0.6em] pt-[0.6em] sm:grid-cols-4">
             {list.length ? (
-              list.map((m, i) => (
-                <li key={i}>
-                  <button
-                    onClick={() => {
-                      const c = choose(game, p, { ...m, card: p.hand[picked] } as Move);
-                      setPicked(undefined);
-                      send({ kind: "move", seat: p.seat, move: c });
-                    }}
-                  >
-                    {money(describe(game, p, m, who))}
-                  </button>
-                </li>
-              ))
+              [...Map.groupBy(list, (m) => (target(m) === undefined ? describe(game, p, m, who) : describe(game, p, m, () => "\0").replace(/ (to|from) \0|\0's /g, "")))].map(([text, ms]) => {
+                const play = (m: Move) => () => {
+                  const c = choose(game, p, { ...m, card: p.hand[picked] } as Move);
+                  setPicked(undefined);
+                  send({ kind: "move", seat: p.seat, move: c });
+                };
+                return target(ms[0]) === undefined ? (
+                  ms.map((m, i) => (
+                    <button key={`${text}${i}`} className="justify-self-start" onClick={play(m)}>
+                      {money(text)}
+                    </button>
+                  ))
+                ) : (
+                  <div key={text} className="flex flex-wrap items-center gap-[0.4em] rounded-[0.5em] bg-black/15 p-[0.4em]">
+                    <span className="w-full px-[0.3em]">{money(text)}</span>
+                    {ms.map((m, i) => (
+                      <button key={i} onClick={play(m)}>
+                        {who(target(m)!)}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })
             ) : (
-              <li>Nothing to do with it now.</li>
+              <p>Nothing to do with it now.</p>
             )}
-          </ul>
+          </div>
         )}
       </div>
     );
