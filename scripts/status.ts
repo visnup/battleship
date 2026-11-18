@@ -51,7 +51,8 @@ const samples: [number, number][] = [];
 
 function status() {
   const text = existsSync(log) ? readFileSync(log, "utf8") : "";
-  const real = text.slice(text.lastIndexOf("the real thing"));
+  const at = text.lastIndexOf("the real thing");
+  const real = text.slice(at);
   const counts = [2, 3, 4, 5].map((p) => {
     const done = new RegExp(`^${p} players: \\d+ games, \\d+ decisions, ([\\d.]+) min`, "m").exec(real);
     return { p, done: !!done, minutes: done ? Number(done[1]) : 0, games: done ? games : played(p) };
@@ -80,7 +81,31 @@ ${after.map((a) => `<div>${a.done ? "✓" : "○"} ${a.name}</div>`).join("\n")}
 <div><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores · <span class="key"></span>load ${now.load.toFixed(1)}</div>`,
     usage,
     cores: CORES,
+    events: events(text.slice(text.lastIndexOf("\n", at) + 1)),
   };
+}
+
+/**
+ * When each milestone of the real run finished: a line's own clock time (`12:34` in brackets, or
+ * a `date` before "round"), or else the start's plus its `[N min]`, or the player counts' minutes
+ * added up.
+ */
+function events(real: string) {
+  const start = Date.parse(real.slice(0, real.indexOf(" round")));
+  if (!Number.isFinite(start)) return [];
+  const out: { t: number; name: string }[] = [];
+  let labeled = 0;
+  for (const line of real.split("\n").slice(1)) {
+    const count = line.match(/^(\d) players: .*, ([\d.]+) min$/);
+    const lap = line.match(/^\s*\[(\d+) min(?:, (\d+):(\d+))?\] (.+)$/);
+    const dated = line.match(/^(\w{3} \w{3} +\d+ [\d:]+ \w+ \d{4}) round \w+: (.+)$/);
+    if (count) out.push({ t: start + (labeled += Number(count[2])) * 60e3, name: `${count[1]} players` });
+    else if (lap && !lap[4].endsWith("so far")) {
+      const clock = lap[2] && new Date(start).setHours(Number(lap[2]), Number(lap[3]), 0, 0);
+      out.push({ t: clock || start + Number(lap[1]) * 60e3, name: lap[4] });
+    } else if (dated) out.push({ t: Date.parse(dated[1]), name: dated[2] });
+  }
+  return out;
 }
 
 const CORES = availableParallelism();
@@ -111,7 +136,10 @@ const draw = (s) => {
       x: { domain: [new Date(now - 2 * 3600e3), new Date(now)], label: null },
       y: { domain: [0, Math.max(2 * s.cores, ...rows.map((r) => r.v))], label: null, grid: true },
       color: { domain: ["cores used", "load"], range: ["#f2c94c", "#ffffff99"] },
-      marks: [Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }), Plot.lineY(rows, { x: "t", y: "v", z: "k", stroke: "k", strokeWidth: 2 })],
+      marks: [
+        Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }),
+        Plot.ruleX(s.events, { x: (e) => new Date(e.t), stroke: "#fff4" }),
+        Plot.text(s.events, { x: (e) => new Date(e.t), text: "name", frameAnchor: "top", textAnchor: "start", dx: 3, rotate: 90, fill: "#fffc", fontSize: 10 }), Plot.lineY(rows, { x: "t", y: "v", z: "k", stroke: "k", strokeWidth: 2 })],
     }),
   );
 };
