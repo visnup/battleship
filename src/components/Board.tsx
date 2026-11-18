@@ -1,4 +1,5 @@
 import { useMutation } from "convex/react";
+import Head from "next/head";
 import { type ReactNode, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
@@ -54,6 +55,25 @@ const until = (game: Props["game"], n: number) => {
   return replay({ ...s, bots: s.bots.map(() => false) }, game.log.slice(0, n));
 };
 
+/** Two soft rising notes. Browsers keep audio off until the page has been clicked, which joining a table does. */
+function chime() {
+  try {
+    const audio = new AudioContext();
+    [660, 880].forEach((hz, i) => {
+      const at = audio.currentTime + i * 0.12;
+      const tone = audio.createOscillator();
+      const volume = audio.createGain();
+      tone.frequency.value = hz;
+      volume.gain.setValueAtTime(0.08, at);
+      volume.gain.exponentialRampToValueAtTime(0.001, at + 0.3);
+      tone.connect(volume).connect(audio.destination);
+      tone.start(at);
+      tone.stop(at + 0.3);
+    });
+    setTimeout(() => audio.close(), 1000);
+  } catch {}
+}
+
 /** How many of a game's decisions it takes for its log to reach `line`. */
 function decisionsTo(game: Props["game"], line: number) {
   let [lo, hi] = [0, game.log.length];
@@ -94,6 +114,13 @@ export function Board({ game, me }: Props) {
     const interval = setInterval(() => replaceGone({ game: game._id }), 10e3);
     return () => clearInterval(interval);
   }, [waiting, replaceGone, game._id]);
+  // when it comes to you, say so in the tab's title and chime, since you might be in another tab
+  const up = !result && prompt?.seat === seat;
+  const wasUp = useRef(up);
+  useEffect(() => {
+    if (up && !wasUp.current) chime();
+    wasUp.current = up;
+  }, [up]);
   // A past board, replayed up to the decision that wrote the log line clicked
   const [past, setPast] = useState<{ decisions: number; line: number }>();
   const view = useMemo(() => (past ? until(game, past.decisions) : state), [past, game, state]);
@@ -114,6 +141,9 @@ export function Board({ game, me }: Props) {
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[90em] flex-col gap-[0.8em] p-[0.8em]">
+      <Head>
+        <title>{up ? "Your move · Monopoly Deal" : "Monopoly Deal"}</title>
+      </Head>
       <section className="panel flex items-start justify-center gap-[1em] p-[0.8em]">
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>

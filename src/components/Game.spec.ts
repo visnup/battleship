@@ -7,6 +7,7 @@ test("deals a game against a bot", async ({ page }) => {
   await page.goto(`/${randomUUID()}`);
   await page.getByRole("button", { name: "Deal 2 players" }).click();
   await expect(page.getByText(/plays? left|Waiting for/)).toBeVisible();
+  await expect(page).toHaveTitle((await page.getByText(/plays? left/).isVisible()) ? "Your move · Monopoly Deal" : "Monopoly Deal");
   await expect(page.getByRole("heading", { name: /^You/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: /^Bot/ })).toBeVisible();
 });
