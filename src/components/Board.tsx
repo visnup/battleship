@@ -167,7 +167,7 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
         ))}
       </div>
       <div className="text-sm font-bold">{money(`$${banked(p)}M`)} banked</div>
-      <div className="flex flex-wrap gap-[0.6em]">
+      <div className="flex *:not-first:-ml-[2.25rem]">
         {p.bank.map((c, i) => (
           <Card key={i} card={c} banked />
         ))}

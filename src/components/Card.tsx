@@ -95,7 +95,7 @@ export function Card({ card, color, selected, banked, rent, onClick }: { card: C
         {rent !== undefined ? money(`$${rent}M`) : card.kind === "property" && money(`$${COLORS[card.color].rent.join("/")}M`)}
       </span>
       <span className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold ${cash ? "text-gray-400" : ""}`}>{money(label(card))}</span>
-      <span className={`pb-[0.3em] text-[0.75em] ${cash ? "font-extrabold" : "opacity-60"}`}>{card.kind === "money" ? " " : money(`$${card.value}M`)}</span>
+      <span className={`pb-[0.3em] text-[0.75em] ${banked ? "pl-[0.4em] text-left font-extrabold" : "opacity-60"}`}>{card.kind === "money" && !banked ? " " : money(`$${card.value}M`)}</span>
     </Tag>
   );
 }
