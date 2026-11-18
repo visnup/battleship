@@ -325,7 +325,7 @@ function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Pla
                 <span key={i} className="h-[0.7em] w-[0.6em] bg-white/20 not-first:border-l not-first:border-white/50" style={i < n ? { background: PAINT[c] } : undefined} />
               ))}
             </span>
-            {full && <span className="mt-[0.2em] text-[0.65em] leading-none opacity-70">{nth}/3</span>}
+            {full && <span className="mt-[0.6em] text-[0.65em] leading-none opacity-70">{nth}/3</span>}
           </span>
         ))}
       </div>
