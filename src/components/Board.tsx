@@ -180,15 +180,19 @@ export function Board({ game, me }: Props) {
   );
 }
 
-/** A row of sets that scrolls sideways, fading at the right while there's more that way. */
+/** A row of sets that scrolls sideways, fading at either end while there's more that way. */
 function Scroller({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [more, setMore] = useState(false);
+  const [more, setMore] = useState({ left: false, right: false });
   const check = () => {
     const el = ref.current;
+    if (!el) return;
     // less the right padding, which scrolling doesn't reach
-    if (el) setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    const left = el.scrollLeft > 1;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
   };
+  const fade = (on: boolean) => (on ? "transparent" : "black");
   useLayoutEffect(check);
   useEffect(() => {
     const observer = new ResizeObserver(check);
@@ -197,7 +201,12 @@ function Scroller({ children }: { children: ReactNode }) {
   }, []);
   // padded so a full set's outline isn't clipped
   return (
-    <div ref={ref} onScroll={check} className={`-m-[3px] mt-auto flex gap-[0.6em] overflow-x-auto p-[3px] ${more ? "[mask-image:linear-gradient(to_right,black_calc(100%_-_3em),transparent)]" : ""}`}>
+    <div
+      ref={ref}
+      onScroll={check}
+      className="-m-[3px] mt-auto flex gap-[0.6em] overflow-x-auto p-[3px]"
+      style={{ maskImage: `linear-gradient(to right, ${fade(more.left)}, black 3em, black calc(100% - 3em), ${fade(more.right)})` }}
+    >
       {children}
     </div>
   );
