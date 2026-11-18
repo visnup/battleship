@@ -104,14 +104,9 @@
     }
   }
 
-  /* A full set's pill, louder as its player nears the win: white with one, and gold with a glow
-     from two, one set away. */
+  /* A full set, as a pill or on the table */
   .full {
-    outline: 2px solid white;
-  }
-
-  .full.near {
-    outline-color: var(--gold);
+    outline: 2px solid var(--gold);
     box-shadow: 0 0 6px 1px var(--gold);
   }
 

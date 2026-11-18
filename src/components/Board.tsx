@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useEffectEvent, useLayoutEffect, useMemo, us
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { BIRTHDAY, type Card as CardType, COLORS, DEBT } from "../cards.ts";
-import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, name, payable, type Placed, type Player, rent, size, worth } from "../game.ts";
+import { banked, COLOR_NAMES, count, defaultPolicy, fullSets, type Game, isAction, moves, type Move, name, payable, type Placed, type Player, rent, size, worth } from "../game.ts";
 import { street } from "../streets.ts";
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, PAINT, Slot } from "./Card";
@@ -305,7 +305,6 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
 
 function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined; glow: Set<CardType> }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
-  const near = fullColors(game, p).length >= 2;
   // every set, full or started, in the table's order
   const pills = colors.flatMap((c) => {
     const full = fullSets(game, p, c);
@@ -319,11 +318,7 @@ function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Pla
       </h2>
       <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em]">
         {pills.map(({ c, n, full }, k) => (
-          <span
-            key={k}
-            title={full ? `${colorName(c)}: full set` : `${colorName(c)}: ${n} of ${size(c)}`}
-            className={`flex overflow-hidden rounded-full ${full ? `full ${near ? "near" : ""}` : "outline outline-white/50"}`}
-          >
+          <span key={k} title={full ? `${colorName(c)}: full set` : `${colorName(c)}: ${n} of ${size(c)}`} className={`flex overflow-hidden rounded-full ${full ? "full" : "outline outline-white/50"}`}>
             {Array.from({ length: size(c) }, (_, i) => (
               <span key={i} className="h-[0.7em] w-[0.6em] bg-white/20 not-first:border-l not-first:border-white/50" style={i < n ? { background: PAINT[c] } : undefined} />
             ))}
@@ -332,7 +327,7 @@ function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Pla
       </div>
       <Scroller className="mt-auto gap-[0.6em]">
         {colors.map((c) => (
-          <div key={c} className={`flex flex-col self-end *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
+          <div key={c} className={`flex flex-col self-end *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "full rounded-[0.4em]" : ""}`}>
             {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
               <Slot key={`s${i}`} color={c} rent={COLORS[c].rent[size(c) - 1 - i]} />
             ))}
