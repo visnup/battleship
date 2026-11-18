@@ -221,7 +221,17 @@ export function Board({ game, me }: Props) {
       </div>
       <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
-          <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={n === seat} pick={past ? undefined : pick} glow={glow} />
+          <Seat
+            key={n}
+            game={g}
+            p={g.players[n]}
+            name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`}
+            level={"bot" in game.seats[n] ? game.seats[n].bot : undefined}
+            current={!view.result && g.current === n}
+            mine={n === seat}
+            pick={past ? undefined : pick}
+            glow={glow}
+          />
         ))}
       </div>
       <section className="panel sticky bottom-0 z-10 text-white">
@@ -303,7 +313,33 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
   );
 }
 
-function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined; glow: Set<CardType> }) {
+/** A bot's kind of player, as the lobby and its seat name it. */
+export type Level = "builder" | "default" | "learned";
+export const LEVELS: Record<Level, { name: string; title: string }> = {
+  builder: { name: "Easy", title: "Lays properties down early and builds, like a new player" },
+  default: { name: "Medium", title: "Plays by rules tuned against playouts" },
+  learned: { name: "Hard", title: "Plays by the learned model" },
+};
+
+function Seat({
+  game,
+  p,
+  name,
+  level,
+  current,
+  mine,
+  pick,
+  glow,
+}: {
+  game: Game;
+  p: Player;
+  name: string;
+  level?: Level;
+  current: boolean;
+  mine: boolean;
+  pick?: (q: Player, x: Placed) => Pick | undefined;
+  glow: Set<CardType>;
+}) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   // every set, full or started, in the table's order
   let fulls = 0;
@@ -315,7 +351,15 @@ function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Pla
   return (
     <section className={`seat flex flex-col gap-[0.5em] ${current ? "current" : ""}`}>
       <h2 className="m-0 flex items-baseline justify-between text-base font-bold">
-        {name} {!mine && <small className="label">{p.hand.length} in hand</small>}
+        <span>
+          {name}
+          {level && (
+            <small className="ml-[0.5em] text-sm font-normal opacity-60" title={LEVELS[level].title}>
+              {LEVELS[level].name}
+            </small>
+          )}
+        </span>
+        {!mine && <small className="label">{p.hand.length} in hand</small>}
       </h2>
       <div className="flex flex-wrap items-start gap-x-[0.6em] gap-y-[0.3em]">
         {pills.map(({ c, n, full, nth }, k) => (

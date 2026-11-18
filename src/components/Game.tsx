@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { Board } from "./Board";
+import { Board, type Level, LEVELS } from "./Board";
 
 const notice = "m-0 grid min-h-dvh place-items-center text-xl font-semibold tracking-wide opacity-80";
 
@@ -52,12 +52,6 @@ export function Game({ table }: { table: string }) {
   );
 }
 
-type Level = "builder" | "default" | "learned";
-const LEVELS: Record<Level, { name: string; title: string }> = {
-  builder: { name: "Easy", title: "Lays properties down early and builds, like a new player" },
-  default: { name: "Medium", title: "Plays by rules tuned against playouts" },
-  learned: { name: "Hard", title: "Plays by the learned model" },
-};
 const NEXT: Record<Level, Level> = { builder: "default", default: "learned", learned: "builder" };
 
 /** Who's at the table and the bots to deal in; `alone` centers it in the window when there's no board above. */
