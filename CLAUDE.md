@@ -3,8 +3,10 @@
 A simulator of Hasbro's Monopoly Deal card game, in the vein of `../magical-athlete`. Node 24 runs
 the TypeScript directly, and the engine has no dependencies.
 
-The rules are the 2014 US edition's sheet (B0965), photographed in `rules/b0965-*.jpg` (not
-committed). The deck in `src/cards.ts` follows its contents list, with values and rent tables
+The rules are the 2023 US edition's sheet (G0351, `rules/g0351.pdf`), which settles three
+things the 2014 sheet (B0965, `rules/b0965-*.jpg`) left open or read otherwise. Neither is
+committed. Most of `README.md` was measured under B0965; switching changed the first player's
+share by at most 0.3 points and games by 0.2 turns, so it wasn't rerun. The deck in `src/cards.ts` follows its contents list, with values and rent tables
 from photos of one card of each property color and each wild (`rules/properties.jpg`,
 `rules/wilds.jpg`).
 
@@ -101,7 +103,8 @@ their browsers; it's for friends.
 Some of these differ from house rules and other editions:
 
 - A two-color Rent card charges every other player; the multicolored one charges one player.
-- Overflow from the 7-card hand limit goes to the bottom of the draw pile, not a discard pile.
+- Overflow from the 7-card hand limit goes on the discard pile (`overflowToPile`; B0965 put it
+  under the draw pile).
 - An empty hand draws 5 at the start of a turn instead of 2.
 - No change is given. Payment comes from your bank and properties, the payer's choice, and
   properties paid go into the receiver's collection.
@@ -110,7 +113,9 @@ Some of these differ from house rules and other editions:
   on your own turn.
 - A house needs a full set, a hotel needs a house, and neither goes on railroads or utilities.
 - Sly Deal and Forced Deal can't take a card from a full set; Deal Breaker takes a whole full set.
-- Just Say No cancels any action against you and can itself be cancelled by another.
+- Just Say No cancels any action against you and can itself be cancelled by another. On your
+  own turn it counts as one of your three plays (`noIsPlay`).
+- A house or hotel on a set that's no longer full is discarded (`stranded`).
 
 ## Interpretations
 
@@ -118,13 +123,12 @@ Some of these differ from house rules and other editions:
 Hasbro publishes no FAQ, and fan sites disagree, so each of these that's a `Rules` flag is
 measured both ways in `README.md`.
 
-- Just Say No doesn't count as a play, on your turn or anyone's (`noIsPlay`).
 - Double the Rent counts as a play, and two can go on one Rent card, for 4× rent (`doubles`).
-- Deal Breaker takes the set's house and hotel with it (`breakerTakesBuildings`). A house or
-  hotel paid as money goes to the receiver's bank. One left on a set that's no longer full
-  stays, adding no rent until the set is full again (`strandedToBank`).
+- Deal Breaker takes the set's house and hotel with it (`breakerTakesBuildings`), as G0351's
+  card says. A house or hotel paid as money goes to the receiver's bank.
 - Extra properties of a color past a full set start a second set. Sly Deal and Forced Deal can
   take one of those.
 - A set of only multicolored wilds isn't full (`Rules.wildOnlySets`).
 - When the draw pile runs out, the play pile is shuffled into a new one (`Rules.reshuffle`).
+  Neither sheet says; it's our house rule, and without it a third of 5-player games run dry.
 - A game with no winner after 200 turns counts as `stalled`.

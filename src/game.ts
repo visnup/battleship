@@ -35,8 +35,10 @@ export type Rules = {
   doubles: number;
   /** Just Say No on your own turn counts as one of your three plays. */
   noIsPlay: boolean;
-  /** A house or hotel on a set that's no longer full goes to its owner's bank. */
-  strandedToBank: boolean;
+  /** Where a house or hotel goes once its set is no longer full: it stays, or goes to its owner's bank or the discard pile. */
+  stranded: "stay" | "bank" | "discard";
+  /** Cards past 7 in hand go on the discard pile, not the bottom of the draw pile. */
+  overflowToPile: boolean;
   /** Deal Breaker takes the set's house and hotel; otherwise they go to the victim's bank. */
   breakerTakesBuildings: boolean;
 };
@@ -45,8 +47,9 @@ export const defaultRules: Rules = {
   wildOnlySets: false,
   reshuffle: true,
   doubles: 2,
-  noIsPlay: false,
-  strandedToBank: false,
+  noIsPlay: true,
+  stranded: "discard",
+  overflowToPile: true,
   breakerTakesBuildings: true,
 };
 
@@ -57,7 +60,7 @@ export type Policy = {
   pay(game: Game, p: Player, amount: number): (Card | Placed)[];
   /** Whether to play Just Say No against `move`, or against a No played on `move`. */
   sayNo(game: Game, p: Player, move: Move, from: Player): boolean;
-  /** Which cards to put on the bottom of the draw pile, past 7 in hand. */
+  /** Which cards to give up past 7 in hand. */
   discard(game: Game, p: Player, n: number): Card[];
 };
 
@@ -216,7 +219,7 @@ export class Game {
     if (p.hand.length > 7) {
       const cards = this.policies[p.seat].discard(this, p, p.hand.length - 7);
       for (const c of cards) remove(p.hand, c);
-      this.draw.push(...cards);
+      (this.rules.overflowToPile ? this.pile : this.draw).push(...cards);
       this.say(`P${p.seat} discards ${cards.map(name).join(", ")}`);
     }
   }
@@ -342,10 +345,10 @@ export class Game {
         receive(this, p, x);
       }
     }
-    if (this.rules.strandedToBank)
+    if (this.rules.stranded !== "stay")
       for (const b of q.built.filter((b) => !fullSets(this, q, b.color))) {
         remove(q.built, b);
-        q.bank.push(b.card);
+        (this.rules.stranded === "bank" ? q.bank : this.pile).push(b.card);
       }
     this.say(`P${q.seat} pays P${p.seat} ${paid.map((x) => name("kind" in x ? x : x.card)).join(", ") || "nothing"} for ${amount}`);
   }

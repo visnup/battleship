@@ -70,8 +70,10 @@ test("Just Say No cancels, and another cancels that", () => {
   const breaker = action("dealBreaker", 5);
   p.hand.push(breaker, action("justSayNo"));
   q.hand.push(action("justSayNo"));
+  game.left = 2;
   game.play(p, { type: "action", card: breaker, target: 1, color: "darkBlue" });
   assert.equal(p.props.length, 2);
+  assert.equal(game.left, 1);
   assert.equal(game.pile.length, 3);
 });
 
@@ -98,14 +100,14 @@ test("3 full sets of different colors win, but not on someone else's turn", () =
   assert.equal(game.winner, 1);
 });
 
-test("over 7 cards at the end of a turn go to the bottom of the draw pile", () => {
+test("over 7 cards at the end of a turn are discarded", () => {
   const game = setup();
   const [p] = game.players;
   p.hand.push(...Array.from({ length: 8 }, () => action("forcedDeal", 3)));
   game.turn(p);
   // draws two $1M and banks them, then can't use the Forced Deals
   assert.equal(p.hand.length, 7);
-  assert.equal(game.draw.at(-1)?.kind, "action");
+  assert.equal(game.pile.at(-1)?.kind, "action");
 });
 
 test("a clone plays out without changing the game it came from", () => {
@@ -131,9 +133,9 @@ test("noIsPlay:with no plays left, you can't counter a Just Say No on your turn"
   assert.equal(p.hand.length, 1);
 });
 
-test("strandedToBank: a house paid off a full set's property goes to the bank", () => {
+test("stranded bank: a house paid off a full set's property goes to the bank", () => {
   const game = setup();
-  game.rules.strandedToBank = true;
+  game.rules.stranded = "bank";
   const [p, q] = game.players;
   place(q, property("brown"), property("brown"));
   q.built.push({ card: action("house", 3), color: "brown" });

@@ -10,9 +10,10 @@ This repo is a simulator of the game. It plays millions of games by the rules, s
 the questions that come up at the table: whether going first matters, which cards are worth
 keeping, which sets to chase, whether to build houses, and when to lay your properties down.
 
-The answers come from the model, not from real tables. It follows the rule sheet of the 2014 US
-edition (B0965), and the rules the sheet leaves open are measured both ways (see "Rules
-questions"). It hasn't been checked against logged real games yet.
+The answers come from the model, not from real tables. It follows the rule sheet of the 2023 US
+edition (G0351), and the rules the sheet leaves open are measured both ways (see "Rules
+questions"). Most tables were played under the 2014 sheet (B0965), which differs in three
+readings that together move the first player's share by 0.3 points at most. It hasn't been checked against logged real games yet.
 
 The simulator and this analysis were written with Claude Opus 5.5 at medium effort, working in Claude
 Code throughout.
@@ -637,11 +638,14 @@ then any change in the number of stalled games:
 | reading | 2 players | 3 players | 4 players | 5 players |
 | --- | --- | --- | --- | --- |
 | One Double the Rent per Rent card | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
-| Just Say No on your turn is a play | 1.8%: +0.0, +0.0 | 3.8%: +0.1, +0.1 | 5.9%: +0.0, +0.1 | 8.9%: +0.0, +0.1 |
+| Just Say No on your turn isn't a play (B0965) | 1.8%: +0.0, +0.0 | 3.8%: −0.1, −0.1 | 5.9%: +0.0, −0.1 | 9.0%: −0.1, −0.2 |
+| A broken set's house and hotel stay (B0965) | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
 | A broken set's house and hotel go to the bank | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
+| Cards past 7 in hand go under the draw pile (B0965) | 0.0%: +0.0, +0.0 | 0.1%: +0.0, +0.0 | 4.7%: +0.1, +0.0 | 18.8%: −0.3, +0.0 |
+| All three of B0965's (2014) readings | 1.8%: +0.0, +0.0 | 3.8%: −0.1, −0.1 | 9.5%: +0.1, −0.1 | 23.0%: −0.3, −0.1 |
 | Deal Breaker leaves the house and hotel | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 | 0.0%: +0.0, +0.0 |
 | A set of only multicolored wilds is full | 0.3%: +0.0, +0.0 | 1.0%: +0.0, +0.0 | 2.0%: +0.0, +0.0 | 3.3%: +0.0, +0.0 |
-| No reshuffle | 0.0%: +0.0, +0.0 | 0.2%: +0.0, +0.1, +83 stalled | 8.2%: −2.0, +9.9, +6000 stalled | 31.6%: −6.4, +41.8, +25315 stalled |
+| No reshuffle | 0.0%: +0.0, +0.0 | 0.2%: +0.0, +0.2, +119 stalled | 9.7%: −2.1, +11.8, +7073 stalled | 36.2%: −8.1, +48.6, +29352 stalled |
 
 Once a reading changes one play, the rest of the game goes differently, and the winner then
 changes about as often as in an unrelated game. So the first number tracks how often the rule
@@ -650,10 +654,14 @@ comes up at all.
 **None of the readings favors a seat.** That's expected when every player plays the same way. The
 one exception is the reshuffle, which changes how long games last.
 
-**Just Say No as a play comes up most,** in up to 9% of games at 5 players. It only bites when you
-counter a No on your own turn after using all three plays.
+**The 2014 sheet's readings come up in up to 23% of games at 5 players, and lean nowhere.**
+Together they move the first player's share by 0.3 points at most and games by 0.1 turns, which
+is why the tables played under them weren't rerun. Just Say No as a play only bites when you
+counter a No on your own turn after using all three plays. Discarding past 7 keeps those cards
+out of the draw until the next reshuffle, so it comes up mostly at 4 and 5 players, where the
+draw pile runs out.
 
-**The two readings about houses and hotels never come up,** because the default player never
+**The three readings about houses and hotels never come up,** because the default player never
 builds. They'd matter only for a player that does.
 
 **Wild-only sets come up in 0–3% of games, and Double the Rent stacking almost never.** There are
@@ -661,8 +669,8 @@ only 2 multicolored wilds and 2 Double the Rents in the deck, and the default ba
 Rent when there's no rent to double.
 
 **No reshuffle breaks 4- and 5-player games.** At 5 players the draw pile runs out in more than a
-third of games. Without a reshuffle, a quarter of all games end with no winner after 200 turns. A
-no-reshuffle house rule needs its own ending.
+third of games. Without a reshuffle, nearly 3 in 10 games end with no winner after 200 turns.
+Neither sheet says what happens then, so reshuffling is our house rule.
 
 ## Stalled games
 
@@ -673,7 +681,7 @@ draw, the cards left in hand can't finish anyone's third set, and the game never
 
 **Players who bank their action cards cause it.** Default players alone never stalled in 400,000
 games. One pacifist, which banks every action card, stalls 10 games in 100,000 at 4 players and
-41 at 5. Without the reshuffle the draw pile empties for good, and a quarter of 5-player games
+41 at 5. Without the reshuffle the draw pile empties for good, and nearly 3 in 10 5-player games
 stall ("Rules questions").
 
 **A player out to stall the game would, untested:**
