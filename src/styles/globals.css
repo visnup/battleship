@@ -115,6 +115,16 @@
     box-shadow: 0 0 6px 1px var(--gold);
   }
 
+  /* Blurs what scrolls by around a stuck panel, fading out below it */
+  .frosted::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -0.8em -0.8em -1.6em;
+    backdrop-filter: blur(6px);
+    mask-image: linear-gradient(black calc(100% - 1.6em), transparent);
+  }
+
   .seat {
     border-radius: 0.75rem;
     background: var(--seat);
