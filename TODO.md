@@ -289,8 +289,14 @@
             as one trained on playouts from the end of a turn.
       - [ ] Expert iteration: label moves by playouts where everyone is the learned player
             (`dataset.ts --strong`, `scripts/overnight.sh`). 30–60× slower per decision than
-            default rollouts, so round 7 (2026-11-18) labels the top 4 on 8 deals for half the
-            decisions of 5,000 games a count.
+            default rollouts, so round 7 (2026-11-18, 2 h 40 min) labeled the top 4 on 8 deals
+            for half the decisions of 5,000 games a count: 666,000 decisions. With rounds 6's
+            data it ties the card-memory model trained without it (−0.2 to +0.2, 50,000 deals);
+            alone it loses 0.6 to 3.9 to round 4. Next, if anything: several times the games, or
+            the strong labels only on decisions where default rollouts disagree most.
+      - [x] Adopted the card-memory model (`model-r6m`, rounds 4b and 6 with `memory()`) as
+            `src/model.json` and `src/packed/model.ts`: +0.3, +0.4, +0.5 and +1.0 over round 4
+            (±0.3–0.5, 50,000 deals).
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
             margin, instead of only dropping moves `z` standard errors behind. Not yet run;
             needs quiet cores.

@@ -18,7 +18,7 @@ D=dataset
 L=$D/r$next
 mkdir -p $L
 start=$(date +%s)
-lap() { echo "  [$((($(date +%s) - start) / 60)) min] $1"; }
+lap() { echo "  [$((($(date +%s) - start) / 60)) min, $(date +%H:%M)] $1"; }
 (while sleep 600; do lap "$(cat $D/data-r$next/*.jsonl 2>/dev/null | wc -l | tr -d ' ') decisions so far"; done) &
 progress=$!
 trap 'kill $progress 2>/dev/null || true' EXIT

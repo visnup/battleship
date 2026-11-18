@@ -421,7 +421,14 @@ three on playouts where the mover already decides them by the models gains only 
 **Remembering what's been played helps a little.** Twelve more numbers, how many of each action
 and of the Rent cards the mover hasn't seen in a hand, bank, building or the discard pile, and how
 many cards are hidden, gain +0.2, +0.3, +0.3 and +0.4 points over the same data without them
-(each ±0.3 to ±0.4, 50,000 deals). They're in every model trained since.
+(each ±0.3 to ±0.4, 50,000 deals). Against round 4's trees, +0.3, +0.4, +0.5 and +1.0 (±0.3 to
+±0.5), so that model is now `src/model.json`, for `playouts` and the online game's hard bots.
+
+**Labels from better players didn't help, yet.** Round 7 played out its moves with the learned
+player in every seat instead of the default (`dataset.ts --strong`), 30 to 60 times the cost a
+decision, so only 5,000 games a count, half their decisions, on 8 deals. Trained with round 6 it
+ties the card-memory model (−0.2 to +0.2); on its own data alone it loses 0.6 to 3.9 points to
+round 4, from too few decisions.
 
 **Looking ahead to the end of the turn makes it worse.** Trying the model's top 3 moves, finishing
 the turn as the learned player on 8 reshuffles of what it can't see, and keeping the one whose
