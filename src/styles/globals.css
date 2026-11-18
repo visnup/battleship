@@ -117,13 +117,13 @@
 
   /* Holds a stuck panel, and blurs what scrolls by around it like a shadow, fading out from its edges */
   .frosted::before {
-    --fade: transparent, black 1.5em, black calc(100% - 1.5em), transparent;
     content: "";
     position: absolute;
     z-index: -1;
-    inset: -1.5em;
+    /* within the page's padding above and beside, since blurring past the window's edge lightens it */
+    inset: -0.8em -0.8em -1.5em;
     backdrop-filter: blur(12px);
-    mask-image: linear-gradient(var(--fade)), linear-gradient(to right, var(--fade));
+    mask-image: linear-gradient(black calc(100% - 1.5em), transparent), linear-gradient(to right, transparent, black 0.8em, black calc(100% - 0.8em), transparent);
     mask-composite: intersect;
   }
 
