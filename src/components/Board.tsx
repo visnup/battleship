@@ -225,16 +225,23 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     // moves() lists one of each identical card, so match the picked card by what it is
     const list = picked === undefined ? [] : moves(game, p, prompt.left).filter((m) => JSON.stringify(m.card) === JSON.stringify(p.hand[picked]));
     return (
-      <div>
-        <p className="flex items-center justify-between">
-          Your turn: {prompt.left} play{prompt.left === 1 ? "" : "s"} left. <button onClick={() => send({ kind: "move", seat: p.seat, move: null })}>End turn</button>
-        </p>
-        {hand(
-          (i) => setPicked(i === picked ? undefined : i),
-          (i) => i === picked,
-        )}
+      <div className="relative">
+        <div className="flex items-end gap-[0.8em]">
+          <div className="flex-1">
+            {hand(
+              (i) => setPicked(i === picked ? undefined : i),
+              (i) => i === picked,
+            )}
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-[0.4em] text-sm">
+            <span>
+              {prompt.left} play{prompt.left === 1 ? "" : "s"} left
+            </span>
+            <button onClick={() => send({ kind: "move", seat: p.seat, move: null })}>End turn</button>
+          </div>
+        </div>
         {picked !== undefined && (
-          <div className="grid grid-cols-2 items-start gap-[0.6em] pt-[0.6em] sm:grid-cols-4">
+          <div className="absolute right-0 bottom-full left-0 mb-[1.2em] grid grid-cols-2 items-start gap-[0.6em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)] sm:grid-cols-4">
             {list.length ? (
               [...Map.groupBy(list, (m) => (target(m) === undefined ? describe(game, p, m, who) : describe(game, p, m, () => "\0").replace(/ (to|from) \0|\0's /g, "")))].map(([text, ms]) => {
                 const play = (m: Move) => () => {
