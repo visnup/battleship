@@ -66,6 +66,9 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `paying.ts`: the ways to pay worth considering, and each as numbers. `scripts/paydata.ts`
   plays each out (in `dataset/pay/`), `learn.py … dataset/pay` fits `src/pay.json`, and
   `paid()` in `learned.ts` pays by it, for the learned player and `playouts`.
+- `refusing.ts`: whether to Just Say No, as numbers, the same way. `scripts/saynodata.ts` plays
+  out both answers at every chance (in `dataset/sayno/`), `learn.py … dataset/sayno` fits
+  `src/sayno.json`, and `said()` in `learned.ts` answers by it.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;

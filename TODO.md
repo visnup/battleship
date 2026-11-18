@@ -231,7 +231,11 @@
             as round 4 did. So one more rule in the default didn't move the labels enough;
             `round.sh`'s window also looks for `features-r4`, which is `features-r4b`.
       - [ ] Then Just Say No and discarding (the "Learn the other decisions" item below), used
-            in the rollouts like the payer.
+            in the rollouts like the payer. Just Say No started 2026-11-17: `saynodata.ts` on
+            131,072 default games a player count (about 1.5 chances to say no a game, 32
+            shuffles each way), trees to `src/sayno.json`, and the "Just Say No by the learned
+            model" variant head to head. If it wins, wire `said()` into `learned()`, `playouts`
+            and the dataset's rollouts, as `paid()` is.
       - [ ] Only if the model plateaus against cleaner labels: features beyond the 94
             hand-made ones.
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
