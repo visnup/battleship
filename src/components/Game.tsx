@@ -4,6 +4,8 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { Board } from "./Board";
 
+const notice = "m-0 grid min-h-dvh place-items-center text-xl font-semibold tracking-wide opacity-80";
+
 export function Game({ table }: { table: string }) {
   const join = useMutation(api.players.join);
   const ping = useMutation(api.players.ping);
@@ -31,8 +33,8 @@ export function Game({ table }: { table: string }) {
     return () => clearInterval(interval);
   }, [ping, player]);
 
-  if (player === undefined || game === undefined) return <p>Joining…</p>;
-  if (player === null) return <p>Every seat is taken.</p>;
+  if (player === undefined || game === undefined) return <p className={`${notice} animate-pulse`}>Joining…</p>;
+  if (player === null) return <p className={notice}>Every seat is taken.</p>;
   const playing = game && game.winner === undefined && game.seats.some((s) => "player" in s && s.player === player.id);
   return (
     <>
