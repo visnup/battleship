@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { COLORS, type Color, DECK } from "./cards.ts";
 import { COLOR_NAMES, defaultPolicy, type Game, type Move, moves, name, payable, type Player, type Policy, size as sizeOf } from "./game.ts";
 import { payment, payments } from "./paying.ts";
+import { refusal } from "./refusing.ts";
 import { encode, key, observe } from "./replay.ts";
 
 // A move scorer learned from the dataset: gradient-boosted trees (`scripts/learn.py`) over what
@@ -157,6 +158,7 @@ function network({ mean, std, layers }: { mean: number[]; std: number[]; layers:
 
 export const MODEL = `${import.meta.dirname}/model.json`;
 export const PAY = `${import.meta.dirname}/pay.json`;
+export const NO = `${import.meta.dirname}/sayno.json`;
 const loaded: Record<string, (x: number[]) => number> = {};
 
 function load(file: string) {
@@ -199,6 +201,15 @@ export function paid(file = PAY): Policy["pay"] {
     const features = payment(game, p, amount);
     const scores = options.map((o) => rate(features(o.map((j) => all[j]))));
     return options[scores.indexOf(Math.max(...scores))].map((j) => all[j]);
+  };
+}
+
+/** Whether to Just Say No, by the model in `file` (`learn.py` on `saynodata.ts`'s features): whichever it scores higher. */
+export function said(file = NO): Policy["sayNo"] {
+  const rate = scorer(file);
+  return (game, p, move, to) => {
+    const features = refusal(game, p, move, to);
+    return rate(features(true)) > rate(features(false));
   };
 }
 

@@ -16,7 +16,7 @@ def width(base):
 
 def load(bases):
     """Features, values less the default's in points, the values, the default's picks and group sizes."""
-    F = width(bases[0])
+    F = width(next(b for b in bases if b.with_suffix(".y").stat().st_size))
     sizes = [(b.with_suffix(".x").stat().st_size // 4 // F) for b in bases]
     X = np.empty((sum(sizes), F), np.float32)
     ys, ds, gs, i = [], [], [], 0
