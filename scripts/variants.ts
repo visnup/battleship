@@ -32,7 +32,7 @@ import {
   type Step,
   type Target,
 } from "../src/game.ts";
-import { said } from "../src/learned.ts";
+import { discarded, said } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { header } from "./table.ts";
 import { build, chance, headToHead, STRATEGIES, translate } from "../src/strategies.ts";
@@ -302,6 +302,7 @@ export const VARIANTS: Record<string, () => Policy> = {
   "pay from the bank with the fewest cards, then the least change": () => ({ ...defaultPolicy, pay: payFewest(false) }),
   "pay from the bank with the fewest cards, then the most change": () => ({ ...defaultPolicy, pay: payFewest(true) }),
   "Just Say No by the learned model": () => ({ ...defaultPolicy, sayNo: said() }),
+  "discard by the learned model": () => ({ ...defaultPolicy, discard: discarded() }),
   "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),
   "never counter a Just Say No": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => game.players[game.current] !== p && defaultPolicy.sayNo(game, p, move, from) }),
   "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),

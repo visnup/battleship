@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { COLORS, type Color, DECK } from "./cards.ts";
 import { COLOR_NAMES, defaultPolicy, type Game, type Move, moves, name, payable, type Player, type Policy, size as sizeOf } from "./game.ts";
+import { discarding, discards } from "./discarding.ts";
 import { payment, payments } from "./paying.ts";
 import { refusal } from "./refusing.ts";
 import { encode, key, observe } from "./replay.ts";
@@ -159,6 +160,7 @@ function network({ mean, std, layers }: { mean: number[]; std: number[]; layers:
 export const MODEL = `${import.meta.dirname}/model.json`;
 export const PAY = `${import.meta.dirname}/pay.json`;
 export const NO = `${import.meta.dirname}/sayno.json`;
+export const DISCARD = `${import.meta.dirname}/discard.json`;
 const loaded: Record<string, (x: number[]) => number> = {};
 
 function load(file: string) {
@@ -201,6 +203,18 @@ export function paid(file = PAY): Policy["pay"] {
     const features = payment(game, p, amount);
     const scores = options.map((o) => rate(features(o.map((j) => all[j]))));
     return options[scores.indexOf(Math.max(...scores))].map((j) => all[j]);
+  };
+}
+
+/** The discard the model in `file` (`learn.py` on `discarddata.ts`'s features) scores highest, of `discards`' first 24. */
+export function discarded(file = DISCARD): Policy["discard"] {
+  const rate = scorer(file);
+  return (game, p, n) => {
+    const options = discards(game, p, n);
+    if (options.length === 1) return options[0].map((j) => p.hand[j]);
+    const features = discarding(game, p, n);
+    const scores = options.map((o) => rate(features(o.map((j) => p.hand[j]))));
+    return options[scores.indexOf(Math.max(...scores))].map((j) => p.hand[j]);
   };
 }
 

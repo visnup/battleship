@@ -1,13 +1,14 @@
 import { defaultPolicy, Game, mulberry32, type Policy, shuffle } from "../src/game.ts";
 import { chance } from "../src/strategies.ts";
 
-// Playouts at decisions that come mid-turn, often someone else's: payments and Just Say No. A copy
+// Playouts at decisions that come mid-turn, often someone else's: payments, Just Say No and
+// discards at the end of a turn. A copy
 // of the game can't play on from inside a turn, so each decision is reached again by replaying the
 // game from its seed, where default players, which have no randomness, make the same choices.
 // There the cards seat 0 can't see are reshuffled, the decision is made, and the game goes on for
 // two rounds before `chance` scores it.
 
-type Hook = "pay" | "sayNo";
+type Hook = "pay" | "sayNo" | "discard";
 type Args<H extends Hook> = Parameters<Policy[H]>;
 type Result<H extends Hook> = ReturnType<Policy[H]>;
 class Stop {}
