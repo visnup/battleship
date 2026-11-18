@@ -134,16 +134,17 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
     .map((c) => ({ c, n: count(p, c), of: size(c) }))
     .sort((a, b) => b.n / b.of - a.n / a.of)[0];
   return (
-    <section className={`grid grid-cols-[7em_1fr] items-center gap-x-[0.8em] gap-y-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
-      <h2 className="col-span-2 text-base font-bold">
+    <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
+      <h2 className="text-base font-bold">
         {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
       <div className="text-sm">
-        <div className="font-bold">{Math.min(full, 3)} of 3 sets</div>
+        <span className="font-bold">{Math.min(full, 3)} of 3 sets</span>
         {nearest && full < 3 && (
-          <div className="opacity-70">
-            {colorName(nearest.c)} {nearest.n} of {nearest.of}
-          </div>
+          <span className="opacity-70">
+            {" "}
+            · {colorName(nearest.c)} {nearest.n} of {nearest.of}
+          </span>
         )}
       </div>
       <div className="flex flex-wrap gap-[0.6em]">
