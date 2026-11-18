@@ -180,7 +180,7 @@ export function Board({ game, me }: Props) {
       <Head>
         <title>{up ? "Your move · Monopoly Deal" : "Monopoly Deal"}</title>
       </Head>
-      <section className="panel sticky top-0 z-10 flex items-start justify-center gap-[1em] p-[0.8em]">
+      <section className="panel pinned z-10 flex items-start justify-center gap-[1em] p-[0.8em]">
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>

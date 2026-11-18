@@ -115,6 +115,23 @@
     box-shadow: 0 0 6px 1px var(--gold);
   }
 
+  /* Stuck where it starts, below the page's padding, with felt over that gap so the table
+     doesn't scroll by above it */
+  .pinned {
+    position: sticky;
+    top: 0.8em;
+  }
+
+  .pinned::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset-inline: -0.8em;
+    top: -0.8em;
+    height: calc(0.8em + 0.75rem);
+    background: var(--felt);
+  }
+
   .seat {
     border-radius: 0.75rem;
     background: var(--seat);
