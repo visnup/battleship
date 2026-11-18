@@ -285,14 +285,14 @@ players, ±0.7 at 5):
 | --- | --- | --- |
 | default | 46.1% | 13.1% |
 | builder | 34.0% | 8.0% |
-| build houses and hotels, never bank them (previous) | 42.7% | 12.0% |
+| build houses and hotels, never bank them (previous) | 42.4% | 12.0% |
 | bank all money before laying down properties (previous) | 44.0% | 12.9% |
-| lay down properties before banking (previous) | 38.9% | 9.5% |
+| lay down properties before banking (previous) | 39.1% | 9.9% |
 | keep one Just Say No for a Deal Breaker | 45.6% | 13.2% |
 | hold the card that completes a set unless it wins | 29.6% | 11.1% |
 
-**The lessons hold.** Against strong players, building still costs 3.4 points at 2 players and
-1.1 at 5, laying properties down before banking costs 7.2 and 3.6, and holding the card that
+**The lessons hold.** Against strong players, building still costs 3.7 points at 2 players and
+1.1 at 5, laying properties down before banking costs 7.0 and 3.2, and holding the card that
 completes a set costs 17 at 2 players. Keeping a Just Say No for a Deal Breaker is still no
 better. Banking all your money first is even at 5 players, as it nearly was before. Gaps shrink
 at 5 players, where every player is losing more of their games to the strong ones.
