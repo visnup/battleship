@@ -1,5 +1,7 @@
+import { execSync } from "node:child_process";
 import { closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, statSync } from "node:fs";
 import { createServer } from "node:http";
+import { availableParallelism, loadavg } from "node:os";
 import { parseArgs } from "node:util";
 
 // A page at http://localhost:3001 showing how far a round (`round.sh`, `overnight.sh`) has got:
@@ -37,6 +39,14 @@ function played(players: number) {
   return n;
 }
 
+/** Cores busy with this repo's scripts and training, from `ps`. */
+const working = () =>
+  execSync("ps -Ao pcpu=,command=")
+    .toString()
+    .split("\n")
+    .filter((l) => /scripts\/(?!status)|learn\.py/.test(l))
+    .reduce((s, l) => s + parseFloat(l), 0) / 100;
+
 const samples: [number, number][] = [];
 
 function status() {
@@ -64,6 +74,10 @@ function status() {
 <h1>Round ${args.round}: done about ${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>
 ${counts.map((c) => `${c.p} players: ${c.games.toLocaleString()} of ${games.toLocaleString()} games${c.done ? ` · ${c.minutes} min` : ""}${bar(c.games / games)}`).join("\n")}
 ${after.map((a) => `<div>${a.done ? "✓" : "○"} ${a.name}</div>`).join("\n")}
+Scripts using ${working().toFixed(1)} of ${availableParallelism()} cores${bar(working() / availableParallelism())}
+Load ${loadavg()
+    .map((l) => l.toFixed(1))
+    .join(", ")} on ${availableParallelism()} cores${bar(loadavg()[0] / availableParallelism())}
 <p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Refreshes every 15 s.</small></p>
 <pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>`;
 }
