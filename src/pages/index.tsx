@@ -16,9 +16,9 @@ export default function Home() {
   return (
     <main className="grid min-h-dvh place-items-center p-4">
       <section className="panel w-full max-w-sm px-6 pt-10 pb-6 text-center">
-        <div className="fan mb-10 flex justify-center" aria-hidden>
+        <div className="fan mb-12" aria-hidden>
           {FAN.map((card, i) => (
-            <div key={i} style={{ "--i": i, "--o": i - 2, "--a": Math.abs(i - 2) } as React.CSSProperties}>
+            <div key={i} style={{ "--o": i - 2 } as React.CSSProperties}>
               <Card card={card} />
             </div>
           ))}

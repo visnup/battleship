@@ -72,28 +72,32 @@
     font-size: 0.85rem;
   }
 
-  /* The start page's hand: dealt in one card at a time, and spread wider on hover. `--i` is a
-     card's place, `--o` its offset from the middle, and `--a` that offset's size. */
+  /* The start page's hand, held like real cards: every card turns about one point below the
+     hand, so they fan out from a single stack along one arc, and spread further on hover. `--o`
+     is a card's offset from the middle. */
+  .fan {
+    position: relative;
+    height: 7rem;
+  }
+
   .fan > * {
-    margin-inline: -0.75rem;
-    transform-origin: bottom;
-    transform: rotate(calc(var(--o) * 9deg)) translateY(calc(var(--a) * 6px));
-    transition:
-      transform 0.25s ease,
-      margin 0.25s ease;
-    animation: deal 0.45s ease-out backwards;
-    animation-delay: calc(var(--i) * 70ms);
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    translate: -50% 0;
+    transform-origin: 50% 300%;
+    rotate: calc(var(--o) * 10deg);
+    transition: rotate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: fan 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
 
   .fan:hover > * {
-    margin-inline: -0.1rem;
-    transform: rotate(calc(var(--o) * 13deg)) translateY(calc(var(--a) * 12px));
+    rotate: calc(var(--o) * 13deg);
   }
 
-  @keyframes deal {
+  @keyframes fan {
     from {
-      opacity: 0;
-      transform: translateY(2rem) rotate(0deg);
+      rotate: 0deg;
     }
   }
 
