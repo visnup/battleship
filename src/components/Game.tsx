@@ -34,7 +34,15 @@ export function Game({ table }: { table: string }) {
   }, [ping, player]);
 
   if (player === undefined || game === undefined) return <p className={`${notice} animate-pulse`}>Joining…</p>;
-  if (player === null) return <p className={notice}>Every seat is taken.</p>;
+  if (player === null)
+    return game ? (
+      <>
+        <p className="m-0 pt-[0.8em] text-center text-sm opacity-80">Every seat is taken, so you&apos;re watching.</p>
+        <Board game={game} />
+      </>
+    ) : (
+      <p className={notice}>Every seat is taken.</p>
+    );
   const playing = game && game.winner === undefined && game.seats.some((s) => "player" in s && s.player === player.id);
   return (
     <>
