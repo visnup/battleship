@@ -5,7 +5,7 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { COLORS } from "../cards.ts";
 import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, moves, type Move, payable, type Player, rent, size } from "../game.ts";
 import { type Choice, choose, type Ref, ref, replay, setup } from "../replay.ts";
-import { Card, colorName, label, Slot } from "./Card";
+import { Card, colorName, label, money, Slot } from "./Card";
 
 type Props = { game: Doc<"games"> & { log: Choice[] }; me: Id<"players"> };
 
@@ -84,11 +84,13 @@ export function Board({ game, me }: Props) {
             >
               {turn
                 ? text
-                : text
-                    .replace(/P(\d)/g, (_, n) => who(Number(n)))
-                    .replace(/\bYou (\w+)s\b/g, "You $1")
-                    .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
-                    .replace(/^./, (c) => c.toUpperCase())}
+                : money(
+                    text
+                      .replace(/P(\d)/g, (_, n) => who(Number(n)))
+                      .replace(/\bYou (\w+)s\b/g, "You $1")
+                      .replace(/\b[a-z]+[A-Z]\w*/g, colorName)
+                      .replace(/^./, (c) => c.toUpperCase()),
+                  )}
             </li>
           ))}
         </ul>
@@ -163,7 +165,7 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
           </div>
         ))}
       </div>
-      <div className="text-sm font-bold">${banked(p)}M banked</div>
+      <div className="text-sm font-bold">{money(`$${banked(p)}M`)} banked</div>
       <div className="flex flex-wrap gap-[0.6em]">
         {p.bank.map((c, i) => (
           <Card key={i} card={c} banked />
@@ -240,7 +242,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
                       send({ kind: "move", seat: p.seat, move: c });
                     }}
                   >
-                    {describe(game, p, m, who)}
+                    {money(describe(game, p, m, who))}
                   </button>
                 </li>
               ))
@@ -259,7 +261,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     return (
       <div>
         <p>
-          You owe {who(prompt.to)} ${prompt.amount}M. Picked ${total}M.{" "}
+          You owe {who(prompt.to)} {money(`$${prompt.amount}M`)}. Picked {money(`$${total}M`)}.{" "}
           <button disabled={total < prompt.amount && picks.length < all.length} onClick={() => send({ kind: "pay", seat: p.seat, paid: picks.map((x) => ref(p, x)) })}>
             Pay
           </button>
@@ -277,7 +279,7 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     return (
       <div>
         <p>
-          {who(prompt.from)}: {describe(game, game.players[prompt.from], prompt.move, who)}. Just Say No? <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: true })}>Say no</button>{" "}
+          {who(prompt.from)}: {money(describe(game, game.players[prompt.from], prompt.move, who))}. Just Say No? <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: true })}>Say no</button>{" "}
           <button onClick={() => send({ kind: "sayNo", seat: p.seat, no: false })}>Let it through</button>
         </p>
         {hand(

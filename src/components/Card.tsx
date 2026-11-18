@@ -1,4 +1,5 @@
 import { type Action, BIRTHDAY, type Card as CardType, type Color, COLORS, DEBT, HOTEL_RENT, HOUSE_RENT } from "../cards.ts";
+import { Fragment, type ReactNode } from "react";
 import { colorsOf } from "../game.ts";
 
 const PAINT: Record<Color, string> = {
@@ -13,6 +14,19 @@ const PAINT: Record<Color, string> = {
   railroad: "#333",
   utility: "#a8c5a0",
 };
+
+/** Every `$5M` in `text` as 5 and an M struck through twice, like the cards print it. */
+export const money = (text: string): ReactNode =>
+  text.split(/\$([\d/]+)M/).map((s, i) =>
+    i % 2 ? (
+      <Fragment key={i}>
+        {s}
+        <span className="line-through decoration-double decoration-[0.1em]">M</span>
+      </Fragment>
+    ) : (
+      s
+    ),
+  );
 
 /** `darkBlue` as "Dark Blue". */
 export const colorName = (s: string) => s.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
@@ -51,7 +65,7 @@ function explain(c: CardType): string {
 export function Slot({ color, rent }: { color: Color; rent: number }) {
   return (
     <div className="box-border h-[6.3em] w-[4.5em] shrink-0 rounded-[0.4em] border-2 border-dashed text-center text-[0.85rem] opacity-60" style={{ borderColor: PAINT[color] }}>
-      <span className="block text-[0.85em] leading-[1.85em] font-extrabold text-white">${rent}M</span>
+      <span className="block text-[0.85em] leading-[1.85em] font-extrabold text-white">{money(`$${rent}M`)}</span>
     </div>
   );
 }
@@ -78,10 +92,10 @@ export function Card({ card, color, selected, banked, rent, onClick }: { card: C
       title={explain(card)}
     >
       <span className="h-[1.4em] text-[0.85em] leading-[1.65em] font-extrabold text-white [text-shadow:0_0_2px_black,0_0_2px_black]" style={{ background: band }}>
-        {rent !== undefined ? `$${rent}M` : card.kind === "property" && `$${COLORS[card.color].rent.join("/")}M`}
+        {rent !== undefined ? money(`$${rent}M`) : card.kind === "property" && money(`$${COLORS[card.color].rent.join("/")}M`)}
       </span>
-      <span className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold ${cash ? "text-gray-400" : ""}`}>{label(card)}</span>
-      <span className={`pb-[0.3em] text-[0.75em] ${cash ? "font-extrabold" : "opacity-60"}`}>{card.kind === "money" ? " " : `$${card.value}M`}</span>
+      <span className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold ${cash ? "text-gray-400" : ""}`}>{money(label(card))}</span>
+      <span className={`pb-[0.3em] text-[0.75em] ${cash ? "font-extrabold" : "opacity-60"}`}>{card.kind === "money" ? " " : money(`$${card.value}M`)}</span>
     </Tag>
   );
 }
