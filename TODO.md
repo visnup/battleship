@@ -234,12 +234,18 @@
             (±0.3–0.4, `compare.ts`, 50,000 deals). Held out it gains +0.41 to +0.79 a decision,
             as round 4 did. So one more rule in the default didn't move the labels enough;
             `round.sh`'s window also looks for `features-r4`, which is `features-r4b`.
-      - [ ] Then Just Say No and discarding (the "Learn the other decisions" item below), used
-            in the rollouts like the payer. Just Say No started 2026-11-17: `saynodata.ts` on
-            131,072 default games a player count (about 1.5 chances to say no a game, 32
-            shuffles each way), trees to `src/sayno.json`, and the "Just Say No by the learned
-            model" variant head to head. If it wins, wire `said()` into `learned()`, `playouts`
-            and the dataset's rollouts, as `paid()` is.
+      - [x] Then Just Say No and discarding (the "Learn the other decisions" item below), used
+            in the rollouts like the payer (2026-11-17). `saynodata.ts` on 131,072 default games
+            a player count (about 1.5 chances a game, 32 shuffles each way) to `src/sayno.json`:
+            51.6%, 34.8%, 26.1% and 20.9% head to head, against the default's 50.0%, 33.3%,
+            24.9% and 19.9%. `discarddata.ts` the same way to `src/discard.json`: 50.4%, 34.1%,
+            26.2% and 21.4%; it disagrees with the default on 82–86% of discards at 3–5 players.
+            Both wired into `learned()`, `playouts` and the dataset's rollouts like `paid()`.
+            The learned player with both: 59.6%, 47.5%, 41.6% and 37.1% (from 57.7%, 45.8%,
+            40.1% and 35.5%); `playouts` 62.0% and 44.7% at 2 and 5 (from 61.0% and 44.0%,
+            4,000 games, ±1.5). Round 6 (10,000 games with those rollouts, trained on r4b and r6)
+            ties round 4: +0.1, +0.1, +0.1 and +0.6 (±0.3–0.4, 50,000 deals); as playouts'
+            filter −0.3 ± 0.9 at 2 and +1.7 ± 1.2 at 5 (4,000). Not adopted.
       - [ ] Only if the model plateaus against cleaner labels: features beyond the 94
             hand-made ones.
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
@@ -250,9 +256,9 @@
             33.5% at 9–12× the time, 150 trees 54.8% and 33.8% at 13–19×, a network 32 wide
             53.9% and 31.6% at 15–20×. Featurizing every move costs more than the default's
             whole decision, so no model this shape pays for itself there.
-      - [ ] Learn the other decisions: paying, Just Say No and discarding are still the
-            default's rules. Paying is where playouts disagreed most at 5 players; `pay.ts` and
-            `sayno.ts` replays give the data.
+      - [x] Learn the other decisions: paying, Just Say No and discarding (Just Say No and
+            discarding are in the item above). Paying is where playouts disagreed most at 5
+            players; `pay.ts` and `sayno.ts` replays give the data.
             Paying (2026-11-17): `paydata.ts` plays out every payment with a choice in 16,384
             default games per player count (338,000 payments, 32 shuffles each); trees on
             `paying.ts`'s 27 numbers per way to pay gain +0.32 to +0.51 points a payment held
@@ -266,6 +272,10 @@
             the learned player, and +0.4 ± 0.5 and +0.6 ± 1.3 for `playouts` at 2 and 5 players
             (4,000).
       - [ ] Mine the retrained model for rules again, as was done for `emptyHand` and Birthday.
+            Round 6's (2026-11-18, held out): its biggest overrule at 5 players is which set to
+            Deal Breaker. It breaks a set of whoever is one set from winning, where the default
+            takes the highest rent (81 times to 9 the other way, 8 points each by stored value).
+            Next at 2–4 players: Forced Deal before Pass Go after round 3.
 
 ## Analysis
 

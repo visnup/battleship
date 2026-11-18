@@ -387,7 +387,25 @@ Round 4 played 10,000 on 16 shuffles a move instead of 32, with only the mover p
 That beat 5,000 games on 32 (+0.1 to +0.3) and 10,000 with half the decisions played out (0 to
 +0.6), each against round 3: more decisions beat less noise in each. Ranked playouts gain nothing
 from rounds 2 to 4 (±1 to ±1.4 at 4,000 games). Against today's default, which lays properties
-down before wilds, round 4's trees win 57.7%, 45.8%, 40.1% and 35.5% (100,000 games).
+down before wilds, round 4's trees win 57.7%, 45.8%, 40.1% and 35.5% (100,000 games). Round 6,
+with the mover also saying no and discarding by the models below, ties round 4 (+0.1 to +0.6,
+±0.3 to ±0.4).
+
+**The other decisions learn the same way.** For paying, Just Say No and discarding, a script
+replays default games to every such choice, plays out each way to make it on 32 shuffles, and
+trees learn from numbers describing each way (`paying.ts`, `refusing.ts`, `discarding.ts`). Each
+beats the default's rule on its own, with the default player's other decisions, against the
+default everywhere else (100,000 games; the default itself wins 50.0%, 33.3%, 24.9% and 19.9%):
+
+| learned | 2 players (fair 50.0%) | 3 players (fair 33.3%) | 4 players (fair 25.0%) | 5 players (fair 20.0%) |
+| --- | --- | --- | --- | --- |
+| paying (`src/pay.json`) | 50.8% | 34.6% | 26.2% | 21.4% |
+| Just Say No (`src/sayno.json`) | 51.6% | 34.8% | 26.1% | 20.9% |
+| discarding (`src/discard.json`) | 50.4% | 34.1% | 26.2% | 21.4% |
+
+None of them is a rule anyone could write down: the discard model disagrees with the default's
+on 82% to 86% of discards at 3 to 5 players. With all three, round 4's trees win 59.6%, 47.5%,
+41.6% and 37.1% (100,000 games), 1.6 to 1.9 points more than with the default's.
 
 ## What each card is worth
 
