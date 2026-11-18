@@ -109,9 +109,10 @@
       "Stalled games". Count its stalls at 5 players against the pacifist's 68 in 100,000, and
       see which of its rules matter most.
 - [ ] Online play (Next and Convex, `pnpm dev`): works with default-player bots, deployed at
-      monopoly.visnup.com (Vercel project `visnu/monopoly-deal`, 2026-11-17). Still to do: harder
-      bots and hints: the learned player is stronger at 2 and 3 players than quick playouts and
-      takes about 4 ms a game.
+      monopoly.visnup.com (Vercel project `visnu/monopoly-deal`, 2026-11-17). Bots come in three
+      levels (2026-11-18): Easy is `builder`, Medium the default, Hard the learned player from
+      `src/packed` (`scripts/pack.ts`, rerun after retraining), which a Convex mutation runs in
+      about 70 ms a turn.
       - [ ] Rename the site if Hasbro objects to the name: "Monopoly Deal" is their trademark, and
             the start page says the site isn't affiliated with them. Planned name Landlord's Hand
             (after The Landlord's Game) at landlords.visnup.com, with monopoly.visnup.com
@@ -256,8 +257,19 @@
             default's moves, 53.3%, 37.3%, 29.3% and 24.2% against 53.1%, 37.1%, 29.1% and 24.1%
             for the current models (400,000 games), and each alone within 0.2 of its current
             model. Not adopted: inside the noise, in files 1.5–2× bigger.
-      - [ ] Only if the model plateaus against cleaner labels: features beyond the 94
-            hand-made ones.
+      - [x] Card memory (2026-11-18): 12 features of what the mover hasn't seen (`memory()` in
+            `learned.ts`), after the 94. On rounds 4b and 6, +0.2 to +0.4 points over the same
+            data without them, each inside the noise. Kept for the rounds after.
+      - [x] Check the gains aren't just exploiting the default (2026-11-18, `field.ts`): in a
+            table of learned players the default wins 39.9%, 21.6%, 13.1% and 9.6%.
+      - [ ] Whole-turn planning. Looking ahead to the end of the turn, scored by `chance`, loses
+            1 to 7 points (`plan.ts`), more the more moves it weighs: `chance` judges a finished
+            turn worse than the model ranks moves. Needs a better end-of-turn value first, such
+            as one trained on playouts from the end of a turn.
+      - [ ] Expert iteration: label moves by playouts where everyone is the learned player
+            (`dataset.ts --strong`, `scripts/overnight.sh`). 30–60× slower per decision than
+            default rollouts, so round 7 (2026-11-18) labels the top 4 on 8 deals for half the
+            decisions of 5,000 games a count.
       - [ ] Racing with an indifference zone: stop a race once the leaders are within a set
             margin, instead of only dropping moves `z` standard errors behind. Not yet run;
             needs quiet cores.

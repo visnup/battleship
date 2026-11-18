@@ -23,9 +23,10 @@ lap() { echo "  [$((($(date +%s) - start) / 60)) min] $1"; }
 progress=$!
 trap 'kill $progress 2>/dev/null' EXIT
 timeout $((${HOURS:-2} * 3600)) node scripts/dataset.ts --games ${GAMES:-10000} --deals ${DEALS:-16} --model $D/model-r$prev.json --top ${TOP:-6} --pay $EXTRA --out $D/data-r$next
-kill $progress
+{ kill $progress && wait $progress; } 2>/dev/null || true
 lap data
-timeout 3600 node scripts/learn.ts extract --n 256 --data $D/data-r$next --features $D/features-r$next
+games=${GAMES:-10000}
+timeout 3600 node scripts/learn.ts extract --n $((games < 256 ? games : 256)) --data $D/data-r$next --features $D/features-r$next
 lap extract
 dirs=$(for r in ${WINDOW:-$prev $next}; do [ -d $D/features-r$r ] && echo $D/features-r$r; done)
 timeout 3600 uv run scripts/learn.py 1000 $D/model-r$next.json $dirs >$L/trees.txt 2>&1

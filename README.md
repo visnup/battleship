@@ -408,7 +408,23 @@ default everywhere else (100,000 games; the default itself wins 50.0%, 33.3%, 24
 
 None of them is a rule anyone could write down: the discard model disagrees with the default's
 on 82% to 86% of discards at 3 to 5 players. With all three, round 4's trees win 59.6%, 47.5%,
-41.6% and 37.1% (100,000 games), 1.6 to 1.9 points more than with the default's.
+41.6% and 37.1% (100,000 games), 1.6 to 1.9 points more than with the default's. Retraining all
+three on playouts where the mover already decides them by the models gains only 0.1 to 0.2.
+
+**Its edge isn't just exploiting the default.** At a table of learned players instead
+(`scripts/field.ts`, 100,000 games), the default player wins 39.9%, 21.6%, 13.1% and 9.6%: 10 to
+12 points under a fair share, about the same gap as the learned player's over a table of defaults.
+
+**Remembering what's been played helps a little.** Twelve more numbers, how many of each action
+and of the Rent cards the mover hasn't seen in a hand, bank, building or the discard pile, and how
+many cards are hidden, gain +0.2, +0.3, +0.3 and +0.4 points over the same data without them
+(each ±0.3 to ±0.4, 50,000 deals). They're in every model trained since.
+
+**Looking ahead to the end of the turn makes it worse.** Trying the model's top 3 moves, finishing
+the turn as the learned player on 8 reshuffles of what it can't see, and keeping the one whose
+board `chance` likes best wins 58.5%, 44.0%, 35.4% and 30.3%; the top 5, 56.4%, 39.8%, 30.4% and
+25.6% (`scripts/plan.ts`, 20,000 games). The more `chance` gets to choose, the more it overrules
+the model, so the board score, not planning itself, is probably what fails.
 
 ## What each card is worth
 

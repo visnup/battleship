@@ -62,7 +62,13 @@ from photos of one card of each property color and each wild (`rules/properties.
   plays two models on the same deals. Each round of training on stronger play lives in
   `dataset/data-rN/`, `features-rN/` and `model-rN.json`, and `scripts/round.sh N` runs the
   next one (its header lists the knobs), logging to `dataset/rN/`. Don't edit `src/` or what
-  it imports while a round runs: its workers load those files.
+  it imports while a round runs: its workers load those files. `scripts/overnight.sh` runs a
+  round labeled by playouts among learned players (`dataset.ts --strong`), after a smoke test
+  of the whole pipeline. `scripts/field.ts` plays one player against learned players, and
+  `scripts/plan.ts` tests looking ahead to the end of the turn.
+- `trees.ts` flattens LightGBM's trees into typed arrays and packs them as base64;
+  `scripts/pack.ts` writes the four models to `src/packed/`, which `hard.ts` loads for the
+  online game's hard bots without a file system. Rerun it after retraining a model.
 - `paying.ts`: the ways to pay worth considering, and each as numbers. `scripts/paydata.ts`
   plays each out (in `dataset/pay/`), `learn.py … dataset/pay` fits `src/pay.json`, and
   `paid()` in `learned.ts` pays by it, for the learned player and `playouts`.
@@ -95,8 +101,8 @@ their browsers; it's for friends.
 
 - `replay.ts`: a game is its seed and every decision made in it, and its state is the game
   replayed through them, stopped at the next decision nobody has made (`Prompt`). Decisions
-  (`Choice`) name cards by position, and a move is only taken if `moves()` lists it. Bots are
-  `defaultPolicy`.
+  (`Choice`) name cards by position, and a move is only taken if `moves()` lists it. A bot
+  seat names its kind: `builder` (Easy), `default` (Medium) or `learned` (Hard, `hard.ts`).
 - `convex/`: `players` is poker's join and ping. `games` holds the seed, first player, seats and
   the deck as dealt; `decisions` every choice in order, whether a bot made it, and every hand at
   the time. `games.decide` checks a choice by replaying with it, then plays the bots up to the
