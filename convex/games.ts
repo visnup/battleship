@@ -71,6 +71,8 @@ export const get = query({
       .withIndex("byTable", (q) => q.eq("table", table))
       .order("desc")
       .first();
-    return game && { ...game, log: await log(db, game._id) };
+    if (!game) return game;
+    const names = await Promise.all(game.seats.map(async (s) => ("player" in s ? ((await db.get("players", s.player))?.name ?? null) : null)));
+    return { ...game, log: await log(db, game._id), names };
   },
 });

@@ -6,6 +6,7 @@ export default defineSchema({
     table: v.string(),
     seat: v.number(),
     lastSeen: v.number(),
+    name: v.optional(v.string()),
   }).index("byLastSeen", ["table", "lastSeen"]),
   games: defineTable({
     table: v.string(),

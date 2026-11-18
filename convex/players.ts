@@ -32,6 +32,11 @@ export const ping = mutation({
   handler: ({ db }, { id }) => db.patch("players", id, { lastSeen: Date.now() }),
 });
 
+export const rename = mutation({
+  args: { id: v.id("players"), name: v.string() },
+  handler: ({ db }, { id, name }) => db.patch("players", id, { name: name.trim().slice(0, 24) || undefined }),
+});
+
 export const active = query({
   args: { table: v.string(), now: v.number() },
   handler: async ({ db }, { table, now }) =>

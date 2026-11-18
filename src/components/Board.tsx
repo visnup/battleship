@@ -7,7 +7,7 @@ import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type G
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, Slot } from "./Card";
 
-type Props = { game: Doc<"games"> & { log: Choice[] }; me?: Id<"players"> };
+type Props = { game: Doc<"games"> & { log: Choice[]; names?: (string | null)[] }; me?: Id<"players"> };
 
 const id = (r: Ref) => `${r.pile}${r.i}`;
 
@@ -80,7 +80,7 @@ export function Board({ game, me }: Props) {
     height.current = ul.scrollHeight;
   }, [lines]);
   const seat = game.seats.findIndex((s) => "player" in s && s.player === me);
-  const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : `Player ${n + 1}`);
+  const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : (game.names?.[n] ?? `Player ${n + 1}`));
   const send = (choice: Choice) => {
     setError(undefined);
     decide({ game: game._id, player: me!, choice }).catch((e) => setError(String(e.message ?? e)));

@@ -34,3 +34,15 @@ test("a sixth visitor to a full table watches", async ({ browser }) => {
   await expect(watcher.getByText("you're watching")).toBeVisible();
   await expect(watcher.getByRole("heading", { name: /^Player 1/ })).toBeVisible();
 });
+
+test("a name typed in the lobby shows to the others, and on the board", async ({ browser }) => {
+  const table = randomUUID();
+  const [a, b] = await Promise.all([browser.newPage(), browser.newPage()]);
+  await a.goto(`/${table}`);
+  await b.goto(`/${table}`);
+  await a.getByLabel("Your name").fill("Ada");
+  await expect(b.getByText("Ada")).toBeVisible({ timeout: 10e3 });
+  await b.getByRole("button", { name: "−" }).click();
+  await b.getByRole("button", { name: "Deal 2 players" }).click();
+  await expect(b.getByRole("heading", { name: /^Ada/ })).toBeVisible();
+});

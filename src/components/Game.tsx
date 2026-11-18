@@ -54,6 +54,24 @@ export function Game({ table }: { table: string }) {
 
 function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
   const start = useMutation(api.games.start);
+  const rename = useMutation(api.players.rename);
+  // remembered across tables in this browser, and saved shortly after typing stops
+  const [name, setName] = useState(() => {
+    try {
+      return localStorage.getItem("name") ?? "";
+    } catch {
+      return "";
+    }
+  });
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      rename({ id: me, name });
+      try {
+        localStorage.setItem("name", name);
+      } catch {}
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [rename, me, name]);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 5e3) * 5e3);
   const [bots, setBots] = useState(1);
   // each new `now` is a new query, so keep showing the last list while it loads
@@ -72,8 +90,21 @@ function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
       <ul>
         {players.map((p) => (
           <li key={p._id}>
-            Player {p.seat + 1}
-            {p._id === me && " (you)"}
+            {p._id === me ? (
+              <>
+                <input
+                  aria-label="Your name"
+                  className="rounded-[0.3em] bg-white px-[0.4em] py-[0.1em] text-black"
+                  value={name}
+                  placeholder={`Player ${p.seat + 1}`}
+                  maxLength={24}
+                  onChange={(e) => setName(e.target.value)}
+                />{" "}
+                (you)
+              </>
+            ) : (
+              (p.name ?? `Player ${p.seat + 1}`)
+            )}
           </li>
         ))}
       </ul>
