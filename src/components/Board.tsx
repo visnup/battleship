@@ -260,6 +260,11 @@ export function Board({ game, me }: Props) {
               </div>
               <div className="flex shrink-0 flex-col items-center justify-center self-stretch pt-[0.8em]">
                 <span className="label">Waiting for {view.prompt ? who(view.prompt.seat) : "…"}</span>
+                {stepping && (
+                  <button className="quiet mt-[0.4em] px-3 py-1 text-sm" onClick={() => setShown(game.log.length)}>
+                    Skip
+                  </button>
+                )}
               </div>
             </div>
           )}
