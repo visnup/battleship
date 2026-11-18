@@ -5,7 +5,7 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { COLORS } from "../cards.ts";
 import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, payable, type Placed, type Player, rent, size } from "../game.ts";
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
-import { Card, colorName, label, money, Slot } from "./Card";
+import { Card, colorName, label, money, PAINT, Slot } from "./Card";
 
 type Props = { game: Doc<"games"> & { log: Choice[]; names?: (string | null)[] }; me?: Id<"players"> };
 
@@ -229,12 +229,26 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
 function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   const full = fullColors(game, p).length;
+  // sets started but not full, nearest to full first
+  const pending = colors
+    .map((c) => ({ c, n: count(p, c) % size(c), of: size(c) }))
+    .filter((s) => s.n)
+    .sort((a, b) => b.n / b.of - a.n / a.of);
   return (
     <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
       <h2 className="flex items-baseline justify-between text-base font-bold">
         {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
-      <div className="text-sm font-bold">{Math.min(full, 3)} of 3 sets</div>
+      <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em] text-sm font-bold">
+        {Math.min(full, 3)} of 3 sets
+        {pending.map(({ c, n, of }) => (
+          <span key={c} title={`${colorName(c)}: ${n} of ${of}`} className="flex gap-[2px]">
+            {Array.from({ length: of }, (_, i) => (
+              <span key={i} className="h-[0.7em] w-[0.5em] rounded-[2px] bg-white/20 outline outline-white/40" style={i < n ? { background: PAINT[c] } : undefined} />
+            ))}
+          </span>
+        ))}
+      </div>
       <Scroller>
         {colors.map((c) => (
           <div key={c} className={`flex flex-col self-end *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>

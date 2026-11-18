@@ -2,7 +2,7 @@ import { type Action, BIRTHDAY, type Card as CardType, type Color, COLORS, DEBT,
 import { Fragment, type ReactNode } from "react";
 import { colorsOf } from "../game.ts";
 
-const PAINT: Record<Color, string> = {
+export const PAINT: Record<Color, string> = {
   brown: "#8b5a2b",
   lightBlue: "#7cc8ec",
   pink: "#d6409f",
