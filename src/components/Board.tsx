@@ -19,7 +19,7 @@ const deck = "box-border flex h-[6.3em] w-[4.5em] shrink-0 flex-col items-center
 const drawn = "border-[0.3em] border-white bg-[#b8292f] font-extrabold text-white shadow-[2px_2px_0_-1px_white,2px_2px_0_0_rgba(0,0,0,0.3),4px_4px_0_-1px_white,4px_4px_0_0_rgba(0,0,0,0.3)]";
 const empty = "border-2 border-dashed border-white/40";
 /** Floats over the table, just above the bottom bar. */
-const panel = "absolute right-0 bottom-full left-0 mb-[1.2em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)]";
+const panel = "absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[1.2em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)]";
 
 /** The log with a heading for each turn, and the mover's own lines without their name. */
 function turns(log: string[], who: (n: number) => string) {
