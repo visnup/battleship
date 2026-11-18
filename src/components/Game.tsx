@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { Board, type Level, LEVELS } from "./Board";
+import { Board, type Level, LEVELS, setStepSpeed, type Speed, stepSpeed } from "./Board";
 
 const notice = "m-0 grid min-h-dvh place-items-center text-xl font-semibold tracking-wide opacity-80";
 
@@ -77,6 +77,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
   }, [rename, me, name]);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 5e3) * 5e3);
   const [bots, setBots] = useState<Level[]>(["default"]);
+  const [step, setStep] = useState(stepSpeed);
   // each new `now` is a new query, so keep showing the last list while it loads
   const active = useQuery(api.players.active, { table, now });
   const [players, setPlayers] = useState<NonNullable<typeof active>>([]);
@@ -131,6 +132,21 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
             </li>
           )}
         </ul>
+        <label className="mt-4 flex items-center justify-between gap-2 text-sm opacity-80">
+          Show others&apos; plays one at a time
+          <select
+            className="rounded-lg bg-white/10 px-2 py-1 text-white"
+            value={step}
+            onChange={(e) => {
+              setStep(e.target.value as Speed);
+              setStepSpeed(e.target.value as Speed);
+            }}
+          >
+            <option value="fast">Fast</option>
+            <option value="slow">Slow</option>
+            <option value="off">Off</option>
+          </select>
+        </label>
         <button className="primary mt-5 w-full py-2 text-lg" disabled={total < 2} onClick={() => start({ table, players: players.map((p) => p._id), bots })}>
           Deal {total} players
         </button>

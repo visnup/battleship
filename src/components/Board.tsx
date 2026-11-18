@@ -123,13 +123,14 @@ export function Board({ game, me }: Props) {
   const seat = game.seats.findIndex((s) => "player" in s && s.player === me);
   // Others' decisions shown one at a time, so each play can be seen. A long gap, like opening the page, jumps to now.
   const [shown, setShown] = useState(game.log.length);
+  const [step] = useState(() => SPEEDS[stepSpeed()]);
   const stepping = shown < game.log.length;
   useEffect(() => {
     if (!stepping) return;
-    const wait = game.log.length - shown > 40 ? 0 : game.log[shown].seat === seat ? 0 : 700;
-    const t = setTimeout(() => setShown((n) => (game.log.length - n > 40 ? game.log.length : n + 1)), wait);
+    const jump = !step || game.log.length - shown > 40;
+    const t = setTimeout(() => setShown((n) => (jump ? game.log.length : n + 1)), jump || game.log[shown].seat === seat ? 0 : step);
     return () => clearTimeout(t);
-  }, [stepping, shown, game.log, seat]);
+  }, [stepping, step, shown, game.log, seat]);
   const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : (game.names[n] ?? `Player ${n + 1}`));
   const send = (choice: Choice) => {
     setError(undefined);
@@ -316,6 +317,26 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
       <span className={`absolute top-[0.25em] right-[0.3em] size-[0.9em] rounded-full border-2 border-gold shadow-[0_0_2px_black] ${pick.on ? "bg-gold" : "bg-white"}`} />
     </div>
   );
+}
+
+/** How long each of others' plays shows before the next, in ms, or 0 for all at once. */
+export const SPEEDS = { off: 0, fast: 400, slow: 900 };
+export type Speed = keyof typeof SPEEDS;
+
+/** This browser's speed, as last chosen in the lobby. */
+export function stepSpeed(): Speed {
+  try {
+    const s = localStorage.getItem("step");
+    return s && s in SPEEDS ? (s as Speed) : "fast";
+  } catch {
+    return "fast";
+  }
+}
+
+export function setStepSpeed(s: Speed) {
+  try {
+    localStorage.setItem("step", s);
+  } catch {}
 }
 
 /** A bot's kind of player, as the lobby and its seat name it. */
