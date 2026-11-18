@@ -45,7 +45,7 @@ export const build: Step = (game, p, left) => moves(game, p, left).find((m) => m
 
 // Whole-game strategies, each a player of its own, compared head to head in `scripts/strategies.ts`.
 export const STRATEGIES: Record<string, (seed: number) => Policy> = {
-  /** `defaultPolicy`: complete sets, steal, charge rent, lay down properties, then bank. */
+  /** `defaultPolicy`: complete sets, steal, charge rent, bank, then lay down properties. */
   default: () => defaultPolicy,
 
   /** Lays down properties and builds houses and hotels before charging rent, like the first `defaultPolicy`. */
@@ -77,7 +77,6 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
 export function headToHead(make: (seed: number) => Policy, players: number, seed: number, n: number, field?: (seed: number) => Policy) {
   const seeds = mulberry32(seed);
   let wins = 0;
-  let turns = 0;
   let stalled = 0;
   for (let i = 0; i < n; i++) {
     const s = Math.floor(seeds() * 2 ** 32);
@@ -85,10 +84,9 @@ export function headToHead(make: (seed: number) => Policy, players: number, seed
     const policies = Array.from({ length: players }, (_, j) => (j === seat ? make(s) : field ? field(s + j) : defaultPolicy));
     const result = new Game({ players, rng: mulberry32(s), policies, first: 0 }).run();
     wins += +(result.winner === seat);
-    turns += result.turns;
     stalled += +result.stalled;
   }
-  return { wins, turns, stalled };
+  return { wins, stalled };
 }
 
 /** Plays a legal move at random, or ends the turn. */
@@ -117,7 +115,7 @@ export function random(seed = 1): Policy {
  * quality at 5 players on two thirds of the playouts, and a little at 2 on four fifths. Halving,
  * dropping the worse half after 8 deals, then 16, and so on, only matched it at equal cost.
  */
-export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, rounds = 2, candidates = (game: Game, p: Player, left: number): (Move | null)[] => [null, ...moves(game, p, left)], leaf = chance): Policy {
+export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, rounds = 2, candidates = (game: Game, p: Player, left: number): (Move | null)[] => [null, ...moves(game, p, left)]): Policy {
   const rng = mulberry32(seed);
   const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
   return {
@@ -129,7 +127,7 @@ export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, ro
       let alive = options.map((_, i) => i);
       for (let dealt = 0; dealt < n && alive.length > 1; dealt += 8) {
         const seeds = Array.from({ length: 8 }, () => Math.floor(rng() * 2 ** 32));
-        for (const m of alive) for (const s of seeds) wins[m].push(playout(game, p, options[m], [s], rollout, rounds * game.players.length, leaf));
+        for (const m of alive) for (const s of seeds) wins[m].push(playout(game, p, options[m], [s], rollout, rounds * game.players.length));
         const lead = alive.reduce((a, b) => (total(wins[b]) > total(wins[a]) ? b : a));
         alive = alive.filter((m) => {
           const d = wins[m].map((w, i) => wins[lead][i] - w);
@@ -145,15 +143,15 @@ export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 2, ro
 
 /**
  * How many of the games from `seeds` `p` wins making `move` now, then playing like `rollout`. With
- * `turns`, each game stops after that many more turns and scores `p`'s board with `leaf`. The
+ * `turns`, each game stops after that many more turns and scores `p`'s board with `chance`. The
  * others play like `field`.
  */
-export function playout(game: Game, p: Player, move: Move | null, seeds: number[], rollout = defaultPolicy, turns = Infinity, leaf = chance, field = rollout) {
+export function playout(game: Game, p: Player, move: Move | null, seeds: number[], rollout = defaultPolicy, turns = Infinity, field = rollout) {
   let wins = 0;
   for (const s of seeds) {
     const g = sample(game, p, mulberry32(s), rollout, field);
     const { winner, stalled, turns: played } = g.run(move && translate(move, game, g), game.turns + turns);
-    wins += stalled && played < MAX_TURNS ? leaf(g, p.seat) : +(winner === p.seat);
+    wins += stalled && played < MAX_TURNS ? chance(g, p.seat) : +(winner === p.seat);
   }
   return wins;
 }
@@ -200,7 +198,8 @@ const WEIGHTS: Record<number, number[]> = {
 };
 
 /** `seat`'s chance to win from the board: a softmax over players of their weighted `features`. */
-export function chance(game: Game, seat: number, weights = WEIGHTS[game.players.length]) {
+export function chance(game: Game, seat: number) {
+  const weights = WEIGHTS[game.players.length];
   const scores = game.players.map((q) => Math.exp(features(game, q).reduce((s, x, i) => s + x * weights[i], 0)));
   return scores[seat] / scores.reduce((a, b) => a + b, 0);
 }

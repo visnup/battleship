@@ -3,7 +3,7 @@ import { type ReactNode, useEffect, useEffectEvent, useLayoutEffect, useMemo, us
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { BIRTHDAY, COLORS, DEBT } from "../cards.ts";
-import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, payable, type Placed, type Player, rent, size } from "../game.ts";
+import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, payable, type Placed, type Player, rent, size, worth } from "../game.ts";
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, PAINT, Slot } from "./Card";
 
@@ -478,7 +478,7 @@ function Ask({
   if (prompt.kind === "pay") {
     const all = payable(p);
     const picks = all.filter((x) => chosen.has(id(ref(p, x))));
-    const total = picks.reduce((s, x) => s + ("kind" in x ? x : x.card).value, 0);
+    const total = picks.reduce((s, x) => s + worth(x), 0);
     return (
       <Asking
         question={

@@ -100,6 +100,9 @@ export function search<H extends Hook>(hook: H, players: number, seed: number, n
 }
 
 /** Prints `search`'s rows grouped by default → playouts, most gain first. */
+/** Two chunks of `search`-like results as one, for `parallel`. */
+export const merge = <T extends { count: number; rows: unknown[] }>(a: T, b: T): T => ({ ...a, count: a.count + b.count, rows: a.rows.concat(b.rows) });
+
 export function report({ count, rows }: ReturnType<typeof search>, what: string, n: number, players: number, min: number) {
   const total = rows.reduce((s, r) => s + r.gain, 0);
   console.log(`${count} ${what} with a choice in ${n} games of ${players}; playouts chose another in ${rows.length}.`);

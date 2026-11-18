@@ -4,6 +4,7 @@ import { mulberry32, payable } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { payment, payments } from "../src/paying.ts";
 import { replay, watch } from "./midturn.ts";
+import { shardName } from "./dataset.ts";
 import { counts } from "./pay.ts";
 
 // Every payment with a choice that seat 0 makes in `n` default games, each way to pay played out
@@ -36,7 +37,7 @@ export function shard(players: number, deals: number, seed: number, n: number) {
       groups.push(options.length);
     }
   }
-  const base = new URL(`${players}p-${String(seed).padStart(3, "0")}`, OUT).pathname;
+  const base = new URL(shardName(players, seed), OUT).pathname;
   writeFileSync(`${base}.x`, new Float32Array(x));
   writeFileSync(`${base}.y`, new Float32Array(y));
   writeFileSync(`${base}.g`, new Int32Array(groups));

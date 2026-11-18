@@ -436,6 +436,8 @@ export const assets = (p: Player) => banked(p) + p.props.reduce((s, x) => s + x.
 export const banked = (p: Player) => p.bank.reduce((s, c) => s + c.value, 0);
 /** Everything `p` could pay with: the bank, houses and hotels, then properties worth something. */
 export const payable = (p: Player): (Card | Placed)[] => [...p.bank, ...p.built, ...p.props.filter((x) => x.card.value > 0)];
+/** What a card in a bank, or one on the table, is worth as payment. */
+export const worth = (x: Card | Placed) => ("kind" in x ? x : x.card).value;
 
 /**
  * Moves wilds between colors on `p`'s turn to make the most full sets, then the most progress,

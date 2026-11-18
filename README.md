@@ -172,10 +172,10 @@ change from it gained.
 | variant | 2 players (fair 50.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- |
 | the builder | 38.4% | 11.5% |
-| lay down properties before charging (previous) | 40.9% | 12.9% |
-| lay down properties before banking (previous) | 42.8% | 14.2% |
-| build houses and hotels, never bank them (previous) | 46.7% | 18.0% |
-| build, else bank them | 49.6% | 19.9% |
+| lay down properties before charging (previous) | 41.1% | 12.8% |
+| lay down properties before banking (previous) | 43.4% | 15.5% |
+| build houses and hotels, never bank them (previous) | 46.5% | 17.8% |
+| build, else bank them | 49.4% | 19.7% |
 | Pass Go only as the last play | 44.9% | 17.0% |
 | bank Pass Go | 38.9% | 14.0% |
 | Deal Breaker before Pass Go | 49.7% | 20.4% |
@@ -210,8 +210,8 @@ or as payment. One held in hand can't, and it can go down later in a single turn
 still lays a property down right away when it completes a set.
 
 **Don't build.** Banking a house ($3M) or hotel ($4M) as money beats putting it on a set. Never
-banking them costs 2.9 points at 2 players. Building when you can and banking otherwise is no
-better than never building. A house adds $3M to one rent card's charge, but the play spent placing
+banking them costs 3.1 points at 2 players and 2.1 at 5. Building when you can and banking
+otherwise is no better than never building, which is what the default does. A house adds $3M to one rent card's charge, but the play spent placing
 it could have charged rent itself. A set with a house is also the first thing a Deal Breaker
 takes.
 

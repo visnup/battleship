@@ -1,10 +1,9 @@
 import type { Card } from "./cards.ts";
-import { assets, banked, defaultPolicy, fullColors, type Game, gain, loose, payable, type Placed, type Player, progress, size } from "./game.ts";
+import { assets, banked, defaultPolicy, fullColors, type Game, gain, loose, payable, type Placed, type Player, progress, size, worth } from "./game.ts";
 
 // What to pay with: the payments worth considering, and each as numbers for a learned scorer.
 
 type Piece = Card | Placed;
-const value = (x: Piece) => ("kind" in x ? x.value : x.card.value);
 
 /** What kind of piece `x` is, for telling payments apart. */
 export const label = (game: Game, p: Player, x: Piece) => ("kind" in x ? `$${x.value}${x.kind === "money" ? "" : "a"}` : p.built.includes(x) ? "building" : `${x.color}${loose(game, p, x) ? "" : "!"}`);
@@ -16,11 +15,11 @@ export function payments(game: Game, p: Player, amount: number, cap = 200): numb
   const pick = (i: number, chosen: number[], sum: number) => {
     if (found.length >= cap) return;
     if (sum >= amount) {
-      if (chosen.every((j) => sum - value(all[j]) < amount)) found.push([...chosen]);
+      if (chosen.every((j) => sum - worth(all[j]) < amount)) found.push([...chosen]);
       return;
     }
     if (i === all.length) return;
-    pick(i + 1, [...chosen, i], sum + value(all[i]));
+    pick(i + 1, [...chosen, i], sum + worth(all[i]));
     pick(i + 1, chosen, sum);
   };
   pick(0, [], 0);
@@ -45,7 +44,7 @@ export function payment(game: Game, p: Player, amount: number): (paid: Piece[]) 
   return (paid) => {
     const props = paid.filter((x): x is Placed => !("kind" in x) && !p.built.includes(x));
     const bank = paid.filter((x): x is Card => "kind" in x);
-    const total = paid.reduce((s, x) => s + value(x), 0);
+    const total = paid.reduce((s, x) => s + worth(x), 0);
     const after = { ...p, bank: p.bank.filter((c) => !bank.includes(c)), props: p.props.filter((x) => !props.includes(x)), built: p.built.filter((x) => !paid.includes(x)) };
     return [
       ...table,

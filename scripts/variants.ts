@@ -156,7 +156,7 @@ const byChance =
     return best;
   };
 const withStep = (from: Step, to: Step) => () => heuristic(...swap(from, to));
-const beforeBank = (step: Step) => () => heuristic(...steps.toSpliced(steps.indexOf(STEPS.bank), 0, step));
+const beforeBank = (step: Step) => () => heuristic(...before(steps, STEPS.bank, step));
 
 /** Banks a two-color Rent card when we have neither color. */
 const deadRent: Step = (game, p) => {
@@ -225,18 +225,20 @@ const after =
 const steps = Object.values(STEPS) as Step[];
 const without = (...drop: Step[]) => steps.filter((s) => !drop.includes(s));
 const swap = (from: Step, to: Step) => steps.map((s) => (s === from ? to : s));
+/** `list` with `add` just ahead of `step`, wherever it is now. */
+const before = (list: Step[], step: Step, ...add: Step[]) => list.toSpliced(list.indexOf(step), 0, ...add);
 const { passGo, complete, dealBreaker, place, placeWhenBanked, bankBuildings, passGoLast } = STEPS;
 
 export const VARIANTS: Record<string, () => Policy> = {
   "the builder": () => STRATEGIES.builder(0),
-  "lay down properties before charging (previous)": () => heuristic(...without(place).toSpliced(4, 0, place)),
-  "lay down properties before banking (previous)": () => heuristic(...without(place).toSpliced(7, 0, place)),
-  "build houses and hotels, never bank them (previous)": () => heuristic(...without(bankBuildings).toSpliced(-2, 0, build)),
-  "build, else bank them": () => heuristic(...steps.toSpliced(-3, 0, build)),
+  "lay down properties before charging (previous)": () => heuristic(...before(without(place), STEPS.rent, place)),
+  "lay down properties before banking (previous)": () => heuristic(...before(without(place), STEPS.bankDoubleRent, place)),
+  "build houses and hotels, never bank them (previous)": () => heuristic(...before(without(bankBuildings), place, build)),
+  "build, else bank them": () => heuristic(...before(steps, bankBuildings, build)),
   "Pass Go only as the last play": () => heuristic(...without(passGo)),
   "bank Pass Go": () => heuristic(...without(passGo, passGoLast), bankIt("passGo")),
-  "Deal Breaker before Pass Go": () => heuristic(...without(dealBreaker).toSpliced(0, 0, dealBreaker)),
-  "Sly Deal before Pass Go": () => heuristic(...without(STEPS.slyDeal).toSpliced(steps.indexOf(STEPS.passGo), 0, STEPS.slyDeal)),
+  "Deal Breaker before Pass Go": () => heuristic(...before(without(dealBreaker), passGo, dealBreaker)),
+  "Sly Deal before Pass Go": () => heuristic(...before(without(STEPS.slyDeal), passGo, STEPS.slyDeal)),
   "Debt Collector on the richest (previous)": () => heuristic(...swap(STEPS.debtCollector, collect(richest))),
   "any-color Rent on the richest (previous)": () => heuristic(...swap(STEPS.rent, charge(richest))),
   "bank all money before laying down properties (previous)": () => heuristic(...without(placeWhenBanked)),
@@ -250,8 +252,8 @@ export const VARIANTS: Record<string, () => Policy> = {
   "lay down the dearest first": placeVariant((game, p, card, color) => card.value + gain(game, p, color) / 10),
   "lay down the highest rent first": placeVariant((game, p, card, color) => COLORS[color].rent[Math.min(count(p, color), size(color) - 1)] + gain(game, p, color) / 10),
   "lay down wilds first": placeVariant((game, p, card, color) => +(card.kind === "wild") + gain(game, p, color) / 10),
-  "lay down a property a Rent in hand charges, then charge": () => heuristic(...steps.toSpliced(steps.indexOf(STEPS.rent), 0, placeForRent)),
-  "lay down properties before Debt Collector and Birthday": () => heuristic(...without(STEPS.debtCollector, STEPS.birthday).toSpliced(-1, 0, STEPS.debtCollector, STEPS.birthday)),
+  "lay down a property a Rent in hand charges, then charge": () => heuristic(...before(steps, STEPS.rent, placeForRent)),
+  "lay down properties before Debt Collector and Birthday": () => heuristic(...before(without(STEPS.debtCollector, STEPS.birthday), passGoLast, STEPS.debtCollector, STEPS.birthday)),
   "lay down the smallest sets first": placeVariant((game, p, card, color) => -size(color) + gain(game, p, color) / 10),
   "any-color Rent and Debt Collector on the leader (previous)": both(leader),
   "any-color Rent and Debt Collector on the most paid in property": both(mostProperty),
@@ -314,12 +316,8 @@ export const VARIANTS: Record<string, () => Policy> = {
   "lay down the first in hand, wild or not (previous)": placeVariant((game, p, card) => -p.hand.indexOf(card)),
   "lay down the dearest first, wilds last": placeVariant((game, p, card, color) => card.value - 10 * +(card.kind === "wild") + gain(game, p, color) / 10),
   "lay down properties before Sly Deal in rounds 2–3": () =>
-    heuristic(
-      ...steps.toSpliced(steps.indexOf(STEPS.slyDeal), 0, (game, p, left) =>
-        game.turns > game.players.length && game.turns <= 3 * game.players.length && p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null,
-      ),
-    ),
-  "lay down properties before Sly Deal": () => heuristic(...steps.toSpliced(steps.indexOf(STEPS.slyDeal), 0, (game, p, left) => (p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null))),
+    heuristic(...before(steps, STEPS.slyDeal, (game, p, left) => (game.turns > game.players.length && game.turns <= 3 * game.players.length && p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null))),
+  "lay down properties before Sly Deal": () => heuristic(...before(steps, STEPS.slyDeal, (game, p, left) => (p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null))),
   ...Object.fromEntries([5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))])),
 };
 

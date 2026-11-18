@@ -40,6 +40,9 @@ from photos of one card of each property color and each wild (`rules/properties.
 - `scripts/decided.ts`: after each round, how often the player ahead by `chance` wins.
 - `scripts/payments.ts` and `scripts/openings.ts`: who pays what, and wins by opening hand.
 - `scripts/strong.ts`: findings rechecked against quick playouts in every other seat.
+- `scripts/overrules.ts`: where a model's pick differs from the default's on a dataset's
+  held-out decisions, grouped by what each picks, with the stored value gained. It found
+  "properties before wilds" in round 4's model.
 - `scripts/pay.ts` and `scripts/sayno.ts`: playouts at each of the default player's payments and
   Just Say No decisions, found by replaying the game from its seed (`scripts/midturn.ts`), since
   they come mid-turn and a copy can't play on from there.

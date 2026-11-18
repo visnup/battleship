@@ -3,13 +3,14 @@ import { parseArgs } from "node:util";
 import { board, type Enc, learned, MODEL, move } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { headToHead } from "../src/strategies.ts";
+import { shardName } from "./dataset.ts";
 
 /**
  * Features for shard `seed` of `players`, for `learn.py`: rows of floats, then each row's value
  * and the default's pick as 0 or 1, and each decision's move count.
  */
 export function extract(players: number, data: string, features: string, seed: number) {
-  const lines = readFileSync(`${data}/${players}p-${String(seed).padStart(3, "0")}.jsonl`, "utf8")
+  const lines = readFileSync(`${data}/${shardName(players, seed)}.jsonl`, "utf8")
     .trim()
     .split("\n");
   const x: number[] = [];
@@ -24,7 +25,7 @@ export function extract(players: number, data: string, features: string, seed: n
     });
     groups.push(r.moves.length);
   }
-  const base = `${features}/${players}p-${String(seed).padStart(3, "0")}`;
+  const base = `${features}/${shardName(players, seed)}`;
   writeFileSync(`${base}.x`, new Float32Array(x));
   writeFileSync(`${base}.y`, new Float32Array(y));
   writeFileSync(`${base}.g`, new Int32Array(groups));

@@ -1,6 +1,6 @@
 import { type Card, DECK } from "./cards.ts";
 import type { Color } from "./cards.ts";
-import { colorsOf, defaultPolicy, Game, type GameResult, moves, mulberry32, name, type Move, payable, type Placed, type Player, type Policy, shuffle } from "./game.ts";
+import { colorsOf, defaultPolicy, Game, type GameResult, moves, mulberry32, name, type Move, payable, type Placed, type Player, type Policy, shuffle, worth } from "./game.ts";
 
 // A game played by people is its seed and every decision made in it. The state is the game
 // replayed from the seed through those decisions, stopped at the next one nobody has made.
@@ -115,9 +115,8 @@ function paying(p: Player, amount: number, paid: Ref[]): (Card | Placed)[] {
   if (new Set(paid.map((r) => `${r.pile}${r.i}`)).size !== paid.length) throw new Error("paid twice");
   const cards = paid.map((r) => p[r.pile][r.i]);
   if (cards.some((x) => !x)) throw new Error("no such card");
-  const value = (x: Card | Placed) => ("kind" in x ? x : x.card).value;
-  if (paid.some((r, i) => r.pile === "props" && value(cards[i]) === 0)) throw new Error("a multicolored wild can't pay");
-  const total = cards.reduce((s, x) => s + value(x), 0);
+  if (paid.some((r, i) => r.pile === "props" && worth(cards[i]) === 0)) throw new Error("a multicolored wild can't pay");
+  const total = cards.reduce((s, x) => s + worth(x), 0);
   if (total < amount && cards.length < payable(p).length) throw new Error(`$${total}M is short of $${amount}M`);
   return cards;
 }

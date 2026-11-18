@@ -3,7 +3,7 @@ import { defaultPolicy, Game, type Move, moves, mulberry32, name, type Policy } 
 import { parallel } from "../src/parallel.ts";
 import { encode, key } from "../src/replay.ts";
 import { playout } from "../src/strategies.ts";
-import { report } from "./midturn.ts";
+import { merge, report } from "./midturn.ts";
 
 /** What kind of move `move` is, for grouping. */
 export function label(move: Move | null): string {
@@ -61,6 +61,6 @@ if (import.meta.main) {
   const { values: args } = parseArgs({
     options: { n: { type: "string", default: "256" }, players: { type: "string", default: "5" }, min: { type: "string", default: "20" } },
   });
-  const result = await parallel<ReturnType<typeof decisions>>(import.meta.url, "decisions", [Number(args.players)], Number(args.n), (a, b) => ({ count: a.count + b.count, rows: a.rows.concat(b.rows) }));
+  const result = await parallel<ReturnType<typeof decisions>>(import.meta.url, "decisions", [Number(args.players)], Number(args.n), merge);
   report(result, "decisions", Number(args.n), Number(args.players), Number(args.min));
 }

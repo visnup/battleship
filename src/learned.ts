@@ -155,8 +155,8 @@ function network({ mean, std, layers }: { mean: number[]; std: number[]; layers:
   };
 }
 
-export const MODEL = new URL("./model.json", import.meta.url).pathname;
-export const PAY = new URL("./pay.json", import.meta.url).pathname;
+export const MODEL = `${import.meta.dirname}/model.json`;
+export const PAY = `${import.meta.dirname}/pay.json`;
 const loaded: Record<string, (x: number[]) => number> = {};
 
 function load(file: string) {
@@ -171,7 +171,7 @@ export const scorer = (file = MODEL) => (loaded[file] ??= load(file));
 
 /** Every legal move, best first by the model in `file`: `learn.py`'s trees or `learn_mlx.py`'s network. */
 export function ranked(file = MODEL) {
-  const scorer = (loaded[file] ??= load(file));
+  const rate = scorer(file);
   return (game: Game, p: Player, left: number): (Move | null)[] => {
     const options = [null, ...moves(game, p, left)];
     if (options.length === 1) return options;
@@ -180,7 +180,7 @@ export function ranked(file = MODEL) {
     const pick = key(encode(game, p, defaultPolicy.move(game, p, left)));
     const scores = options.map((m) => {
       const e = encode(game, p, m);
-      return scorer([...b, ...move(obs, e, key(e) === pick)]);
+      return rate([...b, ...move(obs, e, key(e) === pick)]);
     });
     return options
       .map((m, i) => [m, scores[i]] as const)
@@ -191,19 +191,19 @@ export function ranked(file = MODEL) {
 
 /** The payment the model in `file` (`learn.py` on `paydata.ts`'s features) scores highest, of `payments`' first 24. */
 export function paid(file = PAY): Policy["pay"] {
-  const scorer = (loaded[file] ??= load(file));
+  const rate = scorer(file);
   return (game, p, amount) => {
     const all = payable(p);
     const options = payments(game, p, amount, 24);
     if (options.length === 1) return options[0].map((j) => all[j]);
     const features = payment(game, p, amount);
-    const scores = options.map((o) => scorer(features(o.map((j) => all[j]))));
+    const scores = options.map((o) => rate(features(o.map((j) => all[j]))));
     return options[scores.indexOf(Math.max(...scores))].map((j) => all[j]);
   };
 }
 
-/** The default player, except that every move is the one the model in `file` scores highest, and every payment the one `pay` does. */
-export function learned(file: string, pay = PAY): Policy {
+/** The default player, except that every move is the one the model in `file` scores highest, and every payment the one `src/pay.json` does. */
+export function learned(file: string): Policy {
   const rank = ranked(file);
-  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0], pay: pay ? paid(pay) : defaultPolicy.pay };
+  return { ...defaultPolicy, move: (game, p, left) => rank(game, p, left)[0], pay: paid() };
 }

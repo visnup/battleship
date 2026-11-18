@@ -35,7 +35,7 @@ if (import.meta.main) {
   if (!names.length) {
     console.log(`${n} games each, quick playouts in every seat: wins by seat.\n`);
     for (const k of counts) {
-      const { wins } = await parallel<ReturnType<typeof seats>>(import.meta.url, "seats", [k], n, (a, b) => ({ wins: a.wins.map((w, i) => w + b.wins[i]) }));
+      const { wins } = await parallel<ReturnType<typeof seats>>(import.meta.url, "seats", [k], n);
       console.log(`| ${k} | ${wins.map((w) => `${((100 * w) / n).toFixed(1)}%`).join(" | ")} |`);
     }
   } else {

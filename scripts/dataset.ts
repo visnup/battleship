@@ -4,7 +4,10 @@ import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game
 import { paid, ranked } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { encode, key, observe } from "../src/replay.ts";
-import { chance, playout } from "../src/strategies.ts";
+import { playout } from "../src/strategies.ts";
+
+/** A shard's file name, less its extension: `5p-012`. */
+export const shardName = (players: number, seed: number) => `${players}p-${String(seed).padStart(3, "0")}`;
 
 /**
  * Plays `n` games of `players` and writes every move decision with a choice to a shard in `out`:
@@ -18,7 +21,7 @@ export function shard(players: number, deals: number, model: string, top: number
   const rng = mulberry32(seed);
   const rank = model ? ranked(model) : null;
   const rollout = pay ? { ...defaultPolicy, pay: paid() } : defaultPolicy;
-  const file = `${out}/${players}p-${String(seed).padStart(3, "0")}.jsonl`;
+  const file = `${out}/${shardName(players, seed)}.jsonl`;
   writeFileSync(file, "");
   let decisions = 0;
   for (let i = 0; i < n; i++) {
@@ -46,7 +49,7 @@ export function shard(players: number, deals: number, model: string, top: number
         }
         if (options.length > 1 && (label >= 1 || rng() < label)) {
           const seeds = Array.from({ length: deals }, () => Math.floor(rng() * 2 ** 32));
-          const values = options.map((m) => seeds.map((s) => playout(game, p, m, [s], rollout, 2 * players, chance, defaultPolicy)));
+          const values = options.map((m) => seeds.map((s) => playout(game, p, m, [s], rollout, 2 * players, defaultPolicy)));
           rows.push({
             game: `${players}p-${seed}-${i}`,
             game_seed: gameSeed,
@@ -87,7 +90,7 @@ if (import.meta.main) {
     },
   });
   mkdirSync(args.out, { recursive: true });
-  const out = new URL(args.out, `file://${process.cwd()}/`).pathname;
+  const out = args.out;
   for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();
     const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.model, Number(args.top), args.pay, Number(args.label), out], Number(args.games));
