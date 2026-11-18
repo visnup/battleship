@@ -94,7 +94,7 @@ function Lobby({ table, me }: { table: string; me: Id<"players"> }) {
               <>
                 <input
                   aria-label="Your name"
-                  className="rounded-[0.3em] bg-white px-[0.4em] py-[0.1em] text-black"
+                  className="rounded-[0.3em] bg-[var(--card)] px-[0.4em] py-[0.1em] text-black"
                   value={name}
                   placeholder={`Player ${p.seat + 1}`}
                   maxLength={24}

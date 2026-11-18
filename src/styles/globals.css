@@ -5,8 +5,23 @@
 }
 
 @layer base {
+  :root {
+    --felt: #1d6b4a;
+    --bar: #123f2c;
+    --card: white;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --felt: #0f3a28;
+      --bar: #0a2419;
+      --card: #d8d4c8;
+      color-scheme: dark;
+    }
+  }
+
   body {
-    background: #1d6b4a;
+    background: var(--felt);
     color: white;
   }
 
@@ -23,7 +38,7 @@
   button {
     padding: 0.3em 0.8em;
     border-radius: 0.4em;
-    background: white;
+    background: var(--card);
     color: black;
     cursor: pointer;
   }

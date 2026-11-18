@@ -19,7 +19,7 @@ const deck = "box-border flex h-[6.3em] w-[4.5em] shrink-0 flex-col items-center
 const drawn = "border-[0.3em] border-white bg-[#b8292f] font-extrabold text-white shadow-[2px_2px_0_-1px_white,2px_2px_0_0_rgba(0,0,0,0.3),4px_4px_0_-1px_white,4px_4px_0_0_rgba(0,0,0,0.3)]";
 const empty = "border-2 border-dashed border-white/40";
 /** Floats over the table, just above the bottom bar. */
-const panel = "absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[1.2em] rounded-[0.6em] bg-[#123f2c] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)]";
+const panel = "absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[1.2em] rounded-[0.6em] bg-[var(--bar)] p-[0.6em] shadow-[0_-4px_12px_rgba(0,0,0,0.4)]";
 
 /**
  * A Sly Deal, Forced Deal or Deal Breaker being filled in on the table: the moves it could be,
@@ -114,7 +114,7 @@ export function Board({ game, me }: Props) {
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[90em] flex-col gap-[0.8em] p-[0.8em]">
-      <section className="flex items-start justify-center gap-[1em] rounded-[0.6em] bg-[#123f2c] px-[0.8em] py-[0.6em] shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+      <section className="flex items-start justify-center gap-[1em] rounded-[0.6em] bg-[var(--bar)] px-[0.8em] py-[0.6em] shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>
@@ -152,7 +152,7 @@ export function Board({ game, me }: Props) {
         ))}
         {seat >= 0 && <Seat game={g} p={g.players[seat]} name={`${who(seat)}${view.result?.winner === seat ? " 🏆" : ""}`} current={!view.result && g.current === seat} mine pick={past ? undefined : pick} />}
       </div>
-      <section className="sticky bottom-0 z-10 rounded-[0.6em] bg-[#123f2c] text-white shadow-[0_-4px_12px_rgba(0,0,0,0.3)]">
+      <section className="sticky bottom-0 z-10 rounded-[0.6em] bg-[var(--bar)] text-white shadow-[0_-4px_12px_rgba(0,0,0,0.3)]">
         <div className="px-[0.8em] pb-[0.6em]">
           {past ? (
             <p className="m-0 flex items-center justify-between pt-[0.6em]">
