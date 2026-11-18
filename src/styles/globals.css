@@ -73,8 +73,8 @@
   }
 
   /* The start page's hand, held like real cards: every card turns about one point below the
-     hand, so they fan out from a single stack along one arc, and spread further on hover. `--o`
-     is a card's offset from the middle. */
+     hand, so they fan out from a single stack along one arc. On hover they slide apart and tilt
+     a little more. `--o` is a card's offset from the middle. */
   .fan {
     position: relative;
     height: 7rem;
@@ -87,12 +87,15 @@
     translate: -50% 0;
     transform-origin: 50% 300%;
     rotate: calc(var(--o) * 10deg);
-    transition: rotate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-    animation: fan 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transition:
+      rotate 0.25s ease,
+      translate 0.25s ease;
+    animation: fan 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   }
 
   .fan:hover > * {
-    rotate: calc(var(--o) * 13deg);
+    translate: calc(-50% + var(--o) * 1.1rem) 0;
+    rotate: calc(var(--o) * 12deg);
   }
 
   @keyframes fan {
