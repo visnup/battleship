@@ -51,7 +51,7 @@ function explain(c: CardType): string {
 export function Slot({ color, rent }: { color: Color; rent: number }) {
   return (
     <div className="box-border h-[6.3em] w-[4.5em] shrink-0 rounded-[0.4em] border-2 border-dashed text-center text-[0.85rem] opacity-60" style={{ borderColor: PAINT[color] }}>
-      <span className="block text-[0.85em] leading-[1.5em] font-extrabold text-white">${rent}M</span>
+      <span className="block text-[0.85em] leading-[1.65em] font-extrabold text-white">${rent}M</span>
     </div>
   );
 }
