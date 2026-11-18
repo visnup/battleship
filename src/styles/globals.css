@@ -72,6 +72,31 @@
     font-size: 0.85rem;
   }
 
+  /* The start page's hand: dealt in one card at a time, and spread wider on hover. `--i` is a
+     card's place, `--o` its offset from the middle, and `--a` that offset's size. */
+  .fan > * {
+    margin-inline: -0.75rem;
+    transform-origin: bottom;
+    transform: rotate(calc(var(--o) * 9deg)) translateY(calc(var(--a) * 6px));
+    transition:
+      transform 0.25s ease,
+      margin 0.25s ease;
+    animation: deal 0.45s ease-out backwards;
+    animation-delay: calc(var(--i) * 70ms);
+  }
+
+  .fan:hover > * {
+    margin-inline: -0.1rem;
+    transform: rotate(calc(var(--o) * 13deg)) translateY(calc(var(--a) * 12px));
+  }
+
+  @keyframes deal {
+    from {
+      opacity: 0;
+      transform: translateY(2rem) rotate(0deg);
+    }
+  }
+
   .seat {
     border-radius: 0.75rem;
     background: var(--seat);
