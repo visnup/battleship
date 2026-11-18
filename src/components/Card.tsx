@@ -75,7 +75,7 @@ export function Slot({ color, rent }: { color: Color; rent: number }) {
 }
 
 /** A card; `banked` grays its name and darkens its value, which is all it's worth in a bank, and `rent` goes on its band, or a property's whole rent table. */
-export function Card({ card, color, selected, banked, rent, onClick }: { card: CardType; color?: Color; selected?: boolean; banked?: boolean; rent?: number; onClick?: () => void }) {
+export function Card({ card, color, selected, banked, rent, glow, onClick }: { card: CardType; color?: Color; selected?: boolean; banked?: boolean; rent?: number; glow?: boolean; onClick?: () => void }) {
   const cash = banked && card.kind !== "money";
   const colors = color && card.kind === "wild" ? [color] : colorsOf(card);
   const band =
@@ -92,7 +92,7 @@ export function Card({ card, color, selected, banked, rent, onClick }: { card: C
   const name = label(card);
   return (
     <Tag
-      className={`card relative m-0 inline-flex flex-col overflow-hidden bg-card p-0 text-center text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-gold" : ""}`}
+      className={`card relative m-0 inline-flex flex-col overflow-hidden bg-card p-0 text-center text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${glow ? "glow" : ""} ${selected ? "-translate-y-[0.6em] outline-3 outline-gold" : ""}`}
       onClick={onClick}
       title={explain(card)}
     >

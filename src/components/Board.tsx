@@ -3,8 +3,9 @@ import Head from "next/head";
 import { type ReactNode, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { BIRTHDAY, COLORS, DEBT } from "../cards.ts";
-import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, payable, type Placed, type Player, rent, size, worth } from "../game.ts";
+import { BIRTHDAY, type Card as CardType, COLORS, DEBT } from "../cards.ts";
+import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, isAction, moves, type Move, name, payable, type Placed, type Player, rent, size, worth } from "../game.ts";
+import { street } from "../streets.ts";
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, PAINT, Slot } from "./Card";
 
@@ -74,6 +75,23 @@ function chime() {
   } catch {}
 }
 
+/** The cards in `after`'s banks, sets, buildings and discard pile that weren't there in `before`. */
+function arrivals(before: Game, after: Game) {
+  const out = new Set<CardType>();
+  const piles = (g: Game) => [...g.players.flatMap((p) => [p.bank, p.props.map((x) => x.card), p.built.map((x) => x.card)]), g.pile];
+  const was = piles(before);
+  piles(after).forEach((pile, i) => {
+    const left = new Map<string, number>();
+    for (const c of was[i]) left.set(street(c) ?? name(c), (left.get(street(c) ?? name(c)) ?? 0) + 1);
+    for (const c of pile) {
+      const k = street(c) ?? name(c);
+      if (left.get(k)) left.set(k, left.get(k)! - 1);
+      else out.add(c);
+    }
+  });
+  return out;
+}
+
 /** How many of a game's decisions it takes for its log to reach `line`. */
 function decisionsTo(game: Props["game"], line: number) {
   let [lo, hi] = [0, game.log.length];
@@ -100,6 +118,15 @@ export function Board({ game, me }: Props) {
     height.current = ul.scrollHeight;
   }, [lines]);
   const seat = game.seats.findIndex((s) => "player" in s && s.player === me);
+  // Others' decisions shown one at a time, so each play can be seen. A long gap, like opening the page, jumps to now.
+  const [shown, setShown] = useState(game.log.length);
+  const stepping = shown < game.log.length;
+  useEffect(() => {
+    if (!stepping) return;
+    const wait = game.log.length - shown > 40 ? 0 : game.log[shown].seat === seat ? 0 : 700;
+    const t = setTimeout(() => setShown((n) => (game.log.length - n > 40 ? game.log.length : n + 1)), wait);
+    return () => clearTimeout(t);
+  }, [stepping, shown, game.log, seat]);
   const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : (game.names[n] ?? `Player ${n + 1}`));
   const send = (choice: Choice) => {
     setError(undefined);
@@ -115,7 +142,7 @@ export function Board({ game, me }: Props) {
     return () => clearInterval(interval);
   }, [waiting, replaceGone, game._id]);
   // when it comes to you, say so in the tab's title and chime, since you might be in another tab
-  const up = !result && prompt?.seat === seat;
+  const up = !stepping && !result && prompt?.seat === seat;
   const wasUp = useRef(up);
   useEffect(() => {
     if (up && !wasUp.current) chime();
@@ -123,9 +150,14 @@ export function Board({ game, me }: Props) {
   }, [up]);
   // A past board, replayed up to the decision that wrote the log line clicked
   const [past, setPast] = useState<{ decisions: number; line: number }>();
-  const view = useMemo(() => (past ? until(game, past.decisions) : state), [past, game, state]);
+  const view = useMemo(() => (past ? until(game, past.decisions) : stepping ? until(game, shown) : state), [past, stepping, shown, game, state]);
+  // what landed in the last step, or once caught up, everything since your last decision
+  const glow = useMemo(() => {
+    const from = stepping ? shown - 1 : seat >= 0 ? game.log.findLastIndex((c) => c.seat === seat) + 1 : shown;
+    return !past && from >= 0 && from < shown && game.log[from].seat !== seat ? arrivals(until(game, from).game, view.game) : new Set<CardType>();
+  }, [past, stepping, shown, seat, game, view]);
   const g = view.game;
-  const entries = turns(state.game.log ?? [], who);
+  const entries = turns((past ? state : view).game.log ?? [], who);
   const visit = (line: number) => {
     const decisions = decisionsTo(game, line);
     setPast(decisions >= game.log.length ? undefined : { decisions, line });
@@ -148,7 +180,7 @@ export function Board({ game, me }: Props) {
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>
-        {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} /> : <span className={`${deck} ${empty}`}>Discard</span>}
+        {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} glow={glow.has(g.pile[g.pile.length - 1])} /> : <span className={`${deck} ${empty}`}>Discard</span>}
         <ul className="h-[5.4rem] overflow-y-auto text-sm opacity-80" ref={log}>
           {entries.map(({ turn, text, line }, i) => (
             <li
@@ -178,7 +210,7 @@ export function Board({ game, me }: Props) {
       </section>
       <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
-          <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={n === seat} pick={past ? undefined : pick} />
+          <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={n === seat} pick={past ? undefined : pick} glow={glow} />
         ))}
       </div>
       <section className="panel sticky bottom-0 z-10 text-white">
@@ -190,9 +222,9 @@ export function Board({ game, me }: Props) {
                 Back to now
               </button>
             </p>
-          ) : result ? (
-            <p className="m-0 pt-[0.8em] font-bold">{result.winner === null ? "Nobody won." : `${who(result.winner)} won!`}</p>
-          ) : prompt && prompt.seat === seat ? (
+          ) : view.result ? (
+            <p className="m-0 pt-[0.8em] font-bold">{view.result.winner === null ? "Nobody won." : `${who(view.result.winner)} won!`}</p>
+          ) : !stepping && prompt && prompt.seat === seat ? (
             <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} steal={steal} setSteal={setSteal} />
           ) : (
             <div className="flex items-end gap-[0.8em]">
@@ -206,7 +238,7 @@ export function Board({ game, me }: Props) {
                 )}
               </div>
               <div className="flex shrink-0 flex-col items-center justify-center self-stretch pt-[0.8em]">
-                <span className="label">Waiting for {prompt ? who(prompt.seat) : "…"}</span>
+                <span className="label">Waiting for {view.prompt ? who(view.prompt.seat) : "…"}</span>
               </div>
             </div>
           )}
@@ -260,7 +292,7 @@ function Pickable({ pick, children }: { pick?: Pick; children: ReactNode }) {
   );
 }
 
-function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined }) {
+function Seat({ game, p, name, current, mine, pick, glow }: { game: Game; p: Player; name: string; current: boolean; mine: boolean; pick?: (q: Player, x: Placed) => Pick | undefined; glow: Set<CardType> }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   const near = fullColors(game, p).length >= 2;
   // every set, full or started, in the table's order
@@ -295,13 +327,13 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
             ))}
             {p.built
               .filter((x) => x.color === c)
-              .map((x, i) => <Card key={`b${i}`} card={x.card} />)
+              .map((x, i) => <Card key={`b${i}`} card={x.card} glow={glow.has(x.card)} />)
               .reverse()}
             {p.props
               .filter((x) => x.color === c)
               .map((x, i) => (
                 <Pickable key={i} pick={pick?.(p, x)}>
-                  <Card card={x.card} rent={COLORS[c].rent[i % size(c)]} />
+                  <Card card={x.card} rent={COLORS[c].rent[i % size(c)]} glow={glow.has(x.card)} />
                 </Pickable>
               ))
               .reverse()}
@@ -311,7 +343,7 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
       <div className="label">{money(`$${banked(p)}M`)} banked</div>
       <Scroller className="min-h-[5.36rem] *:not-first:-ml-[2.25rem]">
         {p.bank.map((c, i) => (
-          <Card key={i} card={c} banked />
+          <Card key={i} card={c} banked glow={glow.has(c)} />
         ))}
       </Scroller>
     </section>

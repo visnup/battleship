@@ -147,3 +147,19 @@
     color: white;
   }
 }
+
+/* A card that just landed where it is, from someone else's play. Inset, since rows clip what's
+   outside, and unlayered to win over the card's shadow utility. */
+.card.glow {
+  box-shadow:
+    inset 0 0 0 3px var(--gold),
+    inset 0 0 12px 3px var(--gold);
+  animation: land 0.5s ease-out;
+}
+
+@keyframes land {
+  from {
+    translate: 0 -0.6em;
+    opacity: 0.4;
+  }
+}
