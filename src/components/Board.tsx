@@ -110,16 +110,18 @@ export function Board({ game, me }: Props) {
           ) : prompt && prompt.seat === seat ? (
             <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} who={who} send={send} />
           ) : (
-            <>
-              <p>Waiting for {prompt ? who(prompt.seat) : "…"}</p>
-              {seat >= 0 && (
-                <Row>
-                  {g.players[seat].hand.map((c, i) => (
-                    <Card key={i} card={c} />
-                  ))}
-                </Row>
-              )}
-            </>
+            <div className="flex items-end gap-[0.8em]">
+              <div className="flex-1">
+                {seat >= 0 && (
+                  <Row>
+                    {g.players[seat].hand.map((c, i) => (
+                      <Card key={i} card={c} />
+                    ))}
+                  </Row>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-col items-center justify-center self-stretch pt-[0.6em] text-sm">Waiting for {prompt ? who(prompt.seat) : "…"}</div>
+            </div>
           )}
           {error && <p className="text-[#ff8a8a]">{error}</p>}
         </div>
