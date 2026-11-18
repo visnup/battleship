@@ -456,7 +456,11 @@ export function arrange(game: Game, p: Player) {
     if (arranged.size > 100_000) arranged.clear();
     arranged.set(key, (best = arrangement(game, p, wilds)));
   }
-  wilds.forEach((x, i) => (x.color = COLOR_NAMES[best[i]]));
+  wilds.forEach((x, i) => {
+    const color = COLOR_NAMES[best[i]];
+    if (game.log && x.color !== color) game.say(`P${p.seat} moves ${name(x.card)} to ${color}`);
+    x.color = color;
+  });
 }
 const arranged = new Map<string, number[]>();
 
