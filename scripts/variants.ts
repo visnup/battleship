@@ -231,6 +231,8 @@ const breakNearest =
 
 /** The pay, Just Say No and discard models fit to playouts where seat 0 already decides all three by the learned models (`--learned`). */
 const RETRAINED = Object.fromEntries(["pay", "sayno", "discard"].map((m) => [m, new URL(`../dataset/${m}-learned.json`, import.meta.url).pathname]));
+/** The Just Say No and discard models fit with card memory (`memory()`) among their numbers. */
+const MEMORY = Object.fromEntries(["sayno", "discard"].map((m) => [m, new URL(`../dataset/${m}-m.json`, import.meta.url).pathname]));
 
 /** `step`, only after the first `rounds` rounds. */
 const after =
@@ -332,6 +334,8 @@ export const VARIANTS: Record<string, () => Policy> = {
   "pay by the retrained model": () => ({ ...defaultPolicy, pay: paid(RETRAINED.pay) }),
   "Just Say No by the retrained model": () => ({ ...defaultPolicy, sayNo: said(RETRAINED.sayno) }),
   "discard by the retrained model": () => ({ ...defaultPolicy, discard: discarded(RETRAINED.discard) }),
+  "Just Say No by the card-memory model": () => ({ ...defaultPolicy, sayNo: said(MEMORY.sayno) }),
+  "discard by the card-memory model": () => ({ ...defaultPolicy, discard: discarded(MEMORY.discard) }),
   "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),
   "never counter a Just Say No": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => game.players[game.current] !== p && defaultPolicy.sayNo(game, p, move, from) }),
   "Forced Deal for the best chance": withStep(STEPS.forcedDeal, byChance("forcedDeal")),

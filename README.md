@@ -279,6 +279,29 @@ laying a property down before charging rent, Debt Collector or Birthday in some 
 default's choice of rent first or ending the turn winning in others. No rule that splits them
 beat the default.
 
+### Paying, saying no and discarding
+
+The default handles these with simple rules: pay from the bank first, say no to anything that
+costs it, and discard what it values least. Models trained on playouts of every choice
+("A learned player", below) each beat those rules by 1 to 2 points, but so far none of what they
+learned fits in a sentence:
+
+- **Pay mostly from the bank, but not always.** The learned payer wins 50.8%, 34.6%, 26.2% and
+  21.4% at 2–5 players against the default's 50.0%, 33.3%, 24.9% and 19.9%. At 5 players it hands
+  over a loose property instead of money in about one payment in five, and from the bank it pays
+  with fewer, bigger cards, overpaying ($3M for a $2M Birthday). Neither works as a rule: paying
+  with a property whenever one covers the charge loses 10 to 26 points, and paying with the
+  fewest bank cards only ties the default.
+- **Say no to whatever costs you, and counter a No against your own play.** Never countering
+  loses 0.5 to 0.6 points, and saving a Just Say No for a Deal Breaker loses (above). Letting a
+  Debt Collector through is even. The learned model gains 1.0 to 1.6 points on top.
+- **Discard by more than value.** The learned discard gains 0.4 to 1.5 points, and disagrees with
+  the default on 82% to 86% of discards at 3–5 players. What it does differently hasn't been
+  pinned down.
+- **Keep track of what's been played.** The move model that also counts the Just Say Nos, Deal
+  Breakers and other actions still unseen wins up to a point more at 5 players. No rule built on
+  that has been tried.
+
 ### Against strong opponents
 
 Every table so far plays against default players. *`node scripts/strong.ts`* plays the same
@@ -640,7 +663,8 @@ game.
 **The bank runs dry with more players.** The default banks about $10M before laying properties
 down, and at 2 players that's what it has when charged. At 5 it's $8.7M, and one payment in five
 costs property. Most losers at 5 players pay in property at least once, and so do 40% of winners:
-paying in property hurts, but it doesn't decide the game.
+paying in property hurts, but it doesn't decide the game. How to pay well is under "Paying,
+saying no and discarding".
 
 ## Opening hands
 
@@ -751,5 +775,6 @@ games stall ("Rules questions").
 
 ## Next
 
-`TODO.md` has what's left: closing more of the gap to playouts, and logging real games to compare
-with the model.
+`TODO.md` has what's left: closing more of the gap to playouts, turning what the learned models
+know about paying, saying no and discarding into advice, and comparing the model with real games
+from the online version at monopoly.visnup.com.

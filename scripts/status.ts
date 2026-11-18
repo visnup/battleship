@@ -88,12 +88,19 @@ function status() {
   const when = Number.isFinite(eta) ? new Date(Date.now() + eta * 60e3).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "…";
   const now = usage.at(-1)!;
   const title = `Round ${args.round} · ${Number.isFinite(eta) ? `${Math.round(eta)} min` : "…"}`;
+  // a run that isn't a round (no `data-rN`) just lists its milestones
+  const round = existsSync(data);
   return {
-    title,
-    body: `<h1>Round ${args.round}: done about ${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>
+    title: round ? title : `Round ${args.round}`,
+    body: `${
+      round
+        ? `<h1>Round ${args.round}: done about ${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>
 ${counts.map((c) => `${c.p} players: ${c.games.toLocaleString()} of ${games.toLocaleString()} games${c.done ? ` · ${c.minutes} min` : ""}${bar(c.games / games)}`).join("\n")}
 ${after.map((a) => (a === current ? `<div>◐ ${a.name}</div>${bar(a.progress)}` : `<div>${a.done ? "✓" : "○"} ${a.name}</div>`)).join("\n")}
-<p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>
+<p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>`
+        : `<h1>Round ${args.round}</h1>
+${evs.map((e) => `<div>✓ ${e.name} <small>${new Date(e.t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>`).join("\n")}`
+    }
 <pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>
 <div><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores · <span class="key"></span>load ${now.load.toFixed(1)}</div>`,
     usage,

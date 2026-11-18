@@ -15,7 +15,7 @@ import { learnedSeat, replay, watch } from "./midturn.ts";
 const out = (learned: boolean) => new URL(learned ? "../dataset/discard-learned/" : "../dataset/discard/", import.meta.url);
 const always = () => true;
 
-export function shard(players: number, deals: number, learned: boolean, seed: number, n: number) {
+export function shard(players: number, deals: number, learned: boolean, dir: string, seed: number, n: number) {
   const seat = learned ? learnedSeat() : defaultPolicy;
   const seeds = mulberry32(seed);
   const x: number[] = [];
@@ -47,7 +47,7 @@ export function shard(players: number, deals: number, learned: boolean, seed: nu
       groups.push(options.length);
     }
   }
-  const base = new URL(shardName(players, seed), out(learned)).pathname;
+  const base = `${dir}/${shardName(players, seed)}`;
   writeFileSync(`${base}.x`, new Float32Array(x));
   writeFileSync(`${base}.y`, new Float32Array(y));
   writeFileSync(`${base}.g`, new Int32Array(groups));
@@ -56,12 +56,13 @@ export function shard(players: number, deals: number, learned: boolean, seed: nu
 
 if (import.meta.main) {
   const { values: args } = parseArgs({
-    options: { n: { type: "string", default: "16384" }, deals: { type: "string", default: "32" }, players: { type: "string", default: "2,3,4,5" }, learned: { type: "boolean", default: false } },
+    options: { n: { type: "string", default: "16384" }, deals: { type: "string", default: "32" }, players: { type: "string", default: "2,3,4,5" }, learned: { type: "boolean", default: false }, out: { type: "string" } },
   });
-  mkdirSync(out(args.learned), { recursive: true });
+  const dir = args.out ?? out(args.learned).pathname;
+  mkdirSync(dir, { recursive: true });
   for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();
-    const [decisions, options] = await parallel<number[]>(import.meta.url, "shard", [players, Number(args.deals), args.learned], Number(args.n));
+    const [decisions, options] = await parallel<number[]>(import.meta.url, "shard", [players, Number(args.deals), args.learned, dir], Number(args.n));
     console.log(`${players} players: ${decisions} discards, ${options} ways to discard, ${((performance.now() - t) / 60000).toFixed(1)} min`);
   }
 }

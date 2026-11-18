@@ -1,5 +1,7 @@
 import { BIRTHDAY, DEBT } from "./cards.ts";
 import { assets, banked, fullColors, type Game, gain, isAction, type Move, type Player, progress, rent } from "./game.ts";
+import { memory } from "./memory.ts";
+import { observe } from "./replay.ts";
 
 // Whether to Just Say No, as numbers for a learned scorer, like `paying.ts` for payments.
 
@@ -43,5 +45,6 @@ export function refusal(game: Game, p: Player, move: Move, to: Player): (no: boo
     lead,
     +(fullColors(game, mover).length === lead && attacked),
   ];
-  return (no) => [...table, +no];
+  const mem = memory(observe(game, p, 0));
+  return (no) => [...table, +no, ...mem];
 }

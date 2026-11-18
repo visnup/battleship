@@ -1,5 +1,7 @@
 import type { Card } from "./cards.ts";
 import { banked, colorsOf, count, defaultPolicy, fullColors, type Game, isAction, name, type Player, progress, size } from "./game.ts";
+import { memory } from "./memory.ts";
+import { observe } from "./replay.ts";
 
 // What to discard past 7 in hand: the choices worth considering, and each as numbers for a
 // learned scorer, like `paying.ts` for payments.
@@ -49,5 +51,6 @@ export function discarding(game: Game, p: Player, n: number): (cards: Card[]) =>
     cards.filter((c) => helps(game, p, c)).length,
     cards.reduce((s, c) => s + c.value, 0),
   ];
-  return (cards) => [...table, ...describe(cards), ...describe(p.hand.filter((c) => !cards.includes(c)))];
+  const mem = memory(observe(game, p, 0));
+  return (cards) => [...table, ...describe(cards), ...describe(p.hand.filter((c) => !cards.includes(c))), ...mem];
 }
