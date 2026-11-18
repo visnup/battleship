@@ -242,9 +242,9 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
       <div className="flex flex-wrap items-center gap-x-[0.6em] gap-y-[0.3em] text-sm font-bold">
         {Math.min(full, 3)} of 3 sets
         {pending.map(({ c, n, of }) => (
-          <span key={c} title={`${colorName(c)}: ${n} of ${of}`} className="flex gap-[2px]">
+          <span key={c} title={`${colorName(c)}: ${n} of ${of}`} className="flex overflow-hidden rounded-full outline outline-white/50">
             {Array.from({ length: of }, (_, i) => (
-              <span key={i} className="h-[0.7em] w-[0.5em] rounded-[2px] bg-white/20 outline outline-white/40" style={i < n ? { background: PAINT[c] } : undefined} />
+              <span key={i} className="h-[0.7em] w-[0.6em] bg-white/20 not-first:border-l not-first:border-white/50" style={i < n ? { background: PAINT[c] } : undefined} />
             ))}
           </span>
         ))}
