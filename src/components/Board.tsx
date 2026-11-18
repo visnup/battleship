@@ -143,7 +143,7 @@ export function Board({ game, me }: Props) {
           ))}
         </ul>
       </section>
-      <div className="mb-[9em] grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
+      <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {others.map((n) => (
           <Seat key={n} game={g} p={g.players[n]} name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`} current={!view.result && g.current === n} mine={false} pick={past ? undefined : pick} />
         ))}
@@ -195,7 +195,7 @@ function Seat({ game, p, name, current, mine, pick }: { game: Game; p: Player; n
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   const full = fullColors(game, p).length;
   return (
-    <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
+    <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${mine ? "col-span-full" : ""} ${current ? "outline-2 outline-[gold]" : ""}`}>
       <h2 className="flex items-baseline justify-between text-base font-bold">
         {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
