@@ -64,7 +64,8 @@ from photos of one card of each property color and each wild (`rules/properties.
   next one (its header lists the knobs), logging to `dataset/rN/`. Don't edit `src/` or what
   it imports while a round runs: its workers load those files. `scripts/overnight.sh` runs a
   round labeled by playouts among learned players (`dataset.ts --strong`), after a smoke test
-  of the whole pipeline. `scripts/field.ts` plays one player against learned players, and
+  of the whole pipeline, and `node scripts/status.ts --round N` serves its progress and ETA at
+  localhost:3001. `scripts/field.ts` plays one player against learned players, and
   `scripts/plan.ts` tests looking ahead to the end of the turn.
 - `trees.ts` flattens LightGBM's trees into typed arrays and packs them as base64;
   `scripts/pack.ts` writes the four models to `src/packed/`, which `hard.ts` loads for the
