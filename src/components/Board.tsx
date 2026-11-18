@@ -148,7 +148,7 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
         {colors.map((c) => (
           <div key={c} className={`flex flex-col self-start *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
             {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
-              <Slot key={`s${i}`} color={c} />
+              <Slot key={`s${i}`} color={c} rent={COLORS[c].rent[size(c) - 1 - i]} />
             ))}
             {p.props
               .filter((x) => x.color === c)

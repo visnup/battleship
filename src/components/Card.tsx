@@ -47,9 +47,13 @@ function explain(c: CardType): string {
   return `${label(c)}: ${ACTIONS[c.action]} ${worth}`;
 }
 
-/** An empty place in a set, where its next card will stack. */
-export function Slot({ color }: { color: Color }) {
-  return <div className="box-border h-[6.3em] w-[4.5em] shrink-0 rounded-[0.4em] border-2 border-dashed text-[0.85rem] opacity-60" style={{ borderColor: PAINT[color] }} />;
+/** An empty place in a set, where its next card will stack, with the rent the set would charge then. */
+export function Slot({ color, rent }: { color: Color; rent: number }) {
+  return (
+    <div className="box-border h-[6.3em] w-[4.5em] shrink-0 rounded-[0.4em] border-2 border-dashed text-center text-[0.85rem] opacity-60" style={{ borderColor: PAINT[color] }}>
+      <span className="block text-[0.85em] leading-[1.5em] font-extrabold text-white">${rent}M</span>
+    </div>
+  );
 }
 
 /** A card; `banked` grays its name and darkens its value, which is all it's worth in a bank, and `rent` goes on its band. */
