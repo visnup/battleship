@@ -215,6 +215,11 @@
       - [ ] Mine the latest model for rules, as round 0 gave two: where it overrules the
             default most often, and by how much on playouts. Adopted into `defaultPolicy`, they
             make every rollout stronger at no cost, and so the labels; then run another round.
+            Round 4's (2026-11-17, `scripts/overrules.ts` on held-out r4b shards): laying a wild
+            where a plain property would do, at every count. Properties before wilds gains +0.8,
+            +0.6, +0.5 and +0.2 at 2–5 players (400,000 games), adopted. Laying down before Sly
+            Deal, the next biggest at 3–5 players, loses 0.7 to 2.4. Still to do: rerun the
+            README's tables, refit `chance`, and round 5.
       - [ ] Then Just Say No and discarding (the "Learn the other decisions" item below), used
             in the rollouts like the payer.
       - [ ] Only if the model plateaus against cleaner labels: features beyond the 94

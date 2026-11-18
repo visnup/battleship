@@ -310,6 +310,16 @@ export const VARIANTS: Record<string, () => Policy> = {
     return birthday && game.players.some((q) => q !== p && assets(q) > 0) ? { type: "action", card: birthday } : null;
   }),
   "Deal Breaker and Sly Deal before Pass Go after round 3": () => heuristic(after(3, dealBreaker), after(3, STEPS.slyDeal), ...steps),
+  "the default": () => defaultPolicy,
+  "lay down the first in hand, wild or not (previous)": placeVariant((game, p, card) => -p.hand.indexOf(card)),
+  "lay down the dearest first, wilds last": placeVariant((game, p, card, color) => card.value - 10 * +(card.kind === "wild") + gain(game, p, color) / 10),
+  "lay down properties before Sly Deal in rounds 2–3": () =>
+    heuristic(
+      ...steps.toSpliced(steps.indexOf(STEPS.slyDeal), 0, (game, p, left) =>
+        game.turns > game.players.length && game.turns <= 3 * game.players.length && p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null,
+      ),
+    ),
+  "lay down properties before Sly Deal": () => heuristic(...steps.toSpliced(steps.indexOf(STEPS.slyDeal), 0, (game, p, left) => (p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null))),
   ...Object.fromEntries([5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))])),
 };
 

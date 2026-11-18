@@ -270,3 +270,11 @@ test("default: banks money until $10M, then lays properties down first", () => {
   p.bank.push(money(10));
   assert.equal(choose(game)?.type, "place");
 });
+
+test("default: lays down properties before wilds", () => {
+  const game = setup();
+  const [p] = game.players;
+  p.hand.push({ kind: "wild", colors: ["brown", "lightBlue"], value: 1 }, property("red", 3));
+  p.bank.push(money(10));
+  assert.deepEqual(choose(game), { type: "place", card: p.hand[1], color: "red" });
+});

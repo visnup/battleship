@@ -166,6 +166,9 @@ function load(file: string) {
   return (x: number[]) => score(trees, x);
 }
 
+/** The model in `file` as a function of `board` and `move`'s numbers. */
+export const scorer = (file = MODEL) => (loaded[file] ??= load(file));
+
 /** Every legal move, best first by the model in `file`: `learn.py`'s trees or `learn_mlx.py`'s network. */
 export function ranked(file = MODEL) {
   const scorer = (loaded[file] ??= load(file));

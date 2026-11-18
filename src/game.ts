@@ -549,7 +549,8 @@ export const inProperty: Target = (game, p, amount) => {
 
 /** Any property, as the color it helps most. */
 const layDown: Step = (game, p) => {
-  const [c] = placeable(p);
+  const cards = placeable(p);
+  const c = cards.find((c) => c.kind === "property") ?? cards[0];
   return c ? { type: "place", card: c, color: bestColor(game, p, c) } : null;
 };
 
@@ -669,7 +670,8 @@ export const STEPS = {
   /**
    * Any property, as the color it helps most, once there's nothing to charge or bank. Laying
    * them down earlier leaves them to be taken: charging first wins 2–3 points, and banking first
-   * 4 more (`variants.ts`, `order.ts`).
+   * 4 more (`variants.ts`, `order.ts`). Properties before wilds: +0.2 to +0.8 points at 2–5
+   * players (`variants.ts`, 400,000 games), found where `learned.ts`'s model overrules the default.
    */
   place: layDown,
   /** Pass Go with the last play. */

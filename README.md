@@ -259,7 +259,8 @@ Tried and rejected, besides the alternatives in the table (at 2 and 5 players, a
   first, the cheapest or the dearest (by the $M printed in its corner), the highest rent or the
   smallest set. All were within noise of taking the first one in hand, the one held longest, or
   worse (wilds first: 19.4% at 5 players). The most progress first with wilds last gains 0.4 points at 2 players, but 0.2 at 3
-  and −0.2 at 5 (400,000 games each).
+  and −0.2 at 5 (400,000 games each). Plain properties before wilds, found where the learned
+  model overrules the default, gains 0.2 to 0.8 points at 2–5 players and is now the default's.
 - Laying down a property of a color a Rent card in hand charges, then charging: 49.5% and 19.3%.
 - Laying down properties before Debt Collector and Birthday: 45.8% and 15.1%.
 
