@@ -102,8 +102,16 @@ export function move(obs: Obs, m: Enc, isDefault: boolean): number[] {
   return x;
 }
 
-const unseen = (c: string) => (c.startsWith("rent(") ? "rent" : c);
-const TOTAL = Map.groupBy(DECK.map(name), unseen);
+// counted by hand, since Convex type-checks against ES2023, before Map.groupBy
+function tally(cards: string[]) {
+  const n = new Map<string, number>();
+  for (const c of cards) {
+    const k = c.startsWith("rent(") ? "rent" : c;
+    n.set(k, (n.get(k) ?? 0) + 1);
+  }
+  return n;
+}
+const TOTAL = tally(DECK.map(name));
 
 /**
  * What the mover can't see yet, after `move`: how many of each action and of the Rent cards
@@ -111,8 +119,8 @@ const TOTAL = Map.groupBy(DECK.map(name), unseen);
  * leaves in the draw pile and the others' hands.
  */
 export function memory(obs: Obs): number[] {
-  const seen = Map.groupBy([...obs.hand, ...obs.pile, ...obs.table.flatMap((q) => [...q.bank, ...q.built.map((x) => x.card)])], unseen);
-  return [...[...ACTIONS, "rent"].map((a) => TOTAL.get(a)!.length - (seen.get(a)?.length ?? 0)), obs.draw_size + obs.table.slice(1).reduce((s, q) => s + q.hand_size, 0)];
+  const seen = tally([...obs.hand, ...obs.pile, ...obs.table.flatMap((q) => [...q.bank, ...q.built.map((x) => x.card)])]);
+  return [...[...ACTIONS, "rent"].map((a) => TOTAL.get(a)! - (seen.get(a) ?? 0)), obs.draw_size + obs.table.slice(1).reduce((s, q) => s + q.hand_size, 0)];
 }
 
 type Layer = { w: number[][]; b: number[] };
