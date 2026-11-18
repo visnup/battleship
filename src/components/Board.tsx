@@ -269,13 +269,15 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     const picks = all.filter((x) => chosen.has(id(ref(p, x))));
     const total = picks.reduce((s, x) => s + ("kind" in x ? x : x.card).value, 0);
     return (
-      <div>
-        <p>
-          You owe {who(prompt.to)} {money(`$${prompt.amount}M`)}. Picked {money(`$${total}M`)}.{" "}
+      <div className="relative">
+        <div className={`${panel} flex flex-wrap items-center justify-center gap-[0.6em]`}>
+          <span>
+            You owe {who(prompt.to)} {money(`$${prompt.amount}M`)}. Picked {money(`$${total}M`)}.
+          </span>
           <button disabled={total < prompt.amount && picks.length < all.length} onClick={() => send({ kind: "pay", seat: p.seat, paid: picks.map((x) => ref(p, x)) })}>
             Pay
           </button>
-        </p>
+        </div>
         <Row>
           {all.map((x) => {
             const k = id(ref(p, x));
@@ -303,13 +305,15 @@ function Ask({ game, p, prompt, who, send }: { game: Game; p: Player; prompt: No
     );
   const cards = [...chosen].filter((k) => k.startsWith("hand")).map((k) => Number(k.slice(4)));
   return (
-    <div>
-      <p>
-        Discard {prompt.n} card{prompt.n === 1 ? "" : "s"}.{" "}
+    <div className="relative">
+      <div className={`${panel} flex flex-wrap items-center justify-center gap-[0.6em]`}>
+        <span>
+          Discard {prompt.n} card{prompt.n === 1 ? "" : "s"}.
+        </span>
         <button disabled={cards.length !== prompt.n} onClick={() => send({ kind: "discard", seat: p.seat, cards })}>
           Done
         </button>
-      </p>
+      </div>
       {hand(
         (i) => toggle(`hand${i}`),
         (i) => chosen.has(`hand${i}`),
