@@ -181,7 +181,7 @@ export function Board({ game, me }: Props) {
         <div className={g.draw.length ? `${deck} ${drawn}` : `${deck} ${empty}`}>
           Draw Pile <span className="text-[#d0d0d0]">{g.draw.length}</span>
         </div>
-        {g.pile.length ? <Card card={g.pile[g.pile.length - 1]} glow={glow.has(g.pile[g.pile.length - 1])} /> : <span className={`${deck} ${empty}`}>Discard</span>}
+        {g.pile.length ? <Card key={g.pile.length} card={g.pile[g.pile.length - 1]} glow={glow.has(g.pile[g.pile.length - 1])} /> : <span className={`${deck} ${empty}`}>Discard</span>}
         <ul className="h-[5.4rem] overflow-y-auto text-sm opacity-80" ref={log}>
           {entries.map(({ turn, text, line }, i) => (
             <li
