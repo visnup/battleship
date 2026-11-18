@@ -15,13 +15,13 @@ const PAINT: Record<Color, string> = {
   utility: "#a8c5a0",
 };
 
-/** Every `$5M` in `text` as 5 and an M struck through twice, like the cards print it. */
+/** Every `$5M` in `text` as 5 and a struck-through M, like the cards print it. */
 export const money = (text: string): ReactNode =>
   text.split(/\$([\d/]+)M/).map((s, i) =>
     i % 2 ? (
       <Fragment key={i}>
         {s}
-        <span className="line-through decoration-double decoration-[0.1em]">M</span>
+        <span className="line-through decoration-[0.1em]">M</span>
       </Fragment>
     ) : (
       s
