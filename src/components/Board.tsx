@@ -129,25 +129,13 @@ export function Board({ game, me }: Props) {
 function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: string; current: boolean; mine: boolean }) {
   const colors = COLOR_NAMES.filter((c) => p.props.some((x) => x.color === c));
   const full = fullColors(game, p).length;
-  const nearest = colors
-    .filter((c) => !fullSets(game, p, c))
-    .map((c) => ({ c, n: count(p, c), of: size(c) }))
-    .sort((a, b) => b.n / b.of - a.n / a.of)[0];
   return (
     <section className={`flex flex-col gap-[0.5em] rounded-[0.6em] bg-black/15 px-[0.8em] py-[0.5em] ${current ? "outline-2 outline-[gold]" : ""}`}>
       <h2 className="text-base font-bold">
         {name} {!mine && <small className="font-normal opacity-70">{p.hand.length} in hand</small>}
       </h2>
-      <div className="text-sm">
-        <span className="font-bold">{Math.min(full, 3)} of 3 sets</span>
-        {nearest && full < 3 && (
-          <span className="opacity-70">
-            {" "}
-            · {colorName(nearest.c)} {nearest.n} of {nearest.of}
-          </span>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-[0.6em]">
+      <div className="text-sm font-bold">{Math.min(full, 3)} of 3 sets</div>
+      <div className="mt-auto flex flex-wrap gap-[0.6em]">
         {colors.map((c) => (
           <div key={c} className={`flex flex-col self-end *:not-first:-mt-[3.95rem] ${fullSets(game, p, c) ? "rounded-[0.4em] outline-2 outline-white" : ""}`}>
             {Array.from({ length: Math.max(0, size(c) - count(p, c)) }, (_, i) => (
@@ -167,7 +155,7 @@ function Seat({ game, p, name, current, mine }: { game: Game; p: Player; name: s
         ))}
       </div>
       <div className="text-sm font-bold">{money(`$${banked(p)}M`)} banked</div>
-      <div className="flex *:not-first:-ml-[2.25rem]">
+      <div className="flex min-h-[5.36rem] *:not-first:-ml-[2.25rem]">
         {p.bank.map((c, i) => (
           <Card key={i} card={c} banked />
         ))}
