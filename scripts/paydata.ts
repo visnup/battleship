@@ -25,10 +25,18 @@ export function shard(players: number, deals: number, learned: boolean, seed: nu
     const s = Math.floor(seeds() * 2 ** 32);
     const first = i % players;
     const found: { k: number; options: number[][]; rows: number[][] }[] = [];
-    watch("pay", players, s, first, counts, (k, game, p, amount) => {
-      const options = payments(game, p, amount, 24);
-      if (options.length > 1) found.push({ k, options, rows: options.map((o) => payment(game, p, amount)(o.map((j) => payable(p)[j]))) });
-    }, seat);
+    watch(
+      "pay",
+      players,
+      s,
+      first,
+      counts,
+      (k, game, p, amount) => {
+        const options = payments(game, p, amount, 24);
+        if (options.length > 1) found.push({ k, options, rows: options.map((o) => payment(game, p, amount)(o.map((j) => payable(p)[j]))) });
+      },
+      seat,
+    );
     for (const { k, options, rows } of found) {
       const shuffles = Array.from({ length: deals }, () => Math.floor(seeds() * 2 ** 32));
       options.forEach((o, j) => {
@@ -47,7 +55,9 @@ export function shard(players: number, deals: number, learned: boolean, seed: nu
 }
 
 if (import.meta.main) {
-  const { values: args } = parseArgs({ options: { n: { type: "string", default: "4096" }, deals: { type: "string", default: "32" }, players: { type: "string", default: "2,3,4,5" }, learned: { type: "boolean", default: false } } });
+  const { values: args } = parseArgs({
+    options: { n: { type: "string", default: "4096" }, deals: { type: "string", default: "32" }, players: { type: "string", default: "2,3,4,5" }, learned: { type: "boolean", default: false } },
+  });
   mkdirSync(out(args.learned), { recursive: true });
   for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();

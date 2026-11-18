@@ -34,7 +34,17 @@ export function watch<H extends Hook>(hook: H, players: number, seed: number, fi
  * Seat 0's chance two rounds after its `k`th counted `hook` decision in game `seed`, made by
  * `decide`, with what seat 0 can't see reshuffled by `shuffleSeed`.
  */
-export function replay<H extends Hook>(hook: H, players: number, seed: number, first: number, counts: (...a: Args<H>) => boolean, k: number, decide: (...a: Args<H>) => Result<H>, shuffleSeed: number, seat = defaultPolicy): number {
+export function replay<H extends Hook>(
+  hook: H,
+  players: number,
+  seed: number,
+  first: number,
+  counts: (...a: Args<H>) => boolean,
+  k: number,
+  decide: (...a: Args<H>) => Result<H>,
+  shuffleSeed: number,
+  seat = defaultPolicy,
+): number {
   let n = 0;
   let limit = Infinity;
   const timed: Policy = {

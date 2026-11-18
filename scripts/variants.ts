@@ -329,7 +329,7 @@ export const VARIANTS: Record<string, () => Policy> = {
   "pay, Just Say No and discard by the learned models": () => ({ ...defaultPolicy, pay: paid(), sayNo: said(), discard: discarded() }),
   "pay, Just Say No and discard by models retrained with them": () => ({ ...defaultPolicy, pay: paid(RETRAINED.pay), sayNo: said(RETRAINED.sayno), discard: discarded(RETRAINED.discard) }),
   "pay by the learned model": () => ({ ...defaultPolicy, pay: paid() }),
-  "pay by the retrained model":() => ({ ...defaultPolicy, pay: paid(RETRAINED.pay) }),
+  "pay by the retrained model": () => ({ ...defaultPolicy, pay: paid(RETRAINED.pay) }),
   "Just Say No by the retrained model": () => ({ ...defaultPolicy, sayNo: said(RETRAINED.sayno) }),
   "discard by the retrained model": () => ({ ...defaultPolicy, discard: discarded(RETRAINED.discard) }),
   "let Debt Collector through": () => ({ ...defaultPolicy, sayNo: (game, p, move, from) => !isAction(move.card, "debtCollector") && defaultPolicy.sayNo(game, p, move, from) }),

@@ -1,6 +1,7 @@
 import { type Action, BIRTHDAY, type Card as CardType, type Color, COLORS, DEBT, HOTEL_RENT, HOUSE_RENT } from "../cards.ts";
 import { Fragment, type ReactNode } from "react";
 import { colorsOf } from "../game.ts";
+import { street } from "../streets.ts";
 
 export const PAINT: Record<Color, string> = {
   brown: "#8b5a2b",
@@ -31,7 +32,10 @@ export const money = (text: string): ReactNode =>
 /** `darkBlue` as "Dark Blue". */
 export const colorName = (s: string) => s.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
 
-export const label = (c: CardType) => (c.kind === "money" ? `$${c.value}M` : c.kind === "property" ? colorName(c.color) : c.kind === "wild" ? "Wild" : c.kind === "rent" ? "Rent" : colorName(c.action));
+const TITLES: Partial<Record<Action, string>> = { justSayNo: "Just Say No!", birthday: "It's My Birthday", doubleRent: "Double The Rent" };
+
+export const label = (c: CardType) =>
+  c.kind === "money" ? `$${c.value}M` : c.kind === "property" ? (street(c) ?? colorName(c.color)) : c.kind === "wild" ? "Property Wild Card" : c.kind === "rent" ? "Rent" : (TITLES[c.action] ?? colorName(c.action));
 
 const rents = (c: Color) => `${colorName(c)} rent: ${COLORS[c].rent.map((r, i) => `${i + 1} card${i ? "s" : ""} $${r}M`).join(", ")} (full set)`;
 
@@ -52,7 +56,7 @@ const ACTIONS: Record<Action, string> = {
 function explain(c: CardType): string {
   const worth = `Worth $${c.value}M in the bank.`;
   if (c.kind === "money") return `${label(c)}: bank it to pay with.`;
-  if (c.kind === "property") return `${colorName(c.color)}, worth $${c.value}M when paid.\n${rents(c.color)}`;
+  if (c.kind === "property") return `${street(c) ? `${street(c)}: ` : ""}${colorName(c.color)}, worth $${c.value}M when paid.\n${rents(c.color)}`;
   if (c.kind === "wild")
     return c.colors === "any"
       ? "Wild: counts as any color, and can be moved on your turn. Can't pay with it, or make a set of only these."
@@ -85,6 +89,7 @@ export function Card({ card, color, selected, banked, rent, onClick }: { card: C
             ? "#c9b458"
             : "#7a4ea0";
   const Tag = onClick ? "button" : "div";
+  const name = label(card);
   return (
     <Tag
       className={`card relative m-0 inline-flex flex-col overflow-hidden bg-card p-0 text-center text-black shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-gold" : ""}`}
@@ -94,7 +99,13 @@ export function Card({ card, color, selected, banked, rent, onClick }: { card: C
       <span className="h-[1.4em] text-[0.85em] leading-[1.65em] font-extrabold text-white [text-shadow:0_0_2px_black,0_0_2px_black]" style={{ background: band }}>
         {rent !== undefined ? money(`$${rent}M`) : card.kind === "property" && money(`$${COLORS[card.color].rent.join("/")}M`)}
       </span>
-      <span className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold ${cash ? "text-gray-400" : ""}`}>{money(label(card))}</span>
+      <span
+        lang="en"
+        className={`flex flex-1 items-center justify-center px-[0.2em] leading-[1.1] font-extrabold hyphens-auto ${cash ? "text-gray-400" : ""}`}
+        style={{ fontSize: `${Math.min(1, 8 / Math.max(...name.split(" ").map((w) => w.length)))}em` }}
+      >
+        {money(name)}
+      </span>
       <span className={`pb-[0.3em] text-[0.75em] ${banked ? "pl-[0.4em] text-left font-extrabold" : "opacity-60"}`}>{card.kind === "money" && !banked ? " " : money(`$${card.value}M`)}</span>
     </Tag>
   );

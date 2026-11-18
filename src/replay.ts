@@ -1,5 +1,6 @@
 import { type Card, DECK } from "./cards.ts";
 import type { Color } from "./cards.ts";
+import { nameStreets } from "./streets.ts";
 import { colorsOf, defaultPolicy, Game, type GameResult, moves, mulberry32, name, type Move, payable, type Placed, type Player, type Policy, shuffle, worth } from "./game.ts";
 
 // A game played by people is its seed and every decision made in it. The state is the game
@@ -166,6 +167,7 @@ export function replay(setup: Setup, log: Choice[]) {
     },
   };
   const game = new Game({ players: setup.players, rng: mulberry32(setup.seed), first: setup.first, policies: policy, log: true });
+  nameStreets(game);
   let prompt: Prompt | undefined;
   let result: GameResult | undefined;
   try {

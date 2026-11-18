@@ -25,11 +25,19 @@ export function shard(players: number, deals: number, learned: boolean, seed: nu
     const s = Math.floor(seeds() * 2 ** 32);
     const first = i % players;
     const found: { k: number; options: boolean[]; rows: number[][] }[] = [];
-    watch("sayNo", players, s, first, always, (k, game, p, move, to) => {
-      const mine = defaultPolicy.sayNo(game, p, move, to);
-      const features = refusal(game, p, move, to);
-      found.push({ k, options: [mine, !mine], rows: [features(mine), features(!mine)] });
-    }, seat);
+    watch(
+      "sayNo",
+      players,
+      s,
+      first,
+      always,
+      (k, game, p, move, to) => {
+        const mine = defaultPolicy.sayNo(game, p, move, to);
+        const features = refusal(game, p, move, to);
+        found.push({ k, options: [mine, !mine], rows: [features(mine), features(!mine)] });
+      },
+      seat,
+    );
     for (const { k, options, rows } of found) {
       const shuffles = Array.from({ length: deals }, () => Math.floor(seeds() * 2 ** 32));
       options.forEach((no, j) => {
@@ -48,7 +56,9 @@ export function shard(players: number, deals: number, learned: boolean, seed: nu
 }
 
 if (import.meta.main) {
-  const { values: args } = parseArgs({ options: { n: { type: "string", default: "16384" }, deals: { type: "string", default: "32" }, players: { type: "string", default: "2,3,4,5" }, learned: { type: "boolean", default: false } } });
+  const { values: args } = parseArgs({
+    options: { n: { type: "string", default: "16384" }, deals: { type: "string", default: "32" }, players: { type: "string", default: "2,3,4,5" }, learned: { type: "boolean", default: false } },
+  });
   mkdirSync(out(args.learned), { recursive: true });
   for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();
