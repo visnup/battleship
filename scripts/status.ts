@@ -74,12 +74,12 @@ function status() {
 <h1>Round ${args.round}: done about ${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>
 ${counts.map((c) => `${c.p} players: ${c.games.toLocaleString()} of ${games.toLocaleString()} games${c.done ? ` · ${c.minutes} min` : ""}${bar(c.games / games)}`).join("\n")}
 ${after.map((a) => `<div>${a.done ? "✓" : "○"} ${a.name}</div>`).join("\n")}
+<p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Refreshes every 15 s.</small></p>
+<pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>
 Scripts using ${working().toFixed(1)} of ${availableParallelism()} cores${bar(working() / availableParallelism())}
 Load ${loadavg()
     .map((l) => l.toFixed(1))
-    .join(", ")} on ${availableParallelism()} cores${bar(loadavg()[0] / availableParallelism())}
-<p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Refreshes every 15 s.</small></p>
-<pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>`;
+    .join(", ")} on ${availableParallelism()} cores${bar(loadavg()[0] / availableParallelism())}`;
 }
 
 createServer((req, res) => {
