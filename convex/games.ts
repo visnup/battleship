@@ -3,6 +3,7 @@ import { shuffle } from "../src/game.ts";
 import { type Choice, deal, replay, setup } from "../src/replay.ts";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server.js";
+import { window } from "./players.js";
 
 async function play(db: MutationCtx["db"], game: Doc<"games">, log: Choice[], made: Choice[]) {
   const { result, decisions } = replay(setup(game), [...log, ...made]);
@@ -39,6 +40,26 @@ export const decide = mutation({
     if (seat < 0 || choice.seat !== seat) throw new Error("not your seat");
     if (game.winner !== undefined) throw new Error("the game is over");
     await play(db, game, await log(db, id), [choice]);
+  },
+});
+
+/** Seats a bot for every player who's stopped pinging, and plays on. */
+export const replaceGone = mutation({
+  args: { game: v.id("games") },
+  handler: async ({ db }, { game: id }) => {
+    const game = (await db.get("games", id))!;
+    if (game.winner !== undefined) return;
+    const now = Date.now();
+    const seats = await Promise.all(
+      game.seats.map(async (s) => {
+        if (!("player" in s)) return s;
+        const p = await db.get("players", s.player);
+        return p && p.lastSeen > now - window ? s : { bot: "default" as const };
+      }),
+    );
+    if (seats.every((s, i) => s === game.seats[i])) return;
+    await db.patch("games", id, { seats });
+    await play(db, { ...game, seats }, await log(db, id), []);
   },
 });
 

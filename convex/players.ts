@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server.js";
 
-const window = 30e3;
+/** How long since a ping a player still counts as at the table. */
+export const window = 30e3;
 
 export const join = mutation({
   args: { table: v.string(), id: v.optional(v.id("players")) },

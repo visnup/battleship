@@ -1,5 +1,5 @@
 import { useMutation } from "convex/react";
-import { type ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { banked, COLOR_NAMES, count, defaultPolicy, fullColors, fullSets, type Game, moves, type Move, payable, type Player, rent, size } from "../game.ts";
@@ -53,6 +53,14 @@ export function Board({ game, me }: Props) {
     decide({ game: game._id, player: me, choice }).catch((e) => setError(String(e.message ?? e)));
   };
   const { prompt, result } = state;
+  const replaceGone = useMutation(api.games.replaceGone);
+  const waiting = !result && prompt && prompt.seat !== seat && "player" in game.seats[prompt.seat];
+  // while someone else is up, check every so often whether they've left
+  useEffect(() => {
+    if (!waiting) return;
+    const interval = setInterval(() => replaceGone({ game: game._id }), 10e3);
+    return () => clearInterval(interval);
+  }, [waiting, replaceGone, game._id]);
   const g = state.game;
   const entries = turns(g.log ?? [], who);
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
