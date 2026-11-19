@@ -9,7 +9,7 @@ import { window } from "./players.js";
 import { bot } from "./schema.js";
 
 async function play(db: MutationCtx["db"], game: Doc<"games">, log: Choice[], made: Choice[]) {
-  const { result, decisions } = replay(setup(game), [...log, ...made], { builder: STRATEGIES.builder(0), learned: hard() });
+  const { result, decisions } = replay(setup(game), [...log, ...made], { builder: STRATEGIES.builder(0), learned: hard() }, log.length);
   for (const [i, d] of decisions.entries()) await db.insert("decisions", { game: game._id, n: log.length + i, ...d });
   if (result) await db.patch("games", game._id, { winner: result.winner });
 }

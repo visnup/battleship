@@ -130,10 +130,10 @@ function paying(p: Player, amount: number, paid: Ref[]): (Card | Placed)[] {
 
 /**
  * Plays `setup` through `log`, with bots deciding for their seats as the player of their kind in
- * `bots`, or the default player. Returns the game, the decision it's waiting on, and the bots'
- * decisions made past `log`.
+ * `bots`, or the default player. Returns the game, the decision it's waiting on, and the decisions
+ * from `log[from]` on, including the bots' made past `log`.
  */
-export function replay(setup: Setup, log: Choice[], bots: Record<string, Policy> = {}) {
+export function replay(setup: Setup, log: Choice[], bots: Record<string, Policy> = {}, from = log.length) {
   const decisions: Decision[] = [];
   const bot = (p: Player) => bots[setup.bots[p.seat] || ""] ?? defaultPolicy;
   let next = 0;
@@ -142,13 +142,13 @@ export function replay(setup: Setup, log: Choice[], bots: Record<string, Policy>
     let choice = log[next] as C | undefined;
     if (choice) {
       if (choice.kind !== prompt.kind || choice.seat !== prompt.seat) throw new Error(`decision ${next} is ${choice.kind} by ${choice.seat}, but the game wants ${prompt.kind} by ${prompt.seat}`);
+      if (next >= from) decisions.push({ choice, bot: false, hands });
     } else if (setup.bots[prompt.seat]) {
       choice = bot();
       decisions.push({ choice, bot: true, hands });
     } else {
       throw new Waiting(prompt);
     }
-    if (next === log.length - 1 && !setup.bots[prompt.seat]) decisions.push({ choice, bot: false, hands });
     next++;
     return choice;
   };

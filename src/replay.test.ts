@@ -30,8 +30,9 @@ test("people's decisions replay the same game, and it waits for each", () => {
       const { prompt, decisions } = replay(setup(players, seed, false), log.slice(0, k));
       assert.equal(prompt?.kind, log[k].kind);
       assert.equal(prompt?.seat, log[k].seat);
+      assert.deepEqual(decisions, []);
       assert.deepEqual(
-        decisions.map((d) => d.choice),
+        replay(setup(players, seed, false), log.slice(0, k), {}, Math.max(0, k - 1)).decisions.map((d) => d.choice),
         k ? [log[k - 1]] : [],
       );
     }
