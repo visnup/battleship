@@ -140,7 +140,7 @@ ${track(
         : `${evs.map((e) => `<div>✓ ${e.name} <small>${new Date(e.t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>`).join("\n")}`
     }
 <pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>`,
-    legend: `<small><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores · <span class="key"></span>load ${now.load.toFixed(1)}</small>`,
+    legend: [`<small><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores</small>`, `<small><span class="key"></span>load ${now.load.toFixed(1)}</small>`],
     usage,
     cores: CORES,
     // the machine's, since the page may be viewed somewhere set to another, like UTC
@@ -197,26 +197,23 @@ const sample = () => {
 
 // The charts are drawn in the page by Observable Plot, from the round's start to its ETA, so the
 // gap right of "now" is what's left: the labeling done, with a dashed line on to where it should
-// finish and a dashed rule where each later stage should, then cores used and the load against
+// finish and a dashed rule where each later stage should, then cores used, then the load against
 // the core count (dashed).
 const page = (s: ReturnType<typeof status>) => `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>${s.title}</title>
-<style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.row{display:flex;justify-content:space-between;align-items:baseline}.track{display:flex;gap:3px;margin:.3em 0 1.2em}.seg{min-width:0;font-size:12px;line-height:1.3}.seg small{display:block}.bar{background:#ffffff26;border-radius:3px;height:10px;margin-bottom:.35em;overflow:hidden}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}.key{display:inline-block;width:.8em;height:2px;margin:0 .3em .25em 0;background:#fff9}.key.gold{background:#f2c94c}#legend{margin:0 0 1.2em 40px}</style>
+<style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.row{display:flex;justify-content:space-between;align-items:baseline}.track{display:flex;gap:3px;margin:.3em 0 1.2em}.seg{min-width:0;font-size:12px;line-height:1.3}.seg small{display:block}.bar{background:#ffffff26;border-radius:3px;height:10px;margin-bottom:.35em;overflow:hidden}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}.key{display:inline-block;width:.8em;height:2px;margin:0 .3em .25em 0;background:#fff9}.key.gold{background:#f2c94c}.legend{margin:0 0 .6em 40px}#chart{margin-bottom:1.2em}</style>
 <header>${s.head}</header>
 <div id="chart"></div>
-<div id="legend">${s.legend}</div>
 <main>${s.body}</main>
 <script type="module">
 import * as Plot from "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6.19/+esm";
 const draw = (s) => {
   document.querySelector("header").innerHTML = s.head;
   document.querySelector("main").innerHTML = s.body;
-  document.querySelector("#legend").innerHTML = s.legend;
   document.title = s.title;
   const now = Date.now();
   const end = Math.max(now, ...s.ahead.map((a) => a.t));
   const time = (t) => new Date(t);
-  const rows = s.usage.flatMap((u) => [{ t: time(u.t), v: u.cores, k: "cores used" }, { t: time(u.t), v: u.load, k: "load" }]);
   const x = { domain: [time(s.start ?? now - 2 * 3600e3), time(end)], label: null, tickFormat: (d) => d.toLocaleTimeString([], { timeZone: s.zone, hour: "numeric", minute: "2-digit" }) };
   const label = { text: "name", frameAnchor: "top", textAnchor: "start", dx: 3, rotate: 90, fontSize: 10 };
   const shared = { width: 576, marginLeft: 40, style: { background: "transparent", color: "#fff" }, x };
@@ -241,13 +238,18 @@ const draw = (s) => {
         s.dataEnd && last ? Plot.lineY([last, { t: s.dataEnd, v: 1 }], { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2, strokeDasharray: "4 4" }) : null,
       ],
     }),
-    Plot.plot({
-      ...shared,
-      height: 120,
-      y: { domain: [0, Math.max(2 * s.cores, ...rows.map((r) => r.v))], label: null, grid: true, ticks: 4 },
-      color: { domain: ["cores used", "load"], range: ["#f2c94c", "#ffffff99"] },
-      marks: [Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }), ...stages, Plot.lineY(rows, { x: "t", y: "v", z: "k", stroke: "k", strokeWidth: 2 })],
-    }),
+    ...[
+      ["cores", "#f2c94c", s.cores],
+      ["load", "#ffffff99", Math.max(2 * s.cores, ...s.usage.map((u) => u.load))],
+    ].flatMap(([key, stroke, top], i) => [
+      Plot.plot({
+        ...shared,
+        height: 90,
+        y: { domain: [0, top], label: null, grid: true, ticks: 3 },
+        marks: [Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }), ...stages, Plot.lineY(s.usage, { x: (u) => time(u.t), y: key, stroke, strokeWidth: 2 })],
+      }),
+      Object.assign(document.createElement("div"), { className: "legend", innerHTML: s.legend[i] }),
+    ]),
   );
 };
 draw(${JSON.stringify(s)});
