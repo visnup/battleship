@@ -103,10 +103,12 @@ function status() {
   // when each stage still to come should finish
   let t = Date.now() + dataLeft * 60e3;
   const ahead = Number.isFinite(eta) ? [...(dataDone ? [] : [{ t, name: "data" }]), ...after.filter((a) => !a.done && a.min).map((a) => ({ t: (t += a.min * (1 - a.progress) * 60e3), name: a.name }))] : [];
-  const clock = (t: number) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  const finished = (name: string) => {
-    const at = evs.find((e) => e.name === name)?.t;
-    return at ? clock(at) : "";
+  /** How long a finished stage took, to the log's minute: from the milestone before it. */
+  const took = (name: string) => {
+    const i = evs.findIndex((e) => e.name === name);
+    if (i < 1) return "";
+    const min = Math.round((evs[i].t - evs[i - 1].t) / 60e3);
+    return min ? `${min} min` : "<1 min";
   };
   const stages = after.filter((a) => a.min);
   /** One stretch of a track, as wide as its `weight`: a bar of how much is done, over its name and a note. */
@@ -132,7 +134,7 @@ function status() {
 ${track(
   "Train and compare",
   `${Math.round((100 * stages.reduce((s, a) => s + a.min * (a.done ? 1 : a.progress), 0)) / stages.reduce((s, a) => s + a.min, 0))}%`,
-  stages.map((a) => seg(a.min, a.name, a === current ? `~${Math.ceil(a.min * (1 - a.progress))} min left` : a.done ? finished(a.name) : `~${a.min} min`, a.done ? 1 : a.progress)),
+  stages.map((a) => seg(a.min, a.name, a === current ? `~${Math.ceil(a.min * (1 - a.progress))} min left` : a.done ? took(a.name) : `~${a.min} min`, a.done ? 1 : a.progress)),
 )}
 <p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>`
         : `${evs.map((e) => `<div>✓ ${e.name} <small>${new Date(e.t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>`).join("\n")}`
