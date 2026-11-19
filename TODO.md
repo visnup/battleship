@@ -13,8 +13,8 @@
       a point weaker.
 - [x] Recheck the adopted rules against strong players (`variants.ts --field playouts`): two are
       bets on how the others play (deny, wait), the rest hold up.
-- [ ] The Favor holder's chip choice and the discard on passing are still rules (`pickColor`,
-      `dump`); play them out too.
+- [x] The Favor holder's chip choice and the discard on passing, played out (`colorPlayouts`,
+      `dumpPlayouts`), 2026-11-19: both rules are within half a point of playouts on 32 deals.
 - [ ] Remember what's been played: `game.pile` holds every face-up card since the deal, but
       playouts deal the hidden cards from everything unseen, which already accounts for it.
       A player that reads others' likely hands from what they've played and passed on.
@@ -29,7 +29,9 @@
       rounds 3–5's by 1.7 to 3.8, adopted as `src/model.json` (2026-11-19).
 - [ ] More strong rounds while they gain, and more games a round now that they cost less than
       expected. Check each against every earlier model, not just the last, since these cycle too.
-- [ ] Use the model to prune playouts to its top moves, and race on more deals.
+- [x] Use the model to prune playouts to its top moves, and race on more deals, 2026-11-19:
+      racing on 512 deals wins 75.7% at 3 players and 56.7% at 6; pruning to the model's top 3
+      loses 1 to 5 points at 128 deals and at 512.
 - [ ] A smaller model: 1,000 trees are 24 MB; 200 trees lose 3 to 4 points against the default.
 - [ ] A mixed strategy: wait or open at random, at the rate where neither beats the other.
 
@@ -39,4 +41,10 @@
 - [x] What each card is worth in an opening hand, and how that changes with the player.
 - [ ] How much is luck: the strongest playouts against the default, and against each other.
 - [x] Which color the Favor holder should pick: `pickColor` gets nearly all of the 7 to 10 points.
-- [ ] Rule readings: each `Rules` flag both ways.
+- [x] Rule readings: each `Rules` flag both ways (`scripts/rules.ts`), 2026-11-19: `emptyFavor`
+      comes up in 1.3% to 4% of battles and changes nothing beyond the noise.
+
+## Online
+
+- [x] Play online with bots, as in monopoly-deal (`replay.ts`, `convex/`, `src/components/`).
+- [ ] Deploy: link a Convex cloud project and Vercel.

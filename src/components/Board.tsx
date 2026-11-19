@@ -274,20 +274,18 @@ function Seat({ game, p, name, level, current, mine, last }: { game: Game; p: Pl
         </span>
       </h2>
       <div className="flex items-center gap-[0.8em]">
+        {strength !== undefined && (fighting || last) && (
+          <span className={`flex min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
+            <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
+            <span className="label">{fighting ? (p.passed ? "passed" : leads ? "leads" : "strength") : leads ? "won" : ""}</span>
+          </span>
+        )}
         <div className={`flex *:not-first:-ml-[1.9em] ${fighting ? "" : "opacity-50"}`}>
           {row.map((c, i) => (
             <Card key={i} card={c} small />
           ))}
         </div>
-        <span className="ml-auto flex items-baseline gap-[0.6em] whitespace-nowrap">
-          {strength !== undefined && (fighting || last) && (
-            <>
-              <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
-              <span className="label">{fighting ? (p.passed ? "passed" : leads ? "leads" : "strength") : leads ? "won it" : "last battle"}</span>
-            </>
-          )}
-          {!mine && <span className="label">· {p.hand.length} in hand</span>}
-        </span>
+        {!mine && <span className="label ml-auto whitespace-nowrap">{p.hand.length} in hand</span>}
       </div>
     </section>
   );

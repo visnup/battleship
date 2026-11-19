@@ -288,6 +288,23 @@ The pick is worth 7 to 10 points, and the default's rule gets nearly all of it: 
 out gains under half a point. Your own progress comes first, but ignoring everyone else's costs 2
 to 3 points.
 
+## Discarding a hand with no force cards
+
+A player who passes with no force cards in hand may show it and discard it. Nobody draws until
+only one player has cards left, so emptying your hand brings the next deal closer, when you get
+10 fresh cards and one more a chip. The default always does. Against the default (`variants.ts`,
+40,000 games):
+
+| on passing with no force cards | 3 players | 4 players | 5 players | 6 players |
+| --- | --- | --- | --- | --- |
+| discard (the default) | 33.3% | 25.2% | 20.0% | 16.9% |
+| discard or keep, by playouts on 32 deals | 33.6% | 25.4% | 20.2% | 17.0% |
+| keep the hand | 30.6% | 23.5% | 19.0% | 16.3% |
+
+Always discarding is as good as playing each choice out: the fate cards left in such a hand are
+worth less than getting to the next deal sooner. Keeping them costs 2.7 points at 3 players and
+0.6 at 6.
+
 ## Strategies
 
 One player of each against the default in every other seat (`scripts/strategies.ts`, 100,000
@@ -316,3 +333,26 @@ Spending to win every battle is ruinous, and so is never taking a card back with
 learned players are in "A learned player": rounds 0–1 learned to beat default players, rounds
 3–5 to beat learned ones, and at a table of each other rounds 3–5 win. Rounds 3–6, the current
 model, weren't rerun against the default.
+
+Playouts can also race: play the moves out 8 deals at a time on the same deals, and drop a move
+once it's 2 standard errors behind the leader, until each move left has had its full number of
+deals. That spends the deals on the moves still in contention. They can also play out only the
+3 moves the learned model ranks highest. Against the default (4,000 games):
+
+| playouts | 3 players | 4 players | 5 players | 6 players |
+| --- | --- | --- | --- | --- |
+| racing, up to 128 deals | 72.3% | 60.8% | 54.2% | 53.9% |
+| racing, the model's top 3 moves | 68.3% | 60.6% | 52.6% | 50.8% |
+| racing, up to 512 deals | 75.7% | 64.1% | 58.5% | 56.7% |
+| racing, up to 512 deals, the model's top 3 moves | 70.3% | 63.2% | 54.8% | 52.0% |
+
+Racing on 128 deals costs 0.6 times as much as 128 full deals and wins about a point less.
+Pruning to the model's top 3 loses 1 to 5 points (±1.5 is noise here): the best move is often
+one the model ranks lower, and playouts would have found it.
+
+## Rule readings
+
+The booklet leaves one thing open that a flag in `Rules` reads either way: whether a Favor holder
+with no cards left still has the Favor's 1 strength. It comes up in 1.3% of battles at 3 players
+and 4% at 6, and either reading gives the same wins by seat and the same game length within the
+noise (`scripts/rules.ts`, 100,000 default games each). The simulator reads it as yes.
