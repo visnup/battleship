@@ -18,8 +18,15 @@ const play = (c: Card, take?: Card) => () => ({ card: c, take });
 test("the deck is 96 cards and the Favor", () => {
   assert.equal(DECK.length, 96);
   const count = (f: (c: Card) => boolean) => DECK.filter(f).length;
-  assert.equal(count((c) => c.kind === "force" && c.value === 1), 15);
-  for (const v of [2, 3, 4, 5, 6, 10]) assert.equal(count((c) => c.kind === "force" && c.value === v), 8);
+  assert.equal(
+    count((c) => c.kind === "force" && c.value === 1),
+    15,
+  );
+  for (const v of [2, 3, 4, 5, 6, 10])
+    assert.equal(
+      count((c) => c.kind === "force" && c.value === v),
+      8,
+    );
   assert.deepEqual(
     ["bait", "fury", "legend", "winter", "crows", "doves"].map((k) => count((c) => c.kind === k)),
     [15, 6, 3, 3, 3, 3],
@@ -95,14 +102,7 @@ test("Doves ends the battle with no winner, and the Favor and chip stay", () => 
 });
 
 test("Bait takes back a force card played this battle", () => {
-  const g = scripted(
-    [[force(6), fate("bait")], [force(10)]],
-    [
-      [play(force(6)), play(fate("bait"), force(6))],
-      [play(force(10))],
-    ],
-    1,
-  );
+  const g = scripted([[force(6), fate("bait")], [force(10)]], [[play(force(6)), play(fate("bait"), force(6))], [play(force(10))]], 1);
   g.battle();
   assert.ok(g.players[0].hand.includes(force(6)));
   assert.ok(!g.players[0].hand.includes(fate("bait")));

@@ -1,9 +1,6 @@
 import { COLORS } from "./cards.ts";
 import { learned, ranked } from "./learned.ts";
-import { defaultPolicy, Game, heuristic, type Move, moves, mulberry32, type Player, type Policy, shuffle, STEPS, type Step } from "./game.ts";
-
-/** `defaultPolicy`'s steps, in its order. */
-const DEFAULT = Object.keys(STEPS) as (keyof typeof STEPS)[];
+import { defaultPolicy, Game, heuristic, type Move, moves, mulberry32, type Player, type Policy, shuffle, type Step } from "./game.ts";
 
 /** Takes the lead with the cheapest card that does it, however much the battle has cost. */
 const chaseAll: Step = (game, p) => {
@@ -18,10 +15,19 @@ const chaseAll: Step = (game, p) => {
   return undefined;
 };
 
+/** Crows whenever ahead, as the first five defaults played it. */
+export const crowsAhead: Step = (game, p) => {
+  const card = p.hand.find((c) => c.kind === "crows");
+  return card && game.leader() === p.seat ? { card } : undefined;
+};
+
 // Whole-game strategies, each a player of its own, compared head to head in `scripts/strategies.ts`.
 export const STRATEGIES: Record<string, (seed: number) => Policy> = {
   /** `defaultPolicy`: stop when ahead, Crows to win, Doves to deny, chase up to 3 cards, then Bait back. */
   default: () => defaultPolicy,
+
+  /** The first default: chase every battle up to 3 cards, Crows whenever ahead, then Bait back. The online game's easy bot. */
+  "first default": () => heuristic("stop", crowsAhead, "doves", "chase", "bait"),
 
   /** Chases every battle with no limit on cards. */
   spender: () => heuristic("stop", "crows", "doves", chaseAll, "bait"),

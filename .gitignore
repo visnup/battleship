@@ -3,3 +3,9 @@ node_modules
 .DS_Store
 dataset/data*
 dataset/model*.json
+/.next/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+test-results
+.env*

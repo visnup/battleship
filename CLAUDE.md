@@ -50,12 +50,37 @@ Its last page has the card list and each fate card's rule.
   by seat; `--log` prints every play and `--csv` a row per game, both on one core with `--seed`.
 - `scripts/strategies.ts`: one player of each strategy against the default in every other seat.
 - `scripts/charts.ts` draws `charts/*.svg` from the tables in `README.md`, with Observable Plot
-  and jsdom (the only dependencies, dev ones), following magical-athlete's chart rules: magenta
-  to blue through white for a loss or gain, magenta shades for player counts. Rerun it after
-  updating a table.
+  and jsdom, following magical-athlete's chart rules: magenta to blue through white for a loss
+  or gain, magenta shades for player counts. Rerun it after updating a table.
 - `scripts/rules.ts`: default games with each `Rules` flag both ways.
-- `node --test 'src/*.test.ts'` runs the deck and the booklet's rules.
+- `node --test 'src/*.test.ts'` runs the deck, the booklet's rules and `replay.test.ts`.
+  `pnpm test` runs those, then Playwright.
 - `TODO.md` is the plan, `README.md` what the simulator has shown so far.
+
+## Playing online
+
+A Next.js (pages router) and Convex app copied from `../monopoly-deal`: `pnpm dev` runs both.
+The engine still runs on Node alone; the app's packages are only for the site. Locally it runs
+against an anonymous local Convex backend (`CONVEX_AGENT_MODE=anonymous`, as
+`.claude/launch.json` starts it), which needs no Convex account. `vercel.json` deploys Convex to
+production as part of Vercel's build, once the repo is linked to a Convex project and Vercel.
+Other players' hands aren't hidden from their browsers; it's for friends.
+
+- `replay.ts`: a game is its seed and every decision made in it (the Favor holder's chip, each
+  play or pass, each discard on passing), and its state is the game replayed through them,
+  stopped at the next decision nobody has made. Bots decide for their seats as they come up:
+  `first default` (Easy), `default` (Medium) or `learned` (Hard, `hard.ts`).
+- `hard.ts` loads `src/packed/model.ts`, the model as base64 that Convex can bundle;
+  `node scripts/pack.ts` rewrites it after the model is retrained. `learned.ts` reads JSON
+  models through `process.getBuiltinModule` and finds `src/model.json` lazily, since Convex's
+  bundler can't take `node:fs` or `import.meta` at load.
+- `convex/`: `players` is the join and ping. `games` holds the seed, the Favor's first seat and
+  the seats; `decisions` every choice in order and whether a bot made it. `games.decide` checks
+  a choice by replaying with it, then plays the bots up to the next person. Clients replay the
+  log themselves.
+- `src/pages/` and `src/components/`: `Game` joins and shows the lobby, `Board` the table and
+  the prompt. Playwright specs sit next to components and need `pnpm dev` running.
+- Prettier is 220 wide, to match the engine, and leaves Markdown alone.
 
 ## Rules worth knowing
 

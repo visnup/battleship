@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
 import { type Card, COLORS, type Fate } from "./cards.ts";
+import { type Forest, flatten, score } from "./trees.ts";
 import { decisive, defaultPolicy, type Game, type Move, moves, needed, others, type Player, type Policy } from "./game.ts";
 
 const KINDS: (Fate | number)[] = [1, 2, 3, 4, 5, 6, 10, "bait", "fury", "legend", "winter", "crows", "doves"];
@@ -64,49 +64,19 @@ export function move(game: Game, p: Player, m: Move, isDefault: boolean): number
   return [+!m, ...KINDS.map((_, i) => +(i === kind)), m?.take ? m.take.value : 0, leads, strength, strength - game.strength(p), +isDefault];
 }
 
-type Node = { split_feature?: number; threshold?: number; left_child?: Node; right_child?: Node; leaf_value?: number };
-type Forest = { roots: Int32Array; feature: Int16Array; threshold: Float64Array; right: Int32Array };
-
-/** LightGBM's trees (`learn.py`'s JSON) as flat arrays in preorder, as in monopoly-deal's `trees.ts`. */
-export function flatten(json: { tree_info: { tree_structure: Node }[] }): Forest {
-  const feature: number[] = [];
-  const threshold: number[] = [];
-  const right: number[] = [];
-  const add = (t: Node): number => {
-    const i = feature.length;
-    feature.push(t.leaf_value !== undefined ? -1 : t.split_feature!);
-    threshold.push(t.leaf_value ?? t.threshold!);
-    right.push(0);
-    if (t.leaf_value === undefined) {
-      add(t.left_child!);
-      right[i] = add(t.right_child!);
-    }
-    return i;
-  };
-  const roots = json.tree_info.map((t) => add(t.tree_structure));
-  return { roots: Int32Array.from(roots), feature: Int16Array.from(feature), threshold: Float64Array.from(threshold), right: Int32Array.from(right) };
-}
-
-export function score({ roots, feature, threshold, right }: Forest, x: number[]) {
-  let s = 0;
-  for (let i of roots) {
-    for (let f = feature[i]; f >= 0; f = feature[i]) i = x[f] <= threshold[i] ? i + 1 : right[i];
-    s += threshold[i];
-  }
-  return s;
-}
-
 const forests = new Map<string, Forest>();
 const load = (path: string) => {
-  if (!forests.has(path)) forests.set(path, flatten(JSON.parse(readFileSync(path, "utf8"))));
+  // getBuiltinModule, so Convex's bundler, which has no file system, never sees an import of node:fs
+  const fs = (globalThis as unknown as { process: { getBuiltinModule(id: "node:fs"): { readFileSync(file: string, encoding: "utf8"): string } } }).process.getBuiltinModule("node:fs");
+  if (!forests.has(path)) forests.set(path, flatten(JSON.parse(fs.readFileSync(path, "utf8"))));
   return forests.get(path)!;
 };
-export const MODEL = new URL("./model.json", import.meta.url).pathname;
-export const hasModel = () => existsSync(MODEL);
+/** `src/model.json`, found when first needed, since Convex can't evaluate `import.meta` as it loads a module. */
+const MODEL = () => new URL("./model.json", import.meta.url).pathname;
 
-/** Every legal move, best first by the model at `path`. */
-export function ranked(path = MODEL) {
-  const forest = load(path);
+/** Every legal move, best first by the model at `path`, or a forest already loaded. */
+export function ranked(model: string | Forest = MODEL()) {
+  const forest = typeof model === "string" ? load(model) : model;
   return (game: Game, p: Player): Move[] => {
     const options = moves(game, p);
     if (options.length === 1) return options;
@@ -114,12 +84,15 @@ export function ranked(path = MODEL) {
     const pick = defaultPolicy.move(game, p);
     const same = (a: Move, b: Move) => a === b || (!!a && !!b && a.card === b.card && a.take === b.take);
     const scores = options.map((m) => score(forest, [...b, ...move(game, p, m, same(m, pick))]));
-    return options.map((m, i) => [m, scores[i]] as const).sort((a, b) => b[1] - a[1]).map(([m]) => m);
+    return options
+      .map((m, i) => [m, scores[i]] as const)
+      .sort((a, b) => b[1] - a[1])
+      .map(([m]) => m);
   };
 }
 
 /** The default player, but making the move the model at `path` ranks first. */
-export function learned(path = MODEL): Policy {
-  const rank = ranked(path);
+export function learned(model: string | Forest = MODEL()): Policy {
+  const rank = ranked(model);
   return { ...defaultPolicy, move: (game, p) => rank(game, p)[0] };
 }

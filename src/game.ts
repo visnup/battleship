@@ -69,7 +69,21 @@ export class Game {
   winner: number | null = null;
   log?: (line: string) => void;
 
-  constructor({ players, rng, policies = defaultPolicy, first = 0, rules = RULES, log }: { players: number; rng: () => number; policies?: Policy | Policy[]; first?: number; rules?: Rules; log?: (line: string) => void }) {
+  constructor({
+    players,
+    rng,
+    policies = defaultPolicy,
+    first = 0,
+    rules = RULES,
+    log,
+  }: {
+    players: number;
+    rng: () => number;
+    policies?: Policy | Policy[];
+    first?: number;
+    rules?: Rules;
+    log?: (line: string) => void;
+  }) {
     this.rng = rng;
     this.rules = rules;
     this.log = log;
@@ -174,8 +188,9 @@ export class Game {
   /** Moves the turn on to the next player still in, unless the battle is over. */
   next() {
     const n = this.players.length;
-    if (!this.over()) do this.current = (this.current + 1) % n;
-    while (this.players[this.current].passed);
+    if (!this.over())
+      do this.current = (this.current + 1) % n;
+      while (this.players[this.current].passed);
   }
 
   /** Plays one battle. Returns false once the game is over. */
@@ -197,7 +212,7 @@ export class Game {
       this.log?.(`  ${w} wins the ${this.color} chip with ${this.strength(this.players[w])}`);
       for (const p of this.players) p.row = [];
       const winner = this.players[w];
-      winner.chips[COLORS.indexOf(this.color)]++;
+      winner.chips[COLORS.indexOf(this.color!)]++;
       this.favor = w;
       this.color = null;
       if (won(winner.chips)) {

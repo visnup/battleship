@@ -86,9 +86,7 @@ function lollipop(name: string, data: { label: string; players: string; over: nu
 }
 
 // Going first: each seat's share of wins, against a fair share.
-const seats = table("players").flatMap((r) =>
-  [1, 2, 3, 4, 5, 6].map((seat) => ({ players: `${r.players} players`, seat, over: num(r[`seat ${seat}`]) - fair(+r.players) })).filter((d) => !Number.isNaN(d.over)),
-);
+const seats = table("players").flatMap((r) => [1, 2, 3, 4, 5, 6].map((seat) => ({ players: `${r.players} players`, seat, over: num(r[`seat ${seat}`]) - fair(+r.players) })).filter((d) => !Number.isNaN(d.over)));
 save("seats", {
   width: 640,
   height: 300,
@@ -165,9 +163,14 @@ save("strategies", {
       strategies.filter((d) => d.shares > 0.5),
       Plot.selectLast({ x: "players", y: "shares", z: "strategy", text: (d) => `${d.strategy} ${d.shares.toFixed(2)}`, fill: (d) => kind(d.strategy), textAnchor: "start", dx: 8, stroke: art.paper }),
     ),
-    Plot.text(
-      [{ players: 6, shares: Math.max(...strategies.filter((d) => d.shares <= 0.5 && d.players === 6).map((d) => d.shares)) }],
-      { x: "players", y: "shares", text: () => "spender, no Bait, random, passive", textAnchor: "start", dx: 8, fill: art.gray, stroke: art.paper },
-    ),
+    Plot.text([{ players: 6, shares: Math.max(...strategies.filter((d) => d.shares <= 0.5 && d.players === 6).map((d) => d.shares)) }], {
+      x: "players",
+      y: "shares",
+      text: () => "spender, no Bait, random, passive",
+      textAnchor: "start",
+      dx: 8,
+      fill: art.gray,
+      stroke: art.paper,
+    }),
   ],
 });

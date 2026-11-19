@@ -3,7 +3,7 @@ import { type Card, COLORS } from "../src/cards.ts";
 import { decisive, defaultPolicy, type Game, heuristic, mulberry32, needed, others, type Player, type Policy, STEPS, type Step } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { learned } from "../src/learned.ts";
-import { colorPlayouts, dumpPlayouts, headToHead, playouts } from "../src/strategies.ts";
+import { colorPlayouts, crowsAhead, dumpPlayouts, headToHead, playouts } from "../src/strategies.ts";
 import { header } from "./table.ts";
 
 const steps = Object.keys(STEPS) as (keyof typeof STEPS)[];
@@ -106,12 +106,6 @@ const stallAhead =
   };
 
 const bump = (chips: number[], i: number) => chips.map((c, j) => c + +(i === j));
-
-/** Crows whenever ahead, as the first five defaults played it. */
-const crowsAhead: Step = (game, p) => {
-  const card = p.hand.find((c) => c.kind === "crows");
-  return card && game.leader() === p.seat ? { card } : undefined;
-};
 
 /** The default's steps without `drop`. */
 const without =

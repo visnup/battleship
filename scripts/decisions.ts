@@ -70,7 +70,9 @@ function combine(a: ReturnType<typeof decisions>, b: ReturnType<typeof decisions
 }
 
 if (import.meta.main) {
-  const { values: args } = parseArgs({ options: { n: { type: "string", default: "2000" }, players: { type: "string", default: "3,6" }, deals: { type: "string", default: "64" }, top: { type: "string", default: "25" } } });
+  const { values: args } = parseArgs({
+    options: { n: { type: "string", default: "2000" }, players: { type: "string", default: "3,6" }, deals: { type: "string", default: "64" }, top: { type: "string", default: "25" } },
+  });
   for (const players of args.players.split(",").map(Number)) {
     const n = Number(args.n);
     const { total, groups } = await parallel<ReturnType<typeof decisions>>(import.meta.url, "decisions", [players, Number(args.deals)], n, combine);

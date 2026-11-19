@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;
+  --font-numbers: Bahnschrift, "DIN Alternate", "Franklin Gothic Medium", "Nimbus Sans Narrow", sans-serif-condensed, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, serif;
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+}
+
+@layer base {
+  :root {
+    --table: #3a1430;
+    --bar: #22091b;
+    --seat: rgb(0 0 0 / 0.2);
+    --ink: #121212;
+    --accent: #de35a2;
+    --shadow: 0 4px 16px rgb(0 0 0 / 0.4);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--table);
+    color: white;
+  }
+
+  p {
+    margin-block: 1em;
+  }
+
+  button {
+    padding: 0.3em 0.8em;
+    border-radius: 0.5em;
+    background: white;
+    color: black;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+@layer components {
+  /* The bars, the floating panel and the lobby */
+  .panel {
+    border-radius: 0.75rem;
+    background: var(--bar);
+    box-shadow: var(--shadow);
+  }
+
+  /* A card's size, shared by cards and empty rows */
+  .card {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 4.5em;
+    height: 6.3em;
+    border-radius: 0.4em;
+    font-size: 0.85rem;
+  }
+
+  .card.small {
+    font-size: 0.65rem;
+  }
+
+  /* The start page's hand, fanned out from one stack along an arc. `--o` is a card's offset from the middle. */
+  .fan {
+    position: relative;
+    height: 7rem;
+  }
+
+  .fan > * {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    translate: -50% 0;
+    transform-origin: 50% 300%;
+    rotate: calc(var(--o) * 10deg);
+    transition:
+      rotate 0.25s ease,
+      translate 0.25s ease;
+    animation: fan 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+
+  .fan:hover > * {
+    translate: calc(-50% + var(--o) * 1.1rem) 0;
+    rotate: calc(var(--o) * 12deg);
+  }
+
+  @keyframes fan {
+    from {
+      rotate: 0deg;
+    }
+  }
+
+  /* A card's tooltip, in the top layer so rows that scroll don't clip it; `Card` places it */
+  .tip {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    width: max-content;
+    max-width: 15em;
+    border: none;
+    border-radius: 0.5em;
+    background: var(--bar);
+    box-shadow: var(--shadow);
+    padding: 0.6em 0.8em;
+    color: white;
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    font-weight: normal;
+    line-height: 1.35;
+    text-align: left;
+    pointer-events: none;
+  }
+
+  .seat {
+    border-radius: 0.75rem;
+    background: var(--seat);
+    padding: 0.8em;
+  }
+
+  /* Whoever's turn it is */
+  .current {
+    outline: 2px solid var(--accent);
+  }
+
+  /* A seat's small headings */
+  .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  /* The one thing to do next */
+  button.primary {
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+  }
+
+  /* Secondary actions that shouldn't compete with the cards */
+  button.quiet {
+    background: rgb(255 255 255 / 0.15);
+    color: white;
+  }
+}
