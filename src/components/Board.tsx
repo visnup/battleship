@@ -315,29 +315,27 @@ function Seat({
   const row = fighting ? p.row : (last?.rows[p.seat] ?? []);
   const strength = fighting ? game.strength(p) : last?.strengths[p.seat];
   const leads = fighting ? game.leader() === p.seat : last?.winner === p.seat;
+  const chips = COLORS.map((c, i) => <Chip key={c} color={c} n={p.chips[i]} faded={!p.chips[i]} />);
+  // on phones the name runs up the left side, with the Favor as a dot, and the chips stack at the right
   return (
-    <section className={`seat flex flex-col gap-[0.4em] py-[0.6em] ${current ? "current" : ""}`}>
-      <h2 className="m-0 flex flex-wrap items-center gap-x-[0.5em] gap-y-[0.2em] text-base font-bold">
+    <section className={`seat flex gap-[0.4em] py-[0.6em] max-sm:items-center max-sm:px-[0.4em] sm:flex-col ${current ? "current" : ""}`}>
+      <h2 className="m-0 flex flex-wrap items-center gap-x-[0.5em] gap-y-[0.2em] text-base font-bold max-sm:text-xs whitespace-nowrap max-sm:[writing-mode:sideways-lr]">
         <span>
           {name}
           {level && (
-            <small className="ml-[0.5em] text-sm font-normal opacity-60" title={LEVELS[level].title}>
+            <small className="ml-[0.5em] text-sm font-normal opacity-60 max-sm:hidden" title={LEVELS[level].title}>
               {LEVELS[level].name}
             </small>
           )}
         </span>
         {game.favor === p.seat && (
-          <span className="rounded-full bg-accent px-[0.6em] py-[0.1em] text-xs font-bold" title="The Favor: picks the chip, has 1 strength before playing anything, and acts last">
-            Favor
+          <span className="rounded-full bg-accent px-[0.6em] py-[0.1em] text-xs font-bold max-sm:size-[0.8em] max-sm:p-0" title="The Favor: picks the chip, has 1 strength before playing anything, and acts last">
+            <span className="max-sm:hidden">Favor</span>
           </span>
         )}
-        <span className="ml-auto flex items-center gap-[0.3em]">
-          {COLORS.map((c, i) => (
-            <Chip key={c} color={c} n={p.chips[i]} faded={!p.chips[i]} />
-          ))}
-        </span>
+        <span className="ml-auto flex items-center gap-[0.3em] max-sm:hidden">{chips}</span>
       </h2>
-      <div className="flex min-h-[calc(6.3*var(--small))] flex-wrap items-center gap-[0.5em] sm:gap-[0.8em]">
+      <div className="flex min-h-[calc(6.3*var(--small))] flex-1 flex-wrap items-center gap-[0.5em] sm:gap-[0.8em]">
         {strength !== undefined && (fighting || last) && (
           <span className={`flex min-w-[3em] sm:min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
             <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
@@ -374,11 +372,16 @@ function Seat({
           </span>
         )}
         <span className="ml-auto flex items-center gap-[0.6em]">
-          <Backs n={p.hand.length} />
-          <span className="flex min-w-[3em] sm:min-w-[4.5em] flex-col items-center gap-[0.2em]">
+          <span className="relative">
+            <Backs n={p.hand.length} />
+            {/* on phones, the count sits on the top card instead of beside the stack */}
+            <span className="absolute inset-y-0 right-0 grid w-[calc(4.5*var(--small))] place-items-center text-base font-extrabold [text-shadow:0_1px_3px_rgb(0_0_0/0.9)] sm:hidden">{p.hand.length}</span>
+          </span>
+          <span className="flex min-w-[4.5em] flex-col items-center gap-[0.2em] max-sm:hidden">
             <span className="text-xl leading-none font-extrabold">{p.hand.length}</span>
             <span className="label text-[0.6rem] whitespace-nowrap">in hand</span>
           </span>
+          <span className="flex flex-col gap-[0.15em] text-[0.7em] sm:hidden">{chips}</span>
         </span>
       </div>
     </section>
