@@ -67,7 +67,10 @@ A Next.js (pages router) and Convex app copied from `../monopoly-deal`: `pnpm de
 The engine still runs on Node alone; the app's packages are only for the site. Locally it runs
 against an anonymous local Convex backend (`CONVEX_AGENT_MODE=anonymous`, as
 `.claude/launch.json` starts it), which needs no Convex account. `vercel.json` deploys Convex to
-production as part of Vercel's build, once the repo is linked to a Convex project and Vercel.
+production as part of Vercel's build: hilt.visnup.com, from `main`, with `CONVEX_DEPLOY_KEY` set in
+Vercel's production environment. `vercel.json` names the framework, since a project made from
+the CLI has no preset and served 404s; `.vercelignore` keeps the 2 GB `dataset/` out of CLI
+uploads, which hit the free plan's 5,000-files-a-day limit.
 Other players' hands aren't hidden from their browsers; it's for friends.
 
 - `replay.ts`: a game is its seed and every decision made in it (the Favor holder's chip, each

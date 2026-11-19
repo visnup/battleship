@@ -53,4 +53,5 @@
 ## Online
 
 - [x] Play online with bots, as in monopoly-deal (`replay.ts`, `convex/`, `src/components/`).
-- [ ] Deploy: link a Convex cloud project and Vercel.
+- [x] Deploy to hilt.visnup.com, 2026-11-19: Convex project `hilt` (team visnup), Vercel project
+      `hilt` (team visnu), deployed from GitHub on every push to `main`.
