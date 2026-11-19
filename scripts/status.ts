@@ -95,6 +95,8 @@ function status() {
   const left = (1 - labeled) * games * 14;
   const since = (Date.now() - (evs.at(-1)?.t ?? Date.now())) / 60e3;
   const after = AFTER.map(([name, min]) => ({ name, min, done: real.includes(`] ${name}`) || real.includes(`: ${name}`), progress: 0 }));
+  // a run that skips a stage still ends
+  if (after.at(-1)!.done) for (const a of after) a.done = true;
   const current = dataDone ? after.find((a) => !a.done) : undefined;
   if (current) current.progress = Math.min(PROGRESS[current.name]?.() ?? since / current.min, 0.99);
   const afterLeft = after.filter((a) => !a.done).reduce((s, a) => s + a.min * (1 - a.progress), 0);
@@ -111,6 +113,27 @@ function status() {
     return min ? `${min} min` : "<1 min";
   };
   const stages = after.filter((a) => a.min);
+  // Each track's 0 to 100% over time, for the chart: the labeling up to when the data was done,
+  // then the stages after it by their usual minutes; and a line on from each to where it should end.
+  const minutes = stages.reduce((s, a) => s + a.min, 0);
+  const staged = stages.reduce((s, a) => s + a.min * (a.done ? 1 : a.progress), 0) / minutes;
+  const dataT = evs.find((e) => e.name === "data")?.t;
+  const dataEnd = Date.now() + dataLeft * 60e3;
+  let spent = 0;
+  const tracks = [
+    dataT ? [...progress.filter((p) => p.t < dataT), { t: dataT, v: 1 }] : progress,
+    dataT
+      ? [
+          { t: dataT, v: 0 },
+          ...stages.flatMap((a) => {
+            const at = evs.find((e) => e.name === a.name)?.t;
+            return a.done && at ? [{ t: at, v: (spent += a.min) / minutes }] : [];
+          }),
+          ...(staged < 1 ? [{ t: Date.now(), v: staged }] : []),
+        ]
+      : [],
+  ];
+  const forecast = Number.isFinite(eta) ? [...(dataT ? [] : [[tracks[0].at(-1)!, { t: dataEnd, v: 1 }]]), ...(staged < 1 ? [[dataT ? tracks[1].at(-1)! : { t: dataEnd, v: 0 }, { t: Date.now() + eta * 60e3, v: 1 }]] : [])] : [];
   /** One stretch of a track, as wide as its `weight`: a bar of how much is done, over its name and a note. */
   const seg = (weight: number, name: string, note: string, f: number) =>
     `<div class="seg" style="flex:${weight} 1 4em"><div class="bar"><div style="width:${(100 * Math.min(1, f)).toFixed(1)}%"></div></div>${name}<small>${note}</small></div>`;
@@ -132,7 +155,7 @@ function status() {
           )}
 ${track(
   "Train and compare",
-  `${Math.round((100 * stages.reduce((s, a) => s + a.min * (a.done ? 1 : a.progress), 0)) / stages.reduce((s, a) => s + a.min, 0))}%`,
+  `${Math.round(100 * staged)}%`,
   stages.map((a) => seg(a.min, a.name, a === current ? `~${Math.ceil(a.min * (1 - a.progress))} min left` : a.done ? took(a.name) : `~${a.min} min`, a.done ? 1 : a.progress)),
 )}
 <p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>`
@@ -145,9 +168,9 @@ ${track(
     zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     events: evs,
     ahead,
-    progress,
+    tracks,
+    forecast,
     start: Number.isFinite(start) ? start : null,
-    dataEnd: dataDone || !Number.isFinite(dataLeft) ? null : Date.now() + dataLeft * 60e3,
   };
 }
 
@@ -194,9 +217,9 @@ const sample = () => {
 };
 
 // The charts are drawn in the page by Observable Plot, from the round's start to its ETA, so the
-// gap right of "now" is what's left: the labeling done, with a dashed line on to where it should
-// finish and a dashed rule where each later stage should, then cores used, then the load against
-// the core count (dashed).
+// gap right of "now" is what's left: each track from 0 to 100%, with a dashed line on to where it
+// should finish and a dashed rule where each later stage should, then cores used, then the load
+// against the core count (dashed).
 const page = (s: ReturnType<typeof status>) => `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>${s.title}</title>
 <style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.row{display:flex;justify-content:space-between;align-items:baseline}.track{display:flex;gap:3px;margin:.3em 0 1.2em}.seg{min-width:0;font-size:12px;line-height:1.3}.seg small{display:block}.bar{background:#ffffff26;border-radius:3px;height:10px;margin-bottom:.35em;overflow:hidden}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}#chart{margin-bottom:1.2em}</style>
@@ -221,7 +244,6 @@ const draw = (s) => {
     Plot.ruleX(s.ahead, { x: (a) => time(a.t), stroke: "#f2c94c", strokeOpacity: 0.6, strokeDasharray: "3 3" }),
     Plot.ruleX([now], { x: time, stroke: "#fff" }),
   ];
-  const last = s.progress.at(-1);
   document.querySelector("#chart").replaceChildren(
     Plot.plot({
       ...shared,
@@ -232,9 +254,8 @@ const draw = (s) => {
         Plot.text(s.events, { ...label, x: (e) => time(e.t), fill: "#fffc" }),
         Plot.text(s.ahead, { ...label, x: (a) => time(a.t), fill: "#f2c94c" }),
         Plot.text([now], { ...label, x: time, text: () => "now", fill: "#fff", fontWeight: "bold" }),
-        Plot.areaY(s.progress, { x: (p) => time(p.t), y: "v", fill: "#f2c94c", fillOpacity: 0.2 }),
-        Plot.lineY(s.progress, { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2 }),
-        s.dataEnd && last ? Plot.lineY([last, { t: s.dataEnd, v: 1 }], { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2, strokeDasharray: "4 4" }) : null,
+        s.tracks.map((track) => [Plot.areaY(track, { x: (p) => time(p.t), y: "v", fill: "#f2c94c", fillOpacity: 0.2 }), Plot.lineY(track, { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2 })]),
+        s.forecast.map((line) => Plot.lineY(line, { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2, strokeDasharray: "4 4" })),
       ],
     }),
     ...[
