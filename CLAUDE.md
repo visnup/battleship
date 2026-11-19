@@ -61,7 +61,9 @@ from photos of one card of each property color and each wild (`rules/properties.
   `scripts/learn.ts --model` plays one head to head, and `scripts/compare.ts a.json b.json`
   plays two models on the same deals. Each round of training on stronger play lives in
   `dataset/data-rN/`, `features-rN/` and `model-rN.json`, and `scripts/round.sh N` runs the
-  next one (its header lists the knobs), logging to `dataset/rN/`. Don't edit `src/` or what
+  next one (its header lists the knobs), logging to `dataset/rN/`. Rounds 0 to 8's data is on
+  Hugging Face as `rounds/rN.tar.zst` (`tar -cf - -C dataset data-rN | zstd -9`), and only
+  rounds 6 on are still on disk. Don't edit `src/` or what
   it imports while a round runs: its workers load those files. `scripts/overnight.sh` runs a
   round labeled by playouts among learned players (`dataset.ts --strong`), after a smoke test
   of the whole pipeline, and `node scripts/status.ts --round N` serves its progress and ETA at

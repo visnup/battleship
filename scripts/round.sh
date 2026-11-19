@@ -3,8 +3,9 @@
 # $GAMES new games a player count (10000), only its top $TOP (6) moves (plus the default's and one at
 # random) played out on $DEALS deals (16), the mover paying, saying no and discarding by the learned models, $EXTRA passed to
 # dataset.ts, trees fit to the rounds in $WINDOW (the previous and this one), then the new model
-# compared with the old on the same deals, and as playouts' filter only if the learned player
-# gained. $NEXT names the round (default $1 + 1). Logs go to dataset/r$NEXT/. The data step
+# compared with the old on the same deals, against the default and then against the old model's
+# learned player in every other seat ($FIELD deals, 40000), and as playouts' filter only if the
+# learned player gained. $NEXT names the round (default $1 + 1). Logs go to dataset/r$NEXT/. The data step
 # stops after $HOURS (2), and every 10 minutes logs how many decisions it has written, so a
 # stall shows.
 #   scripts/round.sh 4
@@ -34,6 +35,8 @@ grep -A5 '^held out' $L/trees.txt
 lap train
 timeout 3600 node scripts/compare.ts $D/model-r$prev.json $D/model-r$next.json --n 50000 | tee $L/compare.txt
 lap "compare learned"
+timeout 3600 node scripts/compare.ts $D/model-r$prev.json $D/model-r$next.json --field $D/model-r$prev.json --n ${FIELD:-40000} | tee $L/field.txt
+lap "compare against learned"
 if awk '{ for (i = 1; i < NF; i++) if ($(i + 1) == "±") s += $i } END { exit !(s > 0) }' $L/compare.txt; then
   timeout 3600 node scripts/compare.ts $D/model-r$prev.json $D/model-r$next.json --strategy playouts --players 2,5 --n 4000 | tee $L/playouts.txt
   lap "compare playouts"

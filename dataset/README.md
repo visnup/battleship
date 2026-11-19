@@ -125,9 +125,40 @@ the Rents can go on one Rent card; Deal Breaker takes the set's house and hotel;
 `wild(any)` isn't full; the play pile is reshuffled into a new draw pile when it runs out;
 overflow past 7 cards goes to the bottom of the draw pile.
 
+## Rounds
+
+`rounds/rN.tar.zst` are later passes of the same kind, made 2026-11-17 to 19 to train the
+simulator's learned player: each a zstd-compressed tar of JSONL shards,
+`data-rN/{players}p-{chunk}.jsonl`, 256 a player count. They aren't part of the configs above.
+Rows have the fields above, except that the default player's pick is `default`, not `pick`.
+From round 1 a learned player of an earlier round plays the games, and from round 2 `moves`
+holds only the moves played out: that player's top few, the default's pick and one other at
+random. The simulator changed between rounds (the default player's rules, `chance`'s weights,
+and the 2014 sheet's readings for the 2023 one's), so a round's values aren't comparable with
+another's, and `game_seed` replays a game only at the commit it was made with.
+
+| round | games a player count | moves played out | deals | inside the playouts |
+| --- | --- | --- | --- | --- |
+| r0 | 10,000, by the default player | all | 32 | the default player |
+| r1 | 10,000 | all | 32 | the default player |
+| r2 | 2,500 | top 6 | 32 | the default player |
+| r3 | 5,000 | top 6 | 32 | the default player, everyone paying by a learned model |
+| r4a | 5,000 | top 6 | 32 | the default player, the mover paying by a learned model |
+| r4b | 10,000 | top 6 | 16 | as r4a |
+| r4c | 10,000, half their decisions | top 6 | 32 | as r4a |
+| r5 | 10,000 | top 6 | 16 | as r4a, with a newer default player |
+| r6 | 10,000 | top 6 | 16 | the default player, the mover paying, saying no and discarding by learned models |
+| r7 | 5,000, half their decisions | top 4 | 8 | a learned player in every seat (1,000 trees) |
+| r8 | 10,000, half their decisions | top 4 | 4 | a learned player in every seat (200 trees) |
+
+Fewer deals make each value noisier: `se` is about 0.03 on 32 deals and 0.09 on 4. Rounds 7
+and 8 ask a different question from the rest, which move is best if good players play on, and
+are what improved the learned player against other learned players.
+
 ## Not included
 
 - Decisions other than what to play: what to pay with, when to Just Say No, and what to
   discard. The default player makes those.
 - Hidden cards: the other hands and the draw pile's order. `game_seed` recovers them.
-- Games among stronger players. Every state comes from default-player games.
+- Games among stronger players, in `data/`: every state there comes from default-player games.
+  The rounds have them.

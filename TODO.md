@@ -318,6 +318,15 @@
             against learned players, 1.9× faster at 5 players; 50 trees lose 3.4 to 4.4 for
             2.8×) on 4 deals, 10,000 games a count. Scoring is about 42 ns a tree whatever the
             layout, so fewer trees is the only cheap speedup.
+            Round 8 (2026-11-19, 1.32 million decisions in 106 minutes, trained with rounds 6
+            and 7) gains everywhere. Against learned players (40,000 deals, ±0.4–0.5): +0.53,
+            +1.52, +1.80 and +2.69 over the card-memory model in its field, and +0.33, +1.14,
+            +1.49 and +1.42 over round 7 in round 7's. Against the default (50,000 deals,
+            ±0.35–0.45): +0.16, +0.78, +1.04 and +0.53 over the card-memory model. As playouts'
+            filter it ties round 7 (−0.07 ± 0.90 at 2, +0.92 ± 1.18 at 5). `round.sh` now
+            compares against the last round's learned players too. Adopted as `src/model.json`
+            and `src/packed/model.ts`; the README's learned-player numbers are still round
+            6's. Round 9 runs the same recipe from round 8.
       - [x] Adopted the card-memory model (`model-r6m`, rounds 4b and 6 with `memory()`) as
             `src/model.json` and `src/packed/model.ts`: +0.3, +0.4, +0.5 and +1.0 over round 4
             (±0.3–0.5, 50,000 deals).
