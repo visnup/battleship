@@ -183,7 +183,7 @@ export function Board({ game, me }: Props) {
           ))}
         </div>
       </section>
-      <div className="mb-[10em] grid grid-cols-[repeat(auto-fill,minmax(18em,1fr))] gap-[0.8em]">
+      <div className="mb-[10em] grid grid-cols-[repeat(auto-fill,minmax(min(28em,100%),1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
           <Seat
             key={n}
@@ -337,7 +337,7 @@ function Seat({
           ))}
         </span>
       </h2>
-      <div className="flex min-h-[calc(6.3*0.65rem)] items-center gap-[0.8em]">
+      <div className="flex min-h-[calc(6.3*0.65rem)] flex-wrap items-center gap-[0.8em]">
         {strength !== undefined && (fighting || last) && (
           <span className={`flex min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
             <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
