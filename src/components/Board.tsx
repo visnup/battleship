@@ -189,6 +189,7 @@ export function Board({ game, me }: Props) {
             level={"bot" in game.seats[n] ? game.seats[n].bot : undefined}
             current={!view.result && view.prompt?.seat === n}
             last={view.last}
+            played={discarded(view.lines).get(n) ?? []}
           />
         ))}
       </div>
@@ -278,7 +279,21 @@ export const LEVELS: Record<Level, { name: string; title: string }> = {
 };
 
 /** A player's place at the table: chips, the Favor, cards in hand, and their row in this battle, or the last one's between battles. */
-function Seat({ game, p, name, level, current, last }: { game: Game; p: Player; name: string; level?: Level; current: boolean; last?: Battle }) {
+/**
+ * The Winters and Baits each seat played in the battle on the board, the current one or the last
+ * to end. They're discarded as they're played, so only the log knows.
+ */
+function discarded(lines: string[]) {
+  const start = lines.findLastIndex((l) => l.startsWith("battle "));
+  const out = new Map<number, { card: CardType; took?: CardType }[]>();
+  for (const line of lines.slice(start + 1)) {
+    const m = line.match(/^ {2}(\d) plays (winter|bait)(?: for (\d+))?/);
+    if (m) out.set(+m[1], [...(out.get(+m[1]) ?? []), { card: { kind: m[2] as "winter" | "bait", value: 0 }, ...(m[3] && { took: { kind: "force", value: +m[3] } }) }]);
+  }
+  return out;
+}
+
+function Seat({ game, p, name, level, current, last, played }: { game: Game; p: Player; name: string; level?: Level; current: boolean; last?: Battle; played: { card: CardType; took?: CardType }[] }) {
   const fighting = game.fighting;
   const row = fighting ? p.row : (last?.rows[p.seat] ?? []);
   const strength = fighting ? game.strength(p) : last?.strengths[p.seat];
@@ -317,6 +332,25 @@ function Seat({ game, p, name, level, current, last }: { game: Game; p: Player; 
             <Card key={i} card={c} small />
           ))}
         </div>
+        {played.length > 0 && (
+          <div
+            className={`flex *:not-first:-ml-[1.9em] ${fighting ? "" : "opacity-50"}`}
+            title="Played and discarded: not in the row, and not counted as cards played. A Bait shows the card it took back above it, grayed, since it's back in hand."
+          >
+            {played.map(({ card, took }, i) => (
+              <div key={i} className="relative">
+                {took && (
+                  <div className="absolute -top-[1.1em] left-[0.5em]">
+                    <Card card={took} small dim />
+                  </div>
+                )}
+                <div className="relative">
+                  <Card card={card} small />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         <span className="ml-auto flex items-center gap-[0.6em]">
           <Backs n={p.hand.length} />
           <span className="flex min-w-[4.5em] flex-col items-center gap-[0.2em]">
