@@ -144,7 +144,8 @@ export function Board({ game, me }: Props) {
         <title>{up ? "Your move · Hilt" : "Hilt"}</title>
       </Head>
       <section className="panel sticky top-[0.8em] z-10 flex items-start gap-[1em] p-[0.8em]">
-        <div className="flex w-[9em] shrink-0 flex-col items-center gap-[0.3em] text-center">
+        {/* pushed down to the baseline of the log's sticky heading beside it */}
+        <div className="flex w-[9em] shrink-0 flex-col items-center gap-[0.3em] pt-[0.4rem] text-center">
           {g.fighting && g.color ? (
             <>
               <span className="label">Battle {g.battles}</span>
@@ -340,7 +341,7 @@ function Seat({
         {strength !== undefined && (fighting || last) && (
           <span className={`flex min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
             <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
-            <span className="label">{fighting ? (p.passed ? "passed" : leads ? "leads" : "strength") : leads ? "won" : ""}</span>
+            <span className={`label ${leads ? "" : "text-[0.6rem]"}`}>{fighting ? (leads ? "leads" : "strength") : leads ? "won" : ""}</span>
           </span>
         )}
         <div className={`flex *:not-first:-ml-[1.9rem] ${fighting ? "" : "opacity-50"}`}>
@@ -367,11 +368,16 @@ function Seat({
             ))}
           </div>
         )}
+        {fighting && p.passed && (
+          <span className="label" title="Passed for the rest of the battle; their cards still count">
+            Passed
+          </span>
+        )}
         <span className="ml-auto flex items-center gap-[0.6em]">
           <Backs n={p.hand.length} />
           <span className="flex min-w-[4.5em] flex-col items-center gap-[0.2em]">
             <span className="text-xl leading-none font-extrabold">{p.hand.length}</span>
-            <span className="label whitespace-nowrap">in hand</span>
+            <span className="label text-[0.6rem] whitespace-nowrap">in hand</span>
           </span>
         </span>
       </div>
