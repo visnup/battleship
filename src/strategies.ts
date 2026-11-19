@@ -1,5 +1,5 @@
 import { COLORS } from "./cards.ts";
-import { learned } from "./learned.ts";
+import { learned, ranked } from "./learned.ts";
 import { defaultPolicy, Game, heuristic, type Move, moves, mulberry32, type Player, type Policy, shuffle, STEPS, type Step } from "./game.ts";
 
 /** `defaultPolicy`'s steps, in its order. */
@@ -43,6 +43,9 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
   learned: () => learned(),
   "racing playouts": (seed) => playouts(128, seed, defaultPolicy, 2),
   "long racing playouts": (seed) => playouts(512, seed, defaultPolicy, 2),
+  /** Racing playouts of only the model's top 3 moves. */
+  "pruned racing playouts": (seed) => playouts(128, seed, defaultPolicy, 2, 3),
+  "long pruned racing playouts": (seed) => playouts(512, seed, defaultPolicy, 2, 3),
 };
 
 /** One player of `make` against `field` (the default player) everywhere else, rotating seats. */
@@ -77,15 +80,17 @@ export function random(seed = 1): Policy {
  * Plays out every legal move, and passing, with `rollout` for everyone, and makes the move that
  * wins most. Each playout first deals the cards `p` can't see again, so it doesn't peek. With
  * `z`, moves race on shared deals, 8 at a time, and a move drops out once it's `z` standard errors
- * of the paired difference behind the leader, until `n` deals a move.
+ * of the paired difference behind the leader, until `n` deals a move. With `top`, only the moves
+ * `src/model.json` ranks highest are played out.
  */
-export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 0): Policy {
+export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 0, top = Infinity): Policy {
   const rng = mulberry32(seed);
   const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+  const rank = top < Infinity ? ranked() : undefined;
   return {
     ...defaultPolicy,
     move(game, p) {
-      const options = moves(game, p);
+      const options = rank ? rank(game, p).slice(0, top) : moves(game, p);
       if (options.length === 1) return options[0];
       const wins = options.map(() => [] as number[]);
       let alive = options.map((_, i) => i);
@@ -124,6 +129,28 @@ export function colorPlayouts(policy: Policy, n: number, seed = 1, rollout = def
         return w;
       });
       return COLORS[wins.indexOf(Math.max(...wins))];
+    },
+  };
+}
+
+/** `policy`, but deciding whether to discard a hand of no force cards by playing out both on `n` shared deals. */
+export function dumpPlayouts(policy: Policy, n: number, seed = 1, rollout = defaultPolicy): Policy {
+  const rng = mulberry32(seed);
+  return {
+    ...policy,
+    dump(game, p) {
+      const seeds = Array.from({ length: n }, () => Math.floor(rng() * 2 ** 32));
+      const [keep, dump] = [false, true].map((discard) => {
+        let w = 0;
+        for (const s of seeds) {
+          const g = sample(game, p, mulberry32(s), rollout);
+          if (discard) g.pile.push(...g.players[p.seat].hand.splice(0));
+          g.next();
+          w += +(g.run().winner === p.seat);
+        }
+        return w;
+      });
+      return dump >= keep;
     },
   };
 }

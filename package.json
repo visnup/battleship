@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@observablehq/plot": "^0.6.19",
+    "jsdom": "^31.0.1"
+  }
+}

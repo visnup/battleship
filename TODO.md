@@ -11,7 +11,8 @@
       round five a rule had to win against the league of earlier defaults too.
 - [x] Racing playouts (drop a move 2 standard errors behind): 128 deals in 0.6× the time, about
       a point weaker.
-- [ ] Recheck the adopted rules against strong players (`variants.ts --field playouts`).
+- [x] Recheck the adopted rules against strong players (`variants.ts --field playouts`): two are
+      bets on how the others play (deny, wait), the rest hold up.
 - [ ] The Favor holder's chip choice and the discard on passing are still rules (`pickColor`,
       `dump`); play them out too.
 - [ ] Remember what's been played: `game.pile` holds every face-up card since the deal, but
@@ -37,5 +38,5 @@
 - [x] Who wins by seat, and how long games last, at 3 to 6 players.
 - [x] What each card is worth in an opening hand, and how that changes with the player.
 - [ ] How much is luck: the strongest playouts against the default, and against each other.
-- [ ] Which color the Favor holder should pick.
+- [x] Which color the Favor holder should pick: `pickColor` gets nearly all of the 7 to 10 points.
 - [ ] Rule readings: each `Rules` flag both ways.

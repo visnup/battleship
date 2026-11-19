@@ -168,6 +168,11 @@ export class Game {
       if (move.card.kind === "crows" || move.card.kind === "doves") this.ended = move.card.kind;
       if (!p.hand.length) p.passed = true;
     }
+    this.next();
+  }
+
+  /** Moves the turn on to the next player still in, unless the battle is over. */
+  next() {
     const n = this.players.length;
     if (!this.over()) do this.current = (this.current + 1) % n;
     while (this.players[this.current].passed);

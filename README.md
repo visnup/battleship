@@ -36,6 +36,30 @@ cards played, then the highest card, then clockwise from the Favor holder. Passi
 rest of the battle. When a battle leaves only one player with cards, they discard them, and
 everyone is dealt 10 again, plus one card per chip they hold.
 
+## Reading the numbers
+
+Almost every number here is a win rate: the share of games one player wins, out of tens of
+thousands played from different deals. Most tables seat one player of some kind at a table of
+default players and rotate it through every seat, so seat order evens out.
+
+- **A fair share** is what a player wins when nobody has an edge: 1 in however many are at the
+  table, so 33.3% at 3 players and 16.7% at 6. A column headed "3 players (fair 33.3%)" says
+  which share to compare with.
+- **Points** are percentage points of win rate. A rule worth "+4 points" takes a player from
+  33.3% to 37.3% of games. Points over a fair share are a win rate minus the fair share.
+- **Fair shares** divide a win rate by a fair share instead: 2.0 fair shares wins twice as often
+  as an even player would, 66.7% at 3 players or 33.3% at 6. They compare player counts, where
+  the same points mean more at a bigger table.
+- **A card's value** is in points too: how much more often a player wins with one more copy of it
+  in their opening hand, in place of a random card, from the same deal played both ways.
+- **Points a decision** (for the learned player) are the win chance one move adds over another at
+  a single decision, from playing each out to the end.
+- **The noise**, from playing a finite number of games: about ±0.5 points at 40,000 games, ±0.3 at
+  100,000, and ±1.5 at 4,000. Differences smaller than that are a tie.
+
+The charts are drawn from this README's own tables. After `pnpm install`, `node scripts/charts.ts`
+redraws `charts/`.
+
 ## How the default player plays
 
 Every table here is played by or against `defaultPolicy` in `src/game.ts`, a list of rules tried
@@ -73,6 +97,8 @@ point against the league.
 
 Each rule again, with playouts on 8 deals in every other seat, which beat the default
 (`variants.ts --field playouts`, 6,000 games):
+
+![Wins against playouts without each rule, over today's default, at 3 and 6 players](charts/strong.svg)
 
 | without the rule | 3 players | 6 players |
 | --- | --- | --- |
@@ -122,6 +148,8 @@ answer, and take them back with Bait when you can.
 The Favor starts in seat 1, which acts last in the first battle. 100,000 default games
 (`scripts/sim.ts`):
 
+![Each seat's wins over a fair share, by player count](charts/seats.svg)
+
 | players | seat 1 | seat 2 | seat 3 | seat 4 | seat 5 | seat 6 | battles | rounds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 3 | 34.5% | 41.5% | 24.1% | | | | 6.7 | 1.5 |
@@ -139,6 +167,8 @@ three or four chips is one battle from winning before anyone runs out.
 
 The points one more copy in an opening hand adds, in place of a random card, from the same deal
 played both ways (`scripts/cards.ts`, 200,000 deals each):
+
+![Each card's value in points, by player count](charts/cards.svg)
 
 | card | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |
@@ -164,8 +194,9 @@ bottom: too big to stall with and too small to win.
 
 ## A learned player
 
-The rules above top out well short of playouts, so, as in monopoly-deal, a player learned from
-them. `scripts/dataset.ts` plays default games and, at every decision of one player, plays every
+The rules above top out well short of playouts, which play every legal move out to the end and
+make the best one, but cost thousands of games a decision. So a player learned to predict what
+playouts would say. `scripts/dataset.ts` plays default games and, at every decision of one player, plays every
 legal move out to the end on 32 shared deals: about 250,000 decisions at each player count, in 10
 minutes. `scripts/learn.py` fits gradient-boosted trees (LightGBM, 1,000 trees) to predict each
 move's value from 40 numbers about the board and 19 about the move, and `src/learned.ts` plays
@@ -182,8 +213,11 @@ win chance a decision over the default's:
 It plays as well as playouts on 128 deals at a tiny fraction of the cost, and it isn't just
 exploiting the default: it holds up against every earlier default and against playouts.
 
-Then, as in monopoly-deal, rounds of training on the learned player's own games, labeled the same
-way, with default players inside the playouts (`dataset.ts --play`), 20,000 games each:
+A learned player reaches boards the default never does, so each round after the first trains
+on games the last round's learned player played, labeled the same way, with default players
+inside the playouts (`dataset.ts --play`), and adds them to the earlier rounds' data. Each model
+is then played against the default and against tables of the earlier models' players, 20,000
+games each:
 
 | model | against the default, 3 / 4 / 5 / 6 players | against round 0 | against rounds 0–1 |
 | --- | --- | --- | --- |
@@ -240,6 +274,8 @@ The Favor holder picks the chip for the next battle. The default picks the one t
 fewest chips from winning, then the one that helps the closest opponent least (`pickColor`).
 Against the default (`variants.ts`, 40,000 games):
 
+![Each way of picking the chip, over a fair share, at 3 and 6 players](charts/chips.svg)
+
 | chip | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |
 | the default's | 33.3% | 25.2% | 20.0% | 16.9% |
@@ -256,6 +292,8 @@ to 3 points.
 
 One player of each against the default in every other seat (`scripts/strategies.ts`, 100,000
 games; playouts 4,000):
+
+![Each strategy's wins against the default, in fair shares, by player count](charts/strategies.svg)
 
 | strategy | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |

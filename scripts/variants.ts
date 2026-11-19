@@ -3,7 +3,7 @@ import { type Card, COLORS } from "../src/cards.ts";
 import { decisive, defaultPolicy, type Game, heuristic, mulberry32, needed, others, type Player, type Policy, STEPS, type Step } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { learned } from "../src/learned.ts";
-import { colorPlayouts, headToHead, playouts } from "../src/strategies.ts";
+import { colorPlayouts, dumpPlayouts, headToHead, playouts } from "../src/strategies.ts";
 import { header } from "./table.ts";
 
 const steps = Object.keys(STEPS) as (keyof typeof STEPS)[];
@@ -169,6 +169,8 @@ export const VARIANTS: Record<string, (seed: number) => Policy> = {
     },
   }),
   "chip by playouts on 32 deals": (seed) => colorPlayouts(defaultPolicy, 32, seed),
+  "never discard a hand of no force cards": () => ({ ...defaultPolicy, dump: () => false }),
+  "discard by playouts on 32 deals": (seed) => dumpPlayouts(defaultPolicy, 32, seed),
   "Doves only with 1 other in": replace("doves", (game, p) => (others(game, p).filter((q) => !q.passed).length <= 1 ? STEPS.doves(game, p) : undefined)),
 };
 

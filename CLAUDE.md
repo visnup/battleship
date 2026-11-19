@@ -49,6 +49,11 @@ Its last page has the card list and each fate card's rule.
 - `scripts/sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins
   by seat; `--log` prints every play and `--csv` a row per game, both on one core with `--seed`.
 - `scripts/strategies.ts`: one player of each strategy against the default in every other seat.
+- `scripts/charts.ts` draws `charts/*.svg` from the tables in `README.md`, with Observable Plot
+  and jsdom (the only dependencies, dev ones), following magical-athlete's chart rules: magenta
+  to blue through white for a loss or gain, magenta shades for player counts. Rerun it after
+  updating a table.
+- `scripts/rules.ts`: default games with each `Rules` flag both ways.
 - `node --test 'src/*.test.ts'` runs the deck and the booklet's rules.
 - `TODO.md` is the plan, `README.md` what the simulator has shown so far.
 
