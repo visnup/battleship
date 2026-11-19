@@ -244,9 +244,9 @@ const draw = (s) => {
     Plot.plot({
       ...shared,
       height: 120,
-      y: { domain: [0, 2 * s.cores], label: null, grid: true, ticks: 4 },
+      y: { domain: [0, Math.max(2 * s.cores, ...rows.map((r) => r.v))], label: null, grid: true, ticks: 4 },
       color: { domain: ["cores used", "load"], range: ["#f2c94c", "#ffffff99"] },
-      marks: [Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }), ...stages, Plot.lineY(rows, { x: "t", y: "v", z: "k", stroke: "k", strokeWidth: 2, clip: true })],
+      marks: [Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }), ...stages, Plot.lineY(rows, { x: "t", y: "v", z: "k", stroke: "k", strokeWidth: 2 })],
     }),
   );
 };
