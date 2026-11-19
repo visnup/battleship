@@ -9,6 +9,7 @@ import { type Card as CardType, COLORS } from "../cards.ts";
 import { defaultPolicy, type Game, type Move, type Player } from "../game.ts";
 import { type Battle, type Choice, choose, onBoard, type Prompt, replay, setup } from "../replay.ts";
 import { Backs, Card, Chip, label } from "./Card";
+import { Review } from "./Review";
 
 type Props = { game: Doc<"games"> & { log: Choice[]; names: (string | null)[] }; me?: Id<"players"> };
 
@@ -183,6 +184,7 @@ export function Board({ game, me }: Props) {
           ))}
         </div>
       </section>
+      {result && seat >= 0 && <Review key={game._id} setup={setup(game)} log={game.log} seat={seat} show={(n) => setPast({ decisions: n, line: until(game, n).lines.length - 1 })} />}
       <div className="mb-[10em] grid grid-cols-[repeat(auto-fill,minmax(min(28em,100%),1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
           <Seat
@@ -315,6 +317,8 @@ function Seat({
   const row = fighting ? p.row : (last?.rows[p.seat] ?? []);
   const strength = fighting ? game.strength(p) : last?.strengths[p.seat];
   const leads = fighting ? game.leader() === p.seat : last?.winner === p.seat;
+  // a finished battle, or a player who passed with nothing in it and so can't win it
+  const muted = !fighting || (p.passed && strength === 0) ? "opacity-50" : "";
   const chips = COLORS.map((c, i) => <Chip key={c} color={c} n={p.chips[i]} faded={!p.chips[i]} />);
   // on phones the name runs up the left side, with the Favor as a dot, and the chips stack at the right
   return (
@@ -337,19 +341,19 @@ function Seat({
       </h2>
       <div className="flex min-h-[calc(6.3*var(--small))] flex-1 flex-wrap items-center gap-[0.5em] sm:gap-[0.8em]">
         {strength !== undefined && (fighting || last) && (
-          <span className={`flex min-w-[3em] sm:min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
+          <span className={`flex min-w-[3em] sm:min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${muted}`}>
             <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
             <span className={`label ${leads ? "" : "text-[0.6rem]"}`}>{fighting ? (leads ? "leads" : "strength") : leads ? "won" : ""}</span>
           </span>
         )}
-        <div className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${fighting ? "" : "opacity-50"}`}>
+        <div className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${muted}`}>
           {row.map((c, i) => (
             <Card key={i} card={c} small />
           ))}
         </div>
         {played.length > 0 && (
           <div
-            className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${fighting ? "" : "opacity-50"}`}
+            className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${muted}`}
             title="Played and discarded: not in the row, and not counted as cards played. A Bait shows the card it took back above it, grayed, since it's back in hand."
           >
             {played.map(({ card, took }, i) => (
@@ -367,7 +371,7 @@ function Seat({
           </div>
         )}
         {fighting && p.passed && (
-          <span className="label" title="Passed for the rest of the battle; their cards still count">
+          <span className={`label ${muted}`} title="Passed for the rest of the battle; their cards still count">
             Passed
           </span>
         )}

@@ -171,12 +171,12 @@ export function playout(game: Game, p: Player, move: Move, seeds: number[], roll
   return wins;
 }
 
-/** A copy of `game` with the cards `p` can't see dealt again at random, everyone played by `rollout`. */
-function sample(game: Game, p: Player, rng: () => number, rollout: Policy): Game {
+/** A copy of `game` with the cards `p` can't see dealt again at random, everyone played by `rollout`, or each seat by its own. */
+export function sample(game: Game, p: Player, rng: () => number, rollout: Policy | Policy[]): Game {
   const g = game.clone();
   g.rng = rng;
   g.log = undefined;
-  g.policies = g.players.map(() => rollout);
+  g.policies = g.players.map((_, i) => (Array.isArray(rollout) ? rollout[i] : rollout));
   const hidden = g.players.filter((q) => q.seat !== p.seat);
   const cards = shuffle([...hidden.flatMap((q) => q.hand), ...g.stock], rng);
   for (const q of hidden) q.hand = cards.splice(0, q.hand.length);

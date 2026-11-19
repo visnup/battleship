@@ -113,6 +113,8 @@ export function replay(setup: Setup, log: Choice[], bots: Record<string, Policy>
     if (!(e instanceof Waiting)) throw e;
     prompt = e.prompt;
   }
+  // its clones would otherwise settle this game, not their own
+  delete (game as Partial<Game>).settle;
   if (next < log.length) throw new Error(`${log.length - next} decisions past the end of the game`);
   return { game, prompt, result, decisions, lines, last };
 }
