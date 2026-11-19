@@ -49,23 +49,29 @@ export function Card({ card, selected, hinted, dim, small, onClick }: { card: Ca
       {fate ? (
         <>
           <span className="text-[1.6em] leading-none">{fate.glyph}</span>
-          <span className="mt-[0.3em] text-[0.8em] font-extrabold tracking-wide uppercase">{fate.title}</span>
+          <span data-guide="title" className="mt-[0.3em] text-[0.8em] font-extrabold tracking-wide uppercase">
+            {fate.title}
+          </span>
           {card.kind === "legend" ? (
             <span className={`${corner} top-[0.2em]`}>
               <span className="font-numbers text-[0.9em] font-bold">10</span>
               <span className="text-[0.8em] leading-none">{fate.glyph}</span>
             </span>
           ) : (
-            <span className={`${corner} ${card.kind === "bait" ? "top-[0.6em]" : "top-[0.45em]"}`}>
+            <span className={`${corner} top-[0.5em]`}>
               <span className="text-[0.8em] leading-none">{fate.glyph}</span>
             </span>
           )}
         </>
       ) : (
         <>
-          <span className="font-numbers text-[3.2em] leading-none font-bold">{card.value}</span>
+          <span data-guide="center" className="font-numbers text-[3.2em] leading-none font-bold">
+            {card.value}
+          </span>
           <span className={`${corner} top-[0.2em]`}>
-            <span className="font-numbers text-[0.9em] font-bold">{card.value}</span>
+            <span data-guide="corner" className="font-numbers text-[0.9em] font-bold">
+              {card.value}
+            </span>
           </span>
         </>
       )}
