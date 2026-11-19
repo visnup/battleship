@@ -12,6 +12,8 @@ test("deals a game against two bots", async ({ page }) => {
 });
 
 test("plays a whole game by passing", async ({ page }) => {
+  // 15 seconds alone, and past the 30-second default while a dataset has every core
+  test.setTimeout(90e3);
   await page.goto(`/${randomUUID()}`);
   await page.getByRole("button", { name: "Deal 3 players" }).click();
   const over = page.getByText(/ won!$|Nobody won/);

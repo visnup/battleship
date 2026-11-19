@@ -5,7 +5,7 @@ import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { type Card as CardType, COLORS } from "../cards.ts";
 import { defaultPolicy, type Game, type Move, type Player } from "../game.ts";
-import { type Battle, type Choice, choose, type Prompt, replay, setup } from "../replay.ts";
+import { type Battle, type Choice, choose, onBoard, type Prompt, replay, setup } from "../replay.ts";
 import { Backs, Card, Chip, label } from "./Card";
 
 type Props = { game: Doc<"games"> & { log: Choice[]; names: (string | null)[] }; me?: Id<"players"> };
@@ -134,6 +134,7 @@ export function Board({ game, me }: Props) {
     height.current = el.scrollHeight;
   }, [lines]);
   const g = view.game;
+  const battle = onBoard(g, view.lines);
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[90em] flex-col gap-[0.8em] p-[0.8em]">
@@ -188,8 +189,9 @@ export function Board({ game, me }: Props) {
             name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`}
             level={"bot" in game.seats[n] ? game.seats[n].bot : undefined}
             current={!view.result && view.prompt?.seat === n}
+            fighting={battle.current}
             last={view.last}
-            played={discarded(view.lines).get(n) ?? []}
+            played={discarded(battle.lines).get(n) ?? []}
           />
         ))}
       </div>
@@ -278,23 +280,36 @@ export const LEVELS: Record<Level, { name: string; title: string }> = {
   learned: { name: "Hard", title: "Plays by the learned model" },
 };
 
-/** A player's place at the table: chips, the Favor, cards in hand, and their row in this battle, or the last one's between battles. */
-/**
- * The Winters and Baits each seat played in the battle on the board, the current one or the last
- * to end. They're discarded as they're played, so only the log knows.
- */
+/** The Winters and Baits each seat played in a battle's log lines. They're discarded as they're played, so only the log knows. */
 function discarded(lines: string[]) {
-  const start = lines.findLastIndex((l) => l.startsWith("battle "));
   const out = new Map<number, { card: CardType; took?: CardType }[]>();
-  for (const line of lines.slice(start + 1)) {
+  for (const line of lines) {
     const m = line.match(/^ {2}(\d) plays (winter|bait)(?: for (\d+))?/);
     if (m) out.set(+m[1], [...(out.get(+m[1]) ?? []), { card: { kind: m[2] as "winter" | "bait", value: 0 }, ...(m[3] && { took: { kind: "force", value: +m[3] } }) }]);
   }
   return out;
 }
 
-function Seat({ game, p, name, level, current, last, played }: { game: Game; p: Player; name: string; level?: Level; current: boolean; last?: Battle; played: { card: CardType; took?: CardType }[] }) {
-  const fighting = game.fighting;
+/** A player's place at the table: chips, the Favor, cards in hand, and their row in the battle `onBoard` picks. */
+function Seat({
+  game,
+  p,
+  name,
+  level,
+  current,
+  fighting,
+  last,
+  played,
+}: {
+  game: Game;
+  p: Player;
+  name: string;
+  level?: Level;
+  current: boolean;
+  fighting: boolean;
+  last?: Battle;
+  played: { card: CardType; took?: CardType }[];
+}) {
   const row = fighting ? p.row : (last?.rows[p.seat] ?? []);
   const strength = fighting ? game.strength(p) : last?.strengths[p.seat];
   const leads = fighting ? game.leader() === p.seat : last?.winner === p.seat;

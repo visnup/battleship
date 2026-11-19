@@ -149,7 +149,7 @@ export const VARIANTS: Record<string, (seed: number) => Policy> = {
   "press with a 1 first": insert(ahead(["one"], 0), "press"),
   "press only with 2+ others in": replace("press", (game, p) => (others(game, p).filter((q) => !q.passed).length >= 2 ? STEPS.press(game, p) : undefined)),
   "the learned player": () => learned(),
-  ...Object.fromEntries(["r0", "r0-200", "r1", "r01", "r12", "r012", "r3s", "r013s", "r4s", "r34s", "r5s", "r345s", "r3456s"].map((r) => [`learned ${r}`, () => learned(`dataset/model-${r}.json`)])),
+  ...Object.fromEntries(["r0", "r0-200", "r1", "r01", "r12", "r012", "r3s", "r013s", "r4s", "r34s", "r5s", "r345s", "r3456s", "r34567s"].map((r) => [`learned ${r}`, () => learned(`dataset/model-${r}.json`)])),
   "chip at random": (seed) => {
     const rng = mulberry32(seed);
     return { ...defaultPolicy, color: () => COLORS[Math.floor(rng() * 3)] };

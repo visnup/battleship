@@ -261,12 +261,34 @@ Rounds 3–4 together beat round 3's players by 11 to 20 points, keep round 3's 
 | rounds 0–1, against them | 11.3% | 11.2% | 7.2% | 5.2% |
 | the default, against them | 2.8% | 4.6% | 4.5% | 3.8% |
 
-Round 5, the same again from rounds 3–4, still gains, by less: rounds 3–5 beat a table of
-rounds 3–4's players 39.3%, 29.5%, 23.7% and 20.3%, 3.6 to 6 points over a fair share, with the
-same 53.4% to 25.1% against rounds 0–1's and 49.7% to 42.6% against the default. Round 6 gains
-again, by less: rounds 3–6 beat a table of rounds 3–5's players 37.1%, 26.7%, 22.1% and 18.7%,
-and a table of rounds 3–4's 44.1%, 30.9%, 25.7% and 22.2%, more than rounds 3–5 did. That's
-`src/model.json` now. More rounds would probably still gain a little.
+Each round after that does the same again from the model before it, adding its games to the
+data so far. One player of each model at a table of the model before it, 20,000 games each:
+
+![Each round's model at a table of the one before it, and against the default, in points over a fair share](charts/rounds.svg)
+
+| rounds | at a table of | 3 players | 4 players | 5 players | 6 players |
+| --- | --- | --- | --- | --- | --- |
+| 3 | rounds 0–1 | 53.6% | 42.3% | 33.8% | 28.5% |
+| 3–4 | round 3 | 44.6% | 41.3% | 39.6% | 36.7% |
+| 3–5 | rounds 3–4 | 39.3% | 29.5% | 23.7% | 20.3% |
+| 3–6 | rounds 3–5 | 37.1% | 26.7% | 22.1% | 18.7% |
+| 3–7 | rounds 3–6 | 34.6% | 27.1% | 22.3% | 18.6% |
+
+And each against the default:
+
+| rounds, against the default | 3 players | 4 players | 5 players | 6 players |
+| --- | --- | --- | --- | --- |
+| 3 | 58.6% | 48.1% | 41.8% | 35.3% |
+| 3–4 | 56.3% | 53.9% | 48.2% | 44.5% |
+| 3–5 | 49.7% | 51.2% | 46.8% | 42.6% |
+| 3–6 | 40.7% | 46.5% | 41.6% | 36.2% |
+| 3–7 | 42.2% | 45.9% | 40.5% | 34.1% |
+
+Every round still beats the one before, by less each time: round 7 by 1.3 to 2.3 points over a
+fair share, against round 6's 1.7 to 3.8. Each also beats the older models by more than the one
+before it did: rounds 3–7 beat a table of rounds 3–5's 38.8%, 29.0%, 24.6% and 20.0%, where
+rounds 3–6 managed 37.1%, 26.7%, 22.1% and 18.7%. Against the default they've won less since rounds 3–4, as they
+learn to beat learned players instead, and round 7 about holds there. Rounds 3–7 are `src/model.json` now.
 
 ## Which chip to fight over
 
@@ -331,8 +353,8 @@ deals won 84% at 3 players and 76% at 6; each round of rules took some of that a
 still help a lot, so there's plenty more to how Hilt should be played than the default's rules.
 Spending to win every battle is ruinous, and so is never taking a card back with Bait. The
 learned players are in "A learned player": rounds 0–1 learned to beat default players, rounds
-3–5 to beat learned ones, and at a table of each other rounds 3–5 win. Rounds 3–6, the current
-model, weren't rerun against the default.
+3–5 to beat learned ones, and at a table of each other rounds 3–5 win. The later rounds are in
+"A learned player"'s tables.
 
 Playouts can also race: play the moves out 8 deals at a time on the same deals, and drop a move
 once it's 2 standard errors behind the leader, until each move left has had its full number of

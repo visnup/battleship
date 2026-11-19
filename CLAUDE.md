@@ -39,8 +39,9 @@ Its last page has the card list and each fate card's rule.
   Each round's data and model live in `dataset/data-rN/` and `dataset/model-rN.json` (not
   committed), an `s` for labels from learned players in the playouts and `-200` for the
   200-tree rollout models; `variants.ts` names them `learned rN` and takes any variant as
-  `--field`. `src/model.json` is rounds 3–6 (`model-r3456s`), 24 MB. Don't edit `src/` while a
-  dataset runs.
+  `--field`. `src/model.json` is rounds 3–7 (`model-r34567s`), 24 MB. Don't edit `src/` while a
+  dataset runs. A new round's results go in the README's "rounds" tables, one row each, which
+  `charts.ts` draws as `charts/rounds.svg`.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds, from
   the same deal played both ways.
 - `parallel.ts` and `worker.ts` are monopoly-deal's: they split a script's games into seeded

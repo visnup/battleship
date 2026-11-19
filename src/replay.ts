@@ -23,6 +23,18 @@ export const setup = ({ seats, seed, first }: { seats: ({ bot: string } | object
 /** A battle as it ended, before its cards were discarded: its chip, every row and strength, and who won it, or null for Doves. */
 export type Battle = { color: Color; rows: Card[][]; strengths: number[]; winner: number | null };
 
+/**
+ * Which battle the board shows: the one under way once someone has played in it, or else the last
+ * to end, so a battle that Doves or Crows ended stays in view until the next has a card in it.
+ * Its log lines, too.
+ */
+export function onBoard(game: Game, lines: string[]) {
+  const starts = lines.flatMap((l, i) => (l.startsWith("battle ") ? [i] : []));
+  const begun = game.fighting && lines.slice(starts.at(-1)! + 1).some((l) => / plays /.test(l));
+  const [from, to] = begun || !game.fighting ? [starts.at(-1), lines.length] : [starts.at(-2), starts.at(-1)];
+  return { current: begun, lines: from === undefined ? [] : lines.slice(from + 1, to) };
+}
+
 class Waiting {
   prompt: Prompt;
   constructor(prompt: Prompt) {

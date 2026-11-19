@@ -26,8 +26,11 @@
       a decision, 3,000 games a player count on 16 deals, about 35 minutes a round. Round 3
       beats rounds 0–1's players by 12 to 20 points (and wins less against the default); rounds
       3–4 beat round 3's by 11 to 20; rounds 3–5 beat rounds 3–4's by 3.6 to 6; rounds 3–6 beat
-      rounds 3–5's by 1.7 to 3.8, adopted as `src/model.json` (2026-11-19).
-- [ ] More strong rounds while they gain, and more games a round now that they cost less than
+      rounds 3–5's by 1.7 to 3.8 (2026-11-19).
+- [x] Round 7: rounds 3–7 beat rounds 3–6's by 1.3 to 2.3 and every older model by more than
+      rounds 3–6 did, adopted as `src/model.json` (2026-11-19). The README's "rounds" tables
+      and `charts/rounds.svg` track every round.
+- [ ] More strong rounds while they gain (round 8 running), and more games a round now that they cost less than
       expected. Check each against every earlier model, not just the last, since these cycle too.
 - [x] Use the model to prune playouts to its top moves, and race on more deals, 2026-11-19:
       racing on 512 deals wins 75.7% at 3 players and 56.7% at 6; pruning to the model's top 3
