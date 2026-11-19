@@ -6,7 +6,7 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { type Card as CardType, COLORS } from "../cards.ts";
 import { defaultPolicy, type Game, type Move, type Player } from "../game.ts";
 import { type Battle, type Choice, choose, type Prompt, replay, setup } from "../replay.ts";
-import { Card, Chip, label } from "./Card";
+import { Backs, Card, Chip, label } from "./Card";
 
 type Props = { game: Doc<"games"> & { log: Choice[]; names: (string | null)[] }; me?: Id<"players"> };
 
@@ -188,7 +188,6 @@ export function Board({ game, me }: Props) {
             name={`${who(n)}${view.result?.winner === n ? " 🏆" : ""}`}
             level={"bot" in game.seats[n] ? game.seats[n].bot : undefined}
             current={!view.result && view.prompt?.seat === n}
-            mine={n === seat}
             last={view.last}
           />
         ))}
@@ -233,11 +232,17 @@ const rank = (c: CardType) => ORDER.indexOf(c.kind) * 100 + c.value;
 /** A hand, sorted and overlapped so every card shows its corner without scrolling. `onClick` and the rest take places in the hand as dealt, not as shown. */
 function Hand({ cards, onClick, selected, hinted, dim }: { cards: CardType[]; onClick?: (i: number) => void; selected?: number; hinted?: number; dim?: (c: CardType) => boolean }) {
   const order = cards.map((_, i) => i).sort((a, b) => rank(cards[a]) - rank(cards[b]));
+  // the cards that can't be played now, held apart to the right
+  const groups = [order.filter((i) => !dim?.(cards[i])), order.filter((i) => dim?.(cards[i]))].filter((g) => g.length);
   return (
-    <div className="flex justify-center pt-[1.2em] *:not-first:-ml-[2.5em] *:hover:z-10">
-      {order.map((i) => (
-        <div key={i} className={`relative ${selected === i ? "z-10" : ""}`}>
-          <Card card={cards[i]} selected={selected === i} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => onClick(i))} />
+    <div className="flex justify-center gap-[1em] pt-[1.2em]">
+      {groups.map((group, g) => (
+        <div key={g} className="flex *:not-first:-ml-[2.5em] *:hover:z-10">
+          {group.map((i) => (
+            <div key={i} className={`relative ${selected === i ? "z-10" : ""}`}>
+              <Card card={cards[i]} selected={selected === i} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => onClick(i))} />
+            </div>
+          ))}
         </div>
       ))}
     </div>
@@ -273,7 +278,7 @@ export const LEVELS: Record<Level, { name: string; title: string }> = {
 };
 
 /** A player's place at the table: chips, the Favor, cards in hand, and their row in this battle, or the last one's between battles. */
-function Seat({ game, p, name, level, current, mine, last }: { game: Game; p: Player; name: string; level?: Level; current: boolean; mine: boolean; last?: Battle }) {
+function Seat({ game, p, name, level, current, last }: { game: Game; p: Player; name: string; level?: Level; current: boolean; last?: Battle }) {
   const fighting = game.fighting;
   const row = fighting ? p.row : (last?.rows[p.seat] ?? []);
   const strength = fighting ? game.strength(p) : last?.strengths[p.seat];
@@ -300,7 +305,7 @@ function Seat({ game, p, name, level, current, mine, last }: { game: Game; p: Pl
           ))}
         </span>
       </h2>
-      <div className="flex items-center gap-[0.8em]">
+      <div className="flex min-h-[calc(6.3*0.65rem)] items-center gap-[0.8em]">
         {strength !== undefined && (fighting || last) && (
           <span className={`flex min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
             <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
@@ -312,7 +317,13 @@ function Seat({ game, p, name, level, current, mine, last }: { game: Game; p: Pl
             <Card key={i} card={c} small />
           ))}
         </div>
-        {!mine && <span className="label ml-auto whitespace-nowrap">{p.hand.length} in hand</span>}
+        <span className="ml-auto flex items-center gap-[0.6em]">
+          <Backs n={p.hand.length} />
+          <span className="flex min-w-[4.5em] flex-col items-center gap-[0.2em]">
+            <span className="text-xl leading-none font-extrabold">{p.hand.length}</span>
+            <span className="label whitespace-nowrap">in hand</span>
+          </span>
+        </span>
       </div>
     </section>
   );

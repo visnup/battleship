@@ -37,7 +37,7 @@ export function Card({ card, selected, hinted, dim, small, onClick }: { card: Ca
   const fate = card.kind === "force" ? undefined : FATE[card.kind];
   return (
     <Tag
-      className={`card ${small ? "small" : ""} relative m-0 inline-flex flex-col items-center justify-center bg-ink p-0 text-center text-white shadow-[0_1px_3px_rgba(0,0,0,0.6)] ring-1 ring-white/25 transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-accent" : hinted ? "outline-3 outline-accent/60" : ""} ${dim ? "opacity-45" : ""}`}
+      className={`card ${small ? "small" : ""} relative m-0 inline-flex flex-col items-center justify-center bg-ink p-0 text-center text-white ring-1 ring-[#4d4d4d] transition-transform duration-150 ${selected ? "-translate-y-[0.6em] outline-3 outline-accent" : hinted ? "outline-3 outline-accent/60" : ""} ${dim ? "ring-[#2a2a2a] [&>:not(.tip)]:opacity-40" : ""}`}
       onClick={onClick}
       onPointerEnter={show}
       onPointerLeave={hide}
@@ -47,10 +47,14 @@ export function Card({ card, selected, hinted, dim, small, onClick }: { card: Ca
         <>
           <span className="text-[1.6em] leading-none">{fate.glyph}</span>
           <span className="mt-[0.3em] text-[0.8em] font-extrabold tracking-wide uppercase">{fate.title}</span>
-          <span className="absolute top-[0.2em] left-[0.3em] flex flex-col items-center text-[0.8em] leading-[1.1] font-extrabold">
-            {card.kind === "legend" && <span className="font-numbers text-[1.1em] font-bold">10</span>}
-            <span>{fate.glyph}</span>
-          </span>
+          {card.kind === "legend" ? (
+            <span className="absolute top-[0.2em] left-[0.35em] flex flex-col items-start">
+              <span className="font-numbers text-[0.9em] font-bold">10</span>
+              <span className="text-[0.8em] leading-none">{fate.glyph}</span>
+            </span>
+          ) : (
+            <span className="absolute top-[0.2em] left-[0.3em] text-[0.8em]">{fate.glyph}</span>
+          )}
         </>
       ) : (
         <>
@@ -63,6 +67,17 @@ export function Card({ card, selected, hinted, dim, small, onClick }: { card: Ca
         <span className="mt-[0.3em] block">{fate ? fate.text : `${card.value} strength, 1 in Winter, double with a Fury.`}</span>
       </span>
     </Tag>
+  );
+}
+
+/** `n` cards face down, overlapped in a row. */
+export function Backs({ n }: { n: number }) {
+  return (
+    <span className="flex shrink-0 *:not-first:-ml-[2.5rem]" aria-hidden>
+      {Array.from({ length: n }, (_, i) => (
+        <span key={i} className="card small border border-[#f3b0dc] bg-accent bg-[repeating-linear-gradient(45deg,transparent_0_3px,rgb(0_0_0/0.25)_3px_5px)]" />
+      ))}
+    </span>
   );
 }
 
