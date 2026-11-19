@@ -19,16 +19,27 @@ const until = (game: Props["game"], n: number) => {
   return replay({ ...s, bots: s.bots.map(() => false) }, game.log.slice(0, n));
 };
 
+/** How many of a game's decisions it takes for its log to reach `line`. */
+function decisionsTo(game: Props["game"], line: number) {
+  let [lo, hi] = [0, game.log.length];
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (until(game, mid).lines.length > line) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo;
+}
+
 const cardName = (s: string) => (/^\d+$/.test(s) ? s : s[0].toUpperCase() + s.slice(1));
 
 /** The engine's log by round and battle, each with a heading, in words, with nobody's dealt hand. */
 function entries(lines: string[], who: (n: number) => string) {
-  const groups: { heading: string; lines: string[] }[] = [];
-  const verb = (n: number, v: string) => `${who(n)} ${who(n) === "You" ? v.replace(/s$/, "") : v}`;
-  for (const line of lines) {
+  const groups: { heading: string; line: number; lines: { text: string; line: number }[] }[] = [];
+  const verb = (n: number, v: string) => `${who(n)} ${who(n) === "You" ? v.replace(/(ss)es$|s$/, "$1") : v}`;
+  for (const [i, line] of lines.entries()) {
     let m;
-    if ((m = line.match(/^round (\d+):/))) groups.push({ heading: `Round ${m[1]}`, lines: ["Everyone's dealt 10 cards, plus one a chip."] });
-    else if ((m = line.match(/^battle (\d+) over (\w+), favor (\d)/))) groups.push({ heading: `Battle ${m[1]}: the ${m[2]} chip`, lines: [`${verb(+m[3], "holds")} the Favor.`] });
+    if ((m = line.match(/^round (\d+):/))) groups.push({ heading: `Round ${m[1]}`, line: i, lines: [{ text: "Everyone's dealt 10 cards, plus one a chip.", line: i }] });
+    else if ((m = line.match(/^battle (\d+) over (\w+), favor (\d)/))) groups.push({ heading: `Battle ${m[1]}: the ${m[2]} chip`, line: i, lines: [{ text: `${verb(+m[3], "holds")} the Favor.`, line: i }] });
     else {
       const text = (m = line.match(/^ {2}(\d) plays bait for (\w+): (\d+)/))
         ? `${verb(+m[1], "Baits")} back a ${m[2]}: ${m[3]} strength.`
@@ -41,8 +52,8 @@ function entries(lines: string[], who: (n: number) => string) {
               : (m = line.match(/^ {2}(\d) wins the (\w+) chip with (\d+)/))
                 ? `${verb(+m[1], "wins")} the ${m[2]} chip with ${m[3]}.`
                 : line.trim();
-      if (!groups.length) groups.push({ heading: "", lines: [] });
-      groups.at(-1)!.lines.push(text);
+      if (!groups.length) groups.push({ heading: "", line: i, lines: [] });
+      groups.at(-1)!.lines.push({ text, line: i });
     }
   }
   return groups;
@@ -82,7 +93,13 @@ export function Board({ game, me }: Props) {
     const t = setTimeout(() => setShown((n) => (jump ? game.log.length : n + 1)), jump || game.log[shown].seat === seat ? 0 : step);
     return () => clearTimeout(t);
   }, [stepping, step, shown, game.log, seat]);
-  const view = useMemo(() => (stepping ? until(game, shown) : state), [stepping, shown, game, state]);
+  // A past board, replayed up to the decision that wrote the log line clicked
+  const [past, setPast] = useState<{ decisions: number; line: number }>();
+  const view = useMemo(() => (past ? until(game, past.decisions) : stepping ? until(game, shown) : state), [past, stepping, shown, game, state]);
+  const visit = (line: number) => {
+    const decisions = decisionsTo(game, line);
+    setPast(decisions >= game.log.length ? undefined : { decisions, line });
+  };
   const who = (n: number) => (n === seat ? "You" : "bot" in game.seats[n] ? `Bot ${n + 1}` : (game.names[n] ?? `Player ${n + 1}`));
   const send = (choice: Choice) => {
     setError(undefined);
@@ -106,7 +123,9 @@ export function Board({ game, me }: Props) {
   }, [up]);
   const log = useRef<HTMLDivElement>(null);
   const height = useRef(0);
-  const lines = view.lines.length;
+  // the whole log while looking back, so later lines can be clicked too
+  const logged = (past ? state : view).lines;
+  const lines = logged.length;
   // follow new lines only when already at the bottom, so scrolling back through it stays put
   useLayoutEffect(() => {
     const el = log.current;
@@ -138,19 +157,20 @@ export function Board({ game, me }: Props) {
           )}
         </div>
         <div className="h-[5.4rem] flex-1 overflow-y-auto text-sm text-white/80" ref={log}>
-          {entries(view.lines, who).map(({ heading, lines }, i) => (
+          {entries(logged, who).map(({ heading, line: first, lines }, i) => (
             <section key={i}>
               {heading && (
                 <h3
-                  className="sticky top-0 m-0 flex items-center gap-[0.5em] px-[0.3em] pt-[0.3em] text-sm font-semibold before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
+                  onClick={() => visit(first)}
+                  className="sticky top-0 m-0 flex cursor-pointer items-center gap-[0.5em] px-[0.3em] pt-[0.3em] text-sm font-semibold before:flex-1 before:border-t before:border-white/40 before:content-[''] after:flex-1 after:border-t after:border-white/40 after:content-['']"
                   style={{ background: "var(--bar)" }}
                 >
                   {heading}
                 </h3>
               )}
               <ul>
-                {lines.map((text, j) => (
-                  <li key={j} className="px-[0.3em]">
+                {lines.map(({ text, line }) => (
+                  <li key={line} onClick={() => visit(line)} className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line ? "bg-white/20" : ""}`}>
                     {text}
                   </li>
                 ))}
@@ -175,7 +195,14 @@ export function Board({ game, me }: Props) {
       </div>
       <section className="panel sticky bottom-0 z-10 text-white">
         <div className="px-[0.8em] pb-[0.8em]">
-          {view.result ? (
+          {past ? (
+            <p className="m-0 flex items-center justify-between pt-[0.8em]">
+              Viewing the board after an earlier play.{" "}
+              <button className="primary" onClick={() => setPast(undefined)}>
+                Back to now
+              </button>
+            </p>
+          ) : view.result ? (
             <p className="m-0 pt-[0.8em] font-bold">{view.result.winner === null ? "Nobody won." : `${who(view.result.winner)} won!`}</p>
           ) : !stepping && prompt && prompt.seat === seat ? (
             <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} send={send} />
