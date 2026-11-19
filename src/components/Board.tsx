@@ -337,21 +337,21 @@ function Seat({
           ))}
         </span>
       </h2>
-      <div className="flex min-h-[calc(6.3*0.65rem)] flex-wrap items-center gap-[0.8em]">
+      <div className="flex min-h-[calc(6.3*var(--small))] flex-wrap items-center gap-[0.5em] sm:gap-[0.8em]">
         {strength !== undefined && (fighting || last) && (
-          <span className={`flex min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
+          <span className={`flex min-w-[3em] sm:min-w-[4.5em] flex-col items-center gap-[0.2em] whitespace-nowrap ${fighting ? "" : "opacity-50"}`}>
             <span className={`text-xl leading-none font-extrabold ${leads ? "text-accent" : ""}`}>{strength}</span>
             <span className={`label ${leads ? "" : "text-[0.6rem]"}`}>{fighting ? (leads ? "leads" : "strength") : leads ? "won" : ""}</span>
           </span>
         )}
-        <div className={`flex *:not-first:-ml-[1.9rem] ${fighting ? "" : "opacity-50"}`}>
+        <div className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${fighting ? "" : "opacity-50"}`}>
           {row.map((c, i) => (
             <Card key={i} card={c} small />
           ))}
         </div>
         {played.length > 0 && (
           <div
-            className={`flex *:not-first:-ml-[1.9rem] ${fighting ? "" : "opacity-50"}`}
+            className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${fighting ? "" : "opacity-50"}`}
             title="Played and discarded: not in the row, and not counted as cards played. A Bait shows the card it took back above it, grayed, since it's back in hand."
           >
             {played.map(({ card, took }, i) => (
@@ -375,7 +375,7 @@ function Seat({
         )}
         <span className="ml-auto flex items-center gap-[0.6em]">
           <Backs n={p.hand.length} />
-          <span className="flex min-w-[4.5em] flex-col items-center gap-[0.2em]">
+          <span className="flex min-w-[3em] sm:min-w-[4.5em] flex-col items-center gap-[0.2em]">
             <span className="text-xl leading-none font-extrabold">{p.hand.length}</span>
             <span className="label text-[0.6rem] whitespace-nowrap">in hand</span>
           </span>

@@ -86,7 +86,7 @@ export function Card({ card, selected, hinted, dim, small, onClick }: { card: Ca
 /** `n` cards face down, overlapped in a row. */
 export function Backs({ n }: { n: number }) {
   return (
-    <span className="flex shrink-0 *:not-first:-ml-[2.5rem]" aria-hidden>
+    <span className="flex shrink-0 *:not-first:-ml-[calc(var(--small)*2.5/0.65)]" aria-hidden>
       {Array.from({ length: n }, (_, i) => (
         <span key={i} className="card small border border-[#f3b0dc] bg-accent bg-[repeating-linear-gradient(45deg,transparent_0_3px,rgb(0_0_0/0.25)_3px_5px)]" />
       ))}

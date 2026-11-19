@@ -99,7 +99,7 @@ export default function Cards() {
       <section className="flex flex-col gap-[0.8em]">
         <h2 className="label">On the table</h2>
         <div className="flex items-center gap-[0.8em] pt-[1.2em]">
-          <div className="flex *:not-first:-ml-[1.9rem]">
+          <div className="flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)]">
             {ALL.map((c, i) => (
               <Card key={i} card={c} small />
             ))}
