@@ -121,7 +121,7 @@ function status() {
   const round = existsSync(data);
   return {
     title: round ? title : `Round ${args.round}`,
-    head: round ? `<h1>Round ${args.round}: done about ${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>` : `<h1>Round ${args.round}</h1>`,
+    head: round ? `<h1>Round ${args.round}: done ~${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>` : `<h1>Round ${args.round}</h1>`,
     body: `${
       round
         ? `${track(
@@ -132,7 +132,7 @@ function status() {
 ${track(
   "Train and compare",
   `${Math.round((100 * stages.reduce((s, a) => s + a.min * (a.done ? 1 : a.progress), 0)) / stages.reduce((s, a) => s + a.min, 0))}%`,
-  stages.map((a) => seg(a.min, a.name, a === current ? `${Math.ceil(a.min * (1 - a.progress))} min left` : a.done ? finished(a.name) : `about ${a.min} min`, a.done ? 1 : a.progress)),
+  stages.map((a) => seg(a.min, a.name, a === current ? `~${Math.ceil(a.min * (1 - a.progress))} min left` : a.done ? finished(a.name) : `~${a.min} min`, a.done ? 1 : a.progress)),
 )}
 <p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>`
         : `${evs.map((e) => `<div>✓ ${e.name} <small>${new Date(e.t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>`).join("\n")}`
