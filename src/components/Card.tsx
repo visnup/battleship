@@ -53,7 +53,7 @@ export function Card({ card, selected, hinted, dim, small, onClick }: { card: Ca
               <span className="text-[0.8em] leading-none">{fate.glyph}</span>
             </span>
           ) : (
-            <span className="absolute top-[0.2em] left-[0.3em] text-[0.8em]">{fate.glyph}</span>
+            <span className={`absolute ${card.kind === "bait" ? "top-[0.6em]" : "top-[0.45em]"} left-[0.35em] text-[0.8em] leading-none`}>{fate.glyph}</span>
           )}
         </>
       ) : (

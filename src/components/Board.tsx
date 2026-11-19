@@ -445,7 +445,6 @@ function Ask({ game, p, prompt, send }: { game: Game; p: Player; prompt: Prompt;
           />
         </div>
         <div className="flex shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.8em]">
-          <span className="label">{game.strength(p)} strength</span>
           <button className={hint && hint.move === null ? "outline-3 outline-accent" : ""} onClick={() => send({ kind: "move", seat: p.seat, card: null })} title="Passing is for the rest of the battle">
             Pass
           </button>
