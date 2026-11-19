@@ -117,7 +117,6 @@ function status() {
   /** A 0–100% track of `segs`, under its name and how far along it is. */
   const track = (name: string, note: string, segs: string[]) => `<div class="row"><span>${name}</span><small>${note}</small></div><div class="track">${segs.join("")}</div>`;
   const when = Number.isFinite(eta) ? new Date(Date.now() + eta * 60e3).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "…";
-  const now = usage.at(-1) ?? { cores: 0, load: 0 };
   const title = `Round ${args.round} · ${Number.isFinite(eta) ? `${Math.round(eta)} min` : "…"}`;
   // a run that isn't a round (no `data-rN`) just lists its milestones
   const round = existsSync(data);
@@ -140,7 +139,6 @@ ${track(
         : `${evs.map((e) => `<div>✓ ${e.name} <small>${new Date(e.t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>`).join("\n")}`
     }
 <pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>`,
-    legend: [`<small><span class="key gold"></span>Scripts using ${now.cores.toFixed(1)} of ${CORES} cores</small>`, `<small><span class="key"></span>load ${now.load.toFixed(1)}</small>`],
     usage,
     cores: CORES,
     // the machine's, since the page may be viewed somewhere set to another, like UTC
@@ -201,7 +199,7 @@ const sample = () => {
 // the core count (dashed).
 const page = (s: ReturnType<typeof status>) => `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>${s.title}</title>
-<style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.row{display:flex;justify-content:space-between;align-items:baseline}.track{display:flex;gap:3px;margin:.3em 0 1.2em}.seg{min-width:0;font-size:12px;line-height:1.3}.seg small{display:block}.bar{background:#ffffff26;border-radius:3px;height:10px;margin-bottom:.35em;overflow:hidden}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}.key{display:inline-block;width:.8em;height:2px;margin:0 .3em .25em 0;background:#fff9}.key.gold{background:#f2c94c}.legend{margin:0 0 .6em 40px}#chart{margin-bottom:1.2em}</style>
+<style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.row{display:flex;justify-content:space-between;align-items:baseline}.track{display:flex;gap:3px;margin:.3em 0 1.2em}.seg{min-width:0;font-size:12px;line-height:1.3}.seg small{display:block}.bar{background:#ffffff26;border-radius:3px;height:10px;margin-bottom:.35em;overflow:hidden}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}#chart{margin-bottom:1.2em}</style>
 <header>${s.head}</header>
 <div id="chart"></div>
 <main>${s.body}</main>
@@ -216,7 +214,8 @@ const draw = (s) => {
   const time = (t) => new Date(t);
   const x = { domain: [time(s.start ?? now - 2 * 3600e3), time(end)], label: null, tickFormat: (d) => d.toLocaleTimeString([], { timeZone: s.zone, hour: "numeric", minute: "2-digit" }) };
   const label = { text: "name", frameAnchor: "top", textAnchor: "start", dx: 3, rotate: 90, fontSize: 10 };
-  const shared = { width: 576, marginLeft: 40, style: { background: "transparent", color: "#fff" }, x };
+  // room on the right for the last point's label once the round is done
+  const shared = { width: 576, marginLeft: 40, marginRight: 96, style: { background: "transparent", color: "#fff" }, x };
   const stages = [
     Plot.ruleX(s.events, { x: (e) => time(e.t), stroke: "#fff4" }),
     Plot.ruleX(s.ahead, { x: (a) => time(a.t), stroke: "#f2c94c", strokeOpacity: 0.6, strokeDasharray: "3 3" }),
@@ -239,17 +238,21 @@ const draw = (s) => {
       ],
     }),
     ...[
-      ["cores", "#f2c94c", s.cores],
-      ["load", "#ffffff99", Math.max(2 * s.cores, ...s.usage.map((u) => u.load))],
-    ].flatMap(([key, stroke, top], i) => [
+      ["cores", "#f2c94c", s.cores, (v) => v.toFixed(1) + " of " + s.cores + " cores"],
+      ["load", "#ffffffcc", Math.max(2 * s.cores, ...s.usage.map((u) => u.load)), (v) => "load " + v.toFixed(1)],
+    ].map(([key, stroke, top, name]) =>
       Plot.plot({
         ...shared,
-        height: 90,
+        height: 100,
         y: { domain: [0, top], label: null, grid: true, ticks: 3 },
-        marks: [Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }), ...stages, Plot.lineY(s.usage, { x: (u) => time(u.t), y: key, stroke, strokeWidth: 2 })],
+        marks: [
+          Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }),
+          ...stages,
+          Plot.lineY(s.usage, { x: (u) => time(u.t), y: key, stroke, strokeWidth: 2 }),
+          Plot.text(s.usage.slice(-1), { x: (u) => time(u.t), y: key, text: (u) => name(u[key]), fill: stroke, textAnchor: "start", dx: 6, fontSize: 12, stroke: "#1d6b4a", strokeWidth: 4 }),
+        ],
       }),
-      Object.assign(document.createElement("div"), { className: "legend", innerHTML: s.legend[i] }),
-    ]),
+    ),
   );
 };
 draw(${JSON.stringify(s)});
