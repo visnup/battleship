@@ -67,6 +67,14 @@
       players and mostly in what to take, but 15 rules for it didn't beat the default. Paying and
       Just Say No were later learned rather than ruled (below). Saving Just Say No for a Deal
       Breaker loses.
+- [x] Compare a rule with the default on the same deals (`variants.ts --paired`, `paired` in
+      `strategies.ts`, 2026-11-19): the default plays each deal while the variant is asked what
+      it would do, and the deal is replayed only if it would ever differ. Its wins match
+      `headToHead`'s exactly, and a rare rule needs 20 to 40 times fewer deals: ±0.10–0.25 from
+      20,000 (a few seconds), where 100,000 unpaired gave ±0.3. First find: Deal Breaker on
+      whoever is one set from winning is +0.11 ± 0.03, +0.12 ± 0.04 and +0.23 ± 0.05 at 3–5
+      players (200,000 deals), which the unpaired run called even. Not adopted yet: gains this
+      size are worth batching, since each adoption reruns the tables.
 - [x] Test the table advice the default doesn't follow yet (web search, 2026-11-15): holding
       the card that completes a set, and keeping a Just Say No for a Deal Breaker. Both lose.
 - [ ] Playouts of every move won 59.1% at 2 players, 9 points over the default (61.0% now,
@@ -79,7 +87,12 @@
       30-minute row. One round at 160 deals is 0.6× the time and +1.3 at 5 players but −2.5 at
       2; two rounds at 160 is +1.7 and +1.5 at 1.5× the time; z = 1.5 gains nothing. A richer
       `chance` (sets half done, rent cards, cash and properties in hand) added 1.9 points at 2
-      players and 1.2 at 5. Still to try: more of that. A counterfactual-regret agent on a
+      players and 1.2 at 5. More of that ties (2026-11-18): 12 more numbers (sets missing one
+      card, two full sets and the nearest, wilds down, an empty hand, Birthday and Debt
+      Collector, Pass Go and Double the Rent held, and others) cut held-out log loss by only
+      0.004 to 0.012, and playouts with them win 63.0% and 45.3% at 2 and 5 players against
+      62.8% and 45.0% (10,000 games, same deals). With the learned board score also even, the
+      board score isn't what holds playouts back now. A counterfactual-regret agent on a
       cut-down 2-player game ([arXiv 2510.25080](https://arxiv.org/pdf/2510.25080), code at monopolydeal.ai)
       reportedly wins about 75% against a heuristic player.
 - [x] Recheck the findings against strong opponents (`strong.ts`, quick playouts in every other
@@ -294,6 +307,17 @@
             data it ties the card-memory model trained without it (−0.2 to +0.2, 50,000 deals);
             alone it loses 0.6 to 3.9 to round 4. Next, if anything: several times the games, or
             the strong labels only on decisions where default rollouts disagree most.
+            Those were all against the default. Against learned players in every other seat
+            (`compare.ts --field`, 2026-11-19, 20,000 deals, ±0.55–0.7), round 7 with round 6's
+            data gains +0.65, +0.22, +0.64 and +1.07 over the card-memory model, and alone it
+            ties it; round 4 ties it there too, so card memory's gain is against the default
+            only. `../hilt`'s strong rounds gained the same way: against earlier models, not the
+            default. Round 7's labels were too noisy to learn much from (held out, +0.2 to +0.7
+            a decision against a noisy best of 2.5 to 4.8), so round 8 buys more of them: a
+            200-tree model inside the rollouts (1.0 to 1.4 points weaker than 1,000 trees
+            against learned players, 1.9× faster at 5 players; 50 trees lose 3.4 to 4.4 for
+            2.8×) on 4 deals, 10,000 games a count. Scoring is about 42 ns a tree whatever the
+            layout, so fewer trees is the only cheap speedup.
       - [x] Adopted the card-memory model (`model-r6m`, rounds 4b and 6 with `memory()`) as
             `src/model.json` and `src/packed/model.ts`: +0.3, +0.4, +0.5 and +1.0 over round 4
             (±0.3–0.5, 50,000 deals).

@@ -35,7 +35,7 @@ import {
 import { discarded, paid, said } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { header } from "./table.ts";
-import { build, chance, headToHead, STRATEGIES, translate } from "../src/strategies.ts";
+import { build, chance, headToHead, paired, STRATEGIES, translate } from "../src/strategies.ts";
 
 // Changes to `defaultPolicy`, each from a pattern in `decisions.ts`, played head to head against
 // it. Adopted ones move into `STEPS`, and the rest stay here, so the table shows what each costs.
@@ -330,6 +330,15 @@ export const VARIANTS: Record<string, () => Policy> = {
   "Deal Breaker on the leader first": withStep(STEPS.dealBreaker, breakLeader),
   "Deal Breaker on whoever is one set from winning first": withStep(STEPS.dealBreaker, breakNearest()),
   "Deal Breaker on whoever is one set from winning first, colors we have full too": withStep(STEPS.dealBreaker, breakNearest(true)),
+  "Deal Breaker before completing a set": () => heuristic(...before(without(dealBreaker), complete, dealBreaker)),
+  "Deal Breaker before Pass Go, on whoever is one set from winning first": () => heuristic(...before(without(dealBreaker), passGo, breakNearest())),
+  "Deal Breaker before Pass Go, on whoever is one set from winning first, colors we have full too": () => heuristic(...before(without(dealBreaker), passGo, breakNearest(true))),
+  ...Object.fromEntries(
+    [12, 15].map((amount) => [
+      `Deal Breaker before Pass Go, on whoever is one set from winning first, and lay down properties once $${amount}M is banked at 3+ players`,
+      () => heuristic(...before(without(dealBreaker), passGo, breakNearest()).map((s) => (s === placeWhenBanked ? (((game, p, left) => placeOnce(game.players.length >= 3 ? amount : 10)(game, p, left)) as Step) : s))),
+    ]),
+  ),
   "Deal Breaker, colors we have full too": withStep(STEPS.dealBreaker, (game, p) => {
     const breaker = p.hand.find((c) => isAction(c, "dealBreaker"));
     const sets = game.players.filter((q) => q !== p).flatMap((q) => fullColors(game, q).map((color) => ({ q, color })));
@@ -375,22 +384,33 @@ export const VARIANTS: Record<string, () => Policy> = {
   "lay down properties before Sly Deal in rounds 2–3": () =>
     heuristic(...before(steps, STEPS.slyDeal, (game, p, left) => (game.turns > game.players.length && game.turns <= 3 * game.players.length && p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null))),
   "lay down properties before Sly Deal": () => heuristic(...before(steps, STEPS.slyDeal, (game, p, left) => (p.hand.some((c) => isAction(c, "slyDeal")) ? place(game, p, left) : null))),
-  ...Object.fromEntries([5, 15].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))])),
+  ...Object.fromEntries([5, 12, 15, 20, 30].map((amount) => [`lay down properties once $${amount}M is banked`, () => heuristic(...swap(placeWhenBanked, placeOnce(amount)))])),
 };
 
 export const run = (variant: string, players: number, seed: number, n: number) => headToHead(VARIANTS[variant], players, seed, n);
+export const pair = (variant: string, players: number, seed: number, n: number) => paired(VARIANTS[variant], players, seed, n);
 
 if (import.meta.main) {
   const { values: args } = parseArgs({
-    options: { n: { type: "string", default: "100000" }, players: { type: "string", default: "2,5" }, only: { type: "string" } },
+    options: { n: { type: "string", default: "100000" }, players: { type: "string", default: "2,5" }, only: { type: "string" }, paired: { type: "boolean", default: false } },
   });
   const n = Number(args.n);
   const counts = args.players.split(",").map(Number);
-  console.log(`${n} games each: one player's wins against the default player in every other seat.\n`);
-  header(["variant"], counts, true);
+  console.log(
+    args.paired
+      ? `${n} deals each: one player's wins against the default player in every other seat, less the default's in that seat of the same deals (± 2 standard errors), and the deals where it ever chose differently.\n`
+      : `${n} games each: one player's wins against the default player in every other seat.\n`,
+  );
+  header(["variant"], counts, !args.paired);
   for (const name of Object.keys(VARIANTS).filter((v) => !args.only || v.startsWith(args.only))) {
     const cells = [];
-    for (const players of counts) cells.push(`${((100 * (await parallel<ReturnType<typeof run>>(import.meta.url, "run", [name, players], n)).wins) / n).toFixed(1)}%`);
+    for (const players of counts) {
+      if (args.paired) {
+        const { wins, base, sq, differed } = await parallel<ReturnType<typeof pair>>(import.meta.url, "pair", [name, players], n);
+        const d = (wins - base) / n;
+        cells.push(`${d < 0 ? "−" : "+"}${Math.abs(100 * d).toFixed(2)} ± ${(200 * Math.sqrt((sq / n - d * d) / n)).toFixed(2)} (${((100 * differed) / n).toFixed(0)}%)`);
+      } else cells.push(`${((100 * (await parallel<ReturnType<typeof run>>(import.meta.url, "run", [name, players], n)).wins) / n).toFixed(1)}%`);
+    }
     console.log(`| ${name} | ${cells.join(" | ")} |`);
   }
 }

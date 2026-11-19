@@ -89,6 +89,68 @@ export function headToHead(make: (seed: number) => Policy, players: number, seed
   return { wins, stalled };
 }
 
+const sameCards = <T>(a: T[], b: T[]) => a.length === b.length && a.every((x) => b.includes(x));
+const sameMove = (a: Move | null, b: Move | null) =>
+  a === b ||
+  (!!a &&
+    !!b &&
+    a.type === b.type &&
+    a.card === b.card &&
+    (a as { color?: string }).color === (b as { color?: string }).color &&
+    (a as { target?: number }).target === (b as { target?: number }).target &&
+    (a.type === "rent" ? a.doubles.length : 0) === (b.type === "rent" ? b.doubles.length : 0) &&
+    (a.type === "action" ? a.take : undefined) === (b.type === "action" ? b.take : undefined) &&
+    (a.type === "action" ? a.give : undefined) === (b.type === "action" ? b.give : undefined));
+
+/**
+ * `headToHead` against the default field, with the default also playing the same seat of the
+ * same deals: `wins` for the player, `base` for the default, and the squared differences, for
+ * the paired error. The default plays first while the player is asked what it would do, and the
+ * deal is played again only if it would ever choose differently (`differed`), so a player a rule
+ * away from the default costs little more than one game a deal, and deals where the rule never
+ * comes up add no noise.
+ */
+export function paired(make: (seed: number) => Policy, players: number, seed: number, n: number) {
+  const seeds = mulberry32(seed);
+  let [wins, base, sq, differed] = [0, 0, 0, 0];
+  for (let i = 0; i < n; i++) {
+    const s = Math.floor(seeds() * 2 ** 32);
+    const seat = i % players;
+    const player = make(s);
+    let differs = false;
+    const watcher: Policy = {
+      move(game, p, left) {
+        const move = defaultPolicy.move(game, p, left);
+        differs ||= !sameMove(move, player.move(game, p, left));
+        return move;
+      },
+      pay(game, p, amount) {
+        const cards = defaultPolicy.pay(game, p, amount);
+        differs ||= !sameCards(cards, player.pay(game, p, amount));
+        return cards;
+      },
+      sayNo(game, p, move, from) {
+        const no = defaultPolicy.sayNo(game, p, move, from);
+        differs ||= no !== player.sayNo(game, p, move, from);
+        return no;
+      },
+      discard(game, p, k) {
+        const cards = defaultPolicy.discard(game, p, k);
+        differs ||= !sameCards(cards, player.discard(game, p, k));
+        return cards;
+      },
+    };
+    const play = (policy: Policy) => +(new Game({ players, rng: mulberry32(s), policies: Array.from({ length: players }, (_, j) => (j === seat ? policy : defaultPolicy)), first: 0 }).run().winner === seat);
+    const x = play(watcher);
+    const y = differs ? play(player) : x;
+    wins += y;
+    base += x;
+    sq += (x - y) ** 2;
+    differed += +differs;
+  }
+  return { wins, base, sq, differed };
+}
+
 /** Plays a legal move at random, or ends the turn. */
 export function random(seed = 1): Policy {
   const rng = mulberry32(seed);
