@@ -5,7 +5,7 @@ import { parallel } from "../src/parallel.ts";
 import { header } from "./table.ts";
 
 /** One of each kind of card. */
-export const KINDS: Card[] = [...new Set(DECK)];
+const KINDS: Card[] = [...new Set(DECK)];
 
 /**
  * Plays `n` default games of `players` twice from the same deal: as dealt, and with a random card

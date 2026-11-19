@@ -1,9 +1,10 @@
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { type Card, COLORS } from "../src/cards.ts";
-import { decisive, defaultPolicy, type Game, heuristic, mulberry32, needed, others, type Player, type Policy, STEPS, type Step } from "../src/game.ts";
+import { decisive, defaultPolicy, finishIn, type Game, heuristic, mulberry32, needed, oneWithin, openWith, others, type Player, type Policy, STEPS, type Step, waitWhile } from "../src/game.ts";
 import { parallel } from "../src/parallel.ts";
 import { learned } from "../src/learned.ts";
-import { colorPlayouts, crowsAhead, dumpPlayouts, headToHead, playouts } from "../src/strategies.ts";
+import { colorPlayouts, crowsAhead, dumpPlayouts, headToHead, playouts, STRATEGIES } from "../src/strategies.ts";
 import { header } from "./table.ts";
 
 const steps = Object.keys(STEPS) as (keyof typeof STEPS)[];
@@ -13,27 +14,6 @@ const insert = (step: Step, before: keyof typeof STEPS) => (): Policy => {
   const i = steps.indexOf(before);
   return heuristic(...steps.slice(0, i), step, ...steps.slice(i));
 };
-
-/**
- * Pass with an empty row while at least `k` others are still in, unless the chip wins `p` the
- * game, or anyone else with fewer than `deny` others in.
- */
-const waitWhile =
-  (k: number, deny = Infinity): Step =>
-  (game, p) => {
-    if (p.row.length || game.leader() === p.seat || decisive(game, p)) return undefined;
-    const alive = others(game, p).filter((q) => !q.passed).length;
-    if (alive < deny && others(game, p).some((q) => decisive(game, q))) return undefined;
-    return alive >= k ? null : undefined;
-  };
-
-/** Behind, play a force 1, with at most `row` cards already played. */
-const one =
-  (row = Infinity): Step =>
-  (game, p) => {
-    const card = p.hand.find((c) => c.kind === "force" && c.value === 1);
-    return card && p.row.length <= row && game.leader() !== p.seat ? { card } : undefined;
-  };
 
 /** With only `k` others left in, behind, pass instead of chasing, unless the chip decides the game. */
 const giveUp =
@@ -66,28 +46,6 @@ const ahead =
     return card ? { card } : undefined;
   };
 
-/** `STEPS.open`, only while `k` or more others are still in. */
-const openWith =
-  (k: number): Step =>
-  (game, p) => {
-    if (others(game, p).filter((q) => !q.passed).length < k || p.row.length || game.leader() === p.seat) return undefined;
-    const card = p.hand.find((c) => c.kind === "force" && c.value === 1) ?? p.hand.find((c) => c.kind === "fury" && game.playable(p, c));
-    return card ? { card } : undefined;
-  };
-
-/** With nobody else in and behind, the strongest card, if the strongest `k` cards in hand would overtake the leader. */
-const finish =
-  (k: number): Step =>
-  (game, p) => {
-    if (game.leader() === p.seat || others(game, p).some((q) => !q.passed)) return undefined;
-    const strong = p.hand.filter((c) => (c.kind === "force" || c.kind === "legend" || c.kind === "fury") && game.playable(p, c)).sort((a, b) => b.value - a.value || +(a.kind === "fury") - +(b.kind === "fury"));
-    const row = p.row;
-    p.row = [...row, ...strong.slice(0, k)];
-    const reaches = game.leader() === p.seat;
-    p.row = row;
-    return reaches && strong.length ? { card: strong[0] } : undefined;
-  };
-
 /** Ahead with others still in, Bait back a 1; with `keep`, only if that leaves `p` ahead. */
 const stallAhead =
   (keep: boolean): Step =>
@@ -116,9 +74,9 @@ const without =
 /** The default's steps with `step` in place of `old`. */
 const replace = (old: keyof typeof STEPS, step: Step) => (): Policy => heuristic(...steps.map((s) => (s === old ? step : s)));
 
-export const VARIANTS: Record<string, (seed: number) => Policy> = {
+const VARIANTS: Record<string, (seed: number) => Policy> = {
   "the default": () => defaultPolicy,
-  "the first default (previous)": () => heuristic("stop", crowsAhead, "doves", "chase", "bait"),
+  "the first default (previous)": STRATEGIES["first default"],
   "open battles (previous)": without("wait"),
   "pass only at a single card's reach of the lead (previous)": without("allIn"),
   "deny every winning chip (previous)": replace("wait", waitWhile(2)),
@@ -141,7 +99,7 @@ export const VARIANTS: Record<string, (seed: number) => Policy> = {
   "Crows only for a chip that wins the game": replace("crows", (game, p) => (decisive(game, p) ? STEPS.crows(game, p) : undefined)),
   "never Doves": without("doves"),
   "with nobody else in, only overtake with a single card (previous)": without("finish"),
-  ...Object.fromEntries([2].map((k) => [`with nobody else in, overtake in up to ${k} cards, strongest first`, replace("finish", finish(k))])),
+  ...Object.fromEntries([2].map((k) => [`with nobody else in, overtake in up to ${k} cards, strongest first`, replace("finish", finishIn(k))])),
   "Bait back a 1 ahead too, before Crows": insert(stallAhead(false), "crows"),
   "Bait back a 1 ahead too, before Crows, if still ahead after": insert(stallAhead(true), "crows"),
   "Bait back a 1 ahead too, after Crows": insert(stallAhead(false), "doves"),
@@ -149,7 +107,13 @@ export const VARIANTS: Record<string, (seed: number) => Policy> = {
   "press with a 1 first": insert(ahead(["one"], 0), "press"),
   "press only with 2+ others in": replace("press", (game, p) => (others(game, p).filter((q) => !q.passed).length >= 2 ? STEPS.press(game, p) : undefined)),
   "the learned player": () => learned(),
-  ...Object.fromEntries(["r0", "r0-200", "r1", "r01", "r12", "r012", "r3s", "r013s", "r4s", "r34s", "r5s", "r345s", "r3456s", "r34567s"].map((r) => [`learned ${r}`, () => learned(`dataset/model-${r}.json`)])),
+  // every model in dataset/, oldest first, as `learned r34s` for dataset/model-r34s.json
+  ...Object.fromEntries(
+    (existsSync("dataset") ? readdirSync("dataset") : [])
+      .filter((f) => /^model-.*\.json$/.test(f))
+      .sort((a, b) => statSync(`dataset/${a}`).mtimeMs - statSync(`dataset/${b}`).mtimeMs)
+      .map((f) => [`learned ${f.slice(6, -5)}`, () => learned(`dataset/${f}`)]),
+  ),
   "chip at random": (seed) => {
     const rng = mulberry32(seed);
     return { ...defaultPolicy, color: () => COLORS[Math.floor(rng() * 3)] };
@@ -169,10 +133,10 @@ export const VARIANTS: Record<string, (seed: number) => Policy> = {
 };
 
 /** Every default so far, each adopted as the best answer to the one before. */
-export const LEAGUE: Policy[] = [
-  heuristic("stop", crowsAhead, "doves", "chase", "bait"),
+const LEAGUE: Policy[] = [
+  STRATEGIES["first default"](0),
   heuristic("stop", crowsAhead, "doves", waitWhile(2), "chase", "allIn", "bait"),
-  heuristic("stop", crowsAhead, "doves", waitWhile(2, 3), one(0), "chase", "allIn", "bait"),
+  heuristic("stop", crowsAhead, "doves", waitWhile(2, 3), oneWithin(0), "chase", "allIn", "bait"),
   heuristic("harvest", "stop", crowsAhead, "doves", "press", "open", "wait", "chase", "allIn", "bait"),
   heuristic("harvest", "stop", crowsAhead, "doves", "press", "wait", "open", "chase", "allIn", "bait"),
   heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "chase", "allIn", "bait"),

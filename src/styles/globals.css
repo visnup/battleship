@@ -50,7 +50,7 @@
     box-shadow: var(--shadow);
   }
 
-  /* A card's size, shared by cards and empty rows */
+  /* A card's size, shared by cards and face-down backs */
   .card {
     box-sizing: border-box;
     flex-shrink: 0;

@@ -3,6 +3,8 @@ import Head from "next/head";
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import type { bot } from "../../convex/schema";
+import type { Infer } from "convex/values";
 import { type Card as CardType, COLORS } from "../cards.ts";
 import { defaultPolicy, type Game, type Move, type Player } from "../game.ts";
 import { type Battle, type Choice, choose, onBoard, type Prompt, replay, setup } from "../replay.ts";
@@ -228,7 +230,6 @@ export function Board({ game, me }: Props) {
   );
 }
 
-/** A row of cards that scrolls sideways. */
 const ORDER: CardType["kind"][] = ["force", "legend", "fury", "bait", "winter", "crows", "doves"];
 const rank = (c: CardType) => ORDER.indexOf(c.kind) * 100 + c.value;
 
@@ -253,7 +254,7 @@ export function Hand({ cards, onClick, selected, hinted, dim }: { cards: CardTyp
 }
 
 /** How long each of others' plays shows before the next, in ms, or 0 for all at once. */
-export const SPEEDS = { off: 0, fast: 400, slow: 900 };
+const SPEEDS = { off: 0, fast: 400, slow: 900 };
 export type Speed = keyof typeof SPEEDS;
 
 /** This browser's speed, as last chosen in the lobby. */
@@ -273,7 +274,7 @@ export function setStepSpeed(s: Speed) {
 }
 
 /** A bot's kind of player, as the lobby and its seat name it. */
-export type Level = "first default" | "default" | "learned";
+export type Level = Infer<typeof bot>;
 export const LEVELS: Record<Level, { name: string; title: string }> = {
   "first default": { name: "Easy", title: "Fights every battle, like a new player" },
   default: { name: "Medium", title: "Plays by rules tuned against playouts" },
@@ -460,7 +461,7 @@ function Ask({ game, p, prompt, send }: { game: Game; p: Player; prompt: Prompt;
           />
         </div>
         <div className="flex shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.8em]">
-          <button className={hint && hint.move === null ? "outline-3 outline-accent" : ""} onClick={() => send({ kind: "move", seat: p.seat, card: null })} title="Passing is for the rest of the battle">
+          <button className={hinted(hint?.move === null)} onClick={() => send({ kind: "move", seat: p.seat, card: null })} title="Passing is for the rest of the battle">
             Pass
           </button>
           <button

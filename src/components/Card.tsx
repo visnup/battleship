@@ -2,7 +2,7 @@ import { type PointerEvent, useRef } from "react";
 import type { Card as CardType, Color } from "../cards.ts";
 
 /** The chips' colors, from the booklet. */
-export const PAINT: Record<Color, string> = { pink: "#de35a2", orange: "#eb801d", white: "#f4f1ea" };
+const PAINT: Record<Color, string> = { pink: "#de35a2", orange: "#eb801d", white: "#f4f1ea" };
 
 const FATE: Record<Exclude<CardType["kind"], "force">, { title: string; glyph: string; text: string }> = {
   bait: { title: "Bait", glyph: "🪝", text: "Discard it to take a force card from your row back into your hand." },

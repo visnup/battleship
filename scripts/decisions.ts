@@ -5,7 +5,7 @@ import { parallel } from "../src/parallel.ts";
 import { playout } from "../src/strategies.ts";
 
 /** A move as a short label: `pass`, a card, or `bait 6`. */
-export const label = (m: Move) => (m ? (m.take ? `bait ${name(m.take)}` : name(m.card)) : "pass");
+const label = (m: Move) => (m ? (m.take ? `bait ${name(m.take)}` : name(m.card)) : "pass");
 
 /** Where the default player stands at a decision, coarsely. */
 function situation(game: Game, p: Player) {

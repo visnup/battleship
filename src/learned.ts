@@ -74,7 +74,10 @@ const load = (path: string) => {
 /** `src/model.json`, found when first needed, since Convex can't evaluate `import.meta` as it loads a module. */
 const MODEL = () => new URL("./model.json", import.meta.url).pathname;
 
-/** Every legal move, best first by the model at `path`, or a forest already loaded. */
+/** Whether two moves are the same play. */
+export const same = (a: Move, b: Move) => a === b || (!!a && !!b && a.card === b.card && a.take === b.take);
+
+/** Every legal move, best first by the model at the path `model`, or a forest already loaded. */
 export function ranked(model: string | Forest = MODEL()) {
   const forest = typeof model === "string" ? load(model) : model;
   return (game: Game, p: Player): Move[] => {
@@ -82,7 +85,6 @@ export function ranked(model: string | Forest = MODEL()) {
     if (options.length === 1) return options;
     const b = board(game, p);
     const pick = defaultPolicy.move(game, p);
-    const same = (a: Move, b: Move) => a === b || (!!a && !!b && a.card === b.card && a.take === b.take);
     const scores = options.map((m) => score(forest, [...b, ...move(game, p, m, same(m, pick))]));
     return options
       .map((m, i) => [m, scores[i]] as const)
@@ -91,7 +93,7 @@ export function ranked(model: string | Forest = MODEL()) {
   };
 }
 
-/** The default player, but making the move the model at `path` ranks first. */
+/** The default player, but making the move `model` ranks first. */
 export function learned(model: string | Forest = MODEL()): Policy {
   const rank = ranked(model);
   return { ...defaultPolicy, move: (game, p) => rank(game, p)[0] };

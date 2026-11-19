@@ -178,23 +178,23 @@ save("strategies", {
 // The learned player's rounds: each model at a table of the one before it, and against the default, over a fair share.
 const versus = ["at a table of the model before", "against the default"];
 const rounds = [
-  ...table("rounds").flatMap((r) => counts.map((k) => ({ rounds: r.rounds, against: versus[0], players: `${k} players`, over: num(r[`${k} players`]) - fair(k) }))),
-  ...table("rounds, against the default").flatMap((r) => counts.map((k) => ({ rounds: r["rounds, against the default"], against: versus[1], players: `${k} players`, over: num(r[`${k} players`]) - fair(k) }))),
+  ...table("round").flatMap((r) => counts.map((k) => ({ round: r.round, against: versus[0], players: `${k} players`, over: num(r[`${k} players`]) - fair(k) }))),
+  ...table("round, against the default").flatMap((r) => counts.map((k) => ({ round: r["round, against the default"], against: versus[1], players: `${k} players`, over: num(r[`${k} players`]) - fair(k) }))),
 ];
 save("rounds", {
   width: 760,
   height: 320,
-  x: { label: "Rounds of training", type: "point", domain: table("rounds").map((r) => r.rounds), padding: 0.3, insetLeft: 60 },
+  x: { label: "Round", type: "point", domain: table("round").map((r) => r.round), padding: 0.3, insetLeft: 60 },
   y: { label: "Wins over a fair share (points)", grid: true, tickFormat: signed },
   fx: { label: null, domain: versus },
   color: playerColor,
   marks: [
     Plot.ruleY([0], dashed),
-    Plot.line(rounds, { fx: "against", x: "rounds", y: "over", stroke: "players", strokeWidth: 2, marker: true }),
+    Plot.line(rounds, { fx: "against", x: "round", y: "over", stroke: "players", strokeWidth: 2, marker: true }),
     // the lines start furthest apart in round 3 at a table of the model before
     Plot.text(
       rounds.filter((d) => d.against === versus[0]),
-      Plot.selectFirst({ fx: "against", x: "rounds", y: "over", z: "players", text: "players", textAnchor: "end", dx: -8, ...halo }),
+      Plot.selectFirst({ fx: "against", x: "round", y: "over", z: "players", text: "players", textAnchor: "end", dx: -8, ...halo }),
     ),
   ],
 });

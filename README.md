@@ -248,13 +248,15 @@ Round 4 does it again with round 3's player in the games and the playouts (`data
 
 | model | against the default | against rounds 0–1 | against round 3 |
 | --- | --- | --- | --- |
-| round 4 | 49.8 / 51.8 / 43.8 / 38.8 | 44.5 / 30.1 / 19.9 / 14.6 | 43.5 / 41.2 / 39.8 / 36.4 |
-| rounds 3–4 | 56.3 / 53.9 / 48.2 / 44.5 | 53.9 / 40.9 / 31.7 / 25.4 | 44.6 / 41.3 / 39.6 / 36.7 |
+| round 4's games alone | 49.8 / 51.8 / 43.8 / 38.8 | 44.5 / 30.1 / 19.9 / 14.6 | 43.5 / 41.2 / 39.8 / 36.4 |
+| rounds 3 and 4 together | 56.3 / 53.9 / 48.2 / 44.5 | 53.9 / 40.9 / 31.7 / 25.4 | 44.6 / 41.3 / 39.6 / 36.7 |
 
-Rounds 3–4 together beat round 3's players by 11 to 20 points, keep round 3's edge over rounds
-0–1's, and do better against the default at 4 to 6 players. They hold up elsewhere too:
+Rounds 3 and 4 together beat round 3's players by 11 to 20 points, keep round 3's edge over
+rounds 0–1's, and do better against the default at 4 to 6 players, so from here on each round's
+model is fit to every round's games from round 3 on, and "round 4" means that model. It holds up
+elsewhere too:
 
-| rounds 3–4 | 3 players | 4 players | 5 players | 6 players |
+| round 4 | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |
 | against the league of defaults | 62.6% | 53.0% | 44.6% | 38.3% |
 | against playouts on 8 deals | 59.6% | | | 34.3% |
@@ -266,29 +268,36 @@ data so far. One player of each model at a table of the model before it, 20,000 
 
 ![Each round's model at a table of the one before it, and against the default, in points over a fair share](charts/rounds.svg)
 
-| rounds | at a table of | 3 players | 4 players | 5 players | 6 players |
+| round | at a table of | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- | --- |
 | 3 | rounds 0–1 | 53.6% | 42.3% | 33.8% | 28.5% |
-| 3–4 | round 3 | 44.6% | 41.3% | 39.6% | 36.7% |
-| 3–5 | rounds 3–4 | 39.3% | 29.5% | 23.7% | 20.3% |
-| 3–6 | rounds 3–5 | 37.1% | 26.7% | 22.1% | 18.7% |
-| 3–7 | rounds 3–6 | 34.6% | 27.1% | 22.3% | 18.6% |
+| 4 | round 3 | 44.6% | 41.3% | 39.6% | 36.7% |
+| 5 | round 4 | 39.3% | 29.5% | 23.7% | 20.3% |
+| 6 | round 5 | 37.1% | 26.7% | 22.1% | 18.7% |
+| 7 | round 6 | 34.6% | 27.1% | 22.3% | 18.6% |
+| 8 | round 7 | 34.4% | 26.7% | 21.3% | 17.7% |
 
 And each against the default:
 
-| rounds, against the default | 3 players | 4 players | 5 players | 6 players |
+| round, against the default | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |
 | 3 | 58.6% | 48.1% | 41.8% | 35.3% |
-| 3–4 | 56.3% | 53.9% | 48.2% | 44.5% |
-| 3–5 | 49.7% | 51.2% | 46.8% | 42.6% |
-| 3–6 | 40.7% | 46.5% | 41.6% | 36.2% |
-| 3–7 | 42.2% | 45.9% | 40.5% | 34.1% |
+| 4 | 56.3% | 53.9% | 48.2% | 44.5% |
+| 5 | 49.7% | 51.2% | 46.8% | 42.6% |
+| 6 | 40.7% | 46.5% | 41.6% | 36.2% |
+| 7 | 42.2% | 45.9% | 40.5% | 34.1% |
+| 8 | 38.7% | 44.5% | 37.9% | 33.0% |
 
 Every round still beats the one before, by less each time: round 7 by 1.3 to 2.3 points over a
 fair share, against round 6's 1.7 to 3.8. Each also beats the older models by more than the one
-before it did: rounds 3–7 beat a table of rounds 3–5's 38.8%, 29.0%, 24.6% and 20.0%, where
-rounds 3–6 managed 37.1%, 26.7%, 22.1% and 18.7%. Against the default they've won less since rounds 3–4, as they
-learn to beat learned players instead, and round 7 about holds there. Rounds 3–7 are `src/model.json` now.
+before it did: round 7 beat a table of round 5's 38.8%, 29.0%, 24.6% and 20.0%, where round 6
+managed 37.1%, 26.7%, 22.1% and 18.7%. Against the default they've won less since round 4, as
+they learn to beat learned players instead, and round 7 about holds there.
+
+Round 8 gains 1.0 to 1.7 points over round 7, less again, and beats every older model by more
+than round 7 did: a table of round 6 wins it 35.4%, 29.0%, 23.4% and 19.6%, round 5 38.7%,
+30.7%, 25.1% and 21.1%, and round 4 45.6%, 33.1%, 27.5% and 24.3%. Against the default it loses
+another 1 to 3.5 points. Round 8 is `src/model.json` now.
 
 ## Which chip to fight over
 
@@ -338,7 +347,7 @@ games; playouts 4,000):
 | --- | --- | --- | --- | --- |
 | default | 33.3% | 25.2% | 20.0% | 16.7% |
 | learned, rounds 0–1 | 77.0% | 61.9% | 54.8% | 50.6% |
-| learned, rounds 3–5 | 49.7% | 51.2% | 46.8% | 42.6% |
+| learned, round 5 | 49.7% | 51.2% | 46.8% | 42.6% |
 | playouts, 128 deals | 73.5% | 61.2% | 56.2% | 54.8% |
 | playouts, 32 deals | 63.9% | 51.8% | 44.2% | 40.5% |
 | playouts, 8 deals | 40.0% | 27.9% | 25.2% | 22.4% |
@@ -352,8 +361,8 @@ with the default playing on, and make the one that wins most. Against the first 
 deals won 84% at 3 players and 76% at 6; each round of rules took some of that away. More deals
 still help a lot, so there's plenty more to how Hilt should be played than the default's rules.
 Spending to win every battle is ruinous, and so is never taking a card back with Bait. The
-learned players are in "A learned player": rounds 0–1 learned to beat default players, rounds
-3–5 to beat learned ones, and at a table of each other rounds 3–5 win. The later rounds are in
+learned players are in "A learned player": rounds 0–1 learned to beat default players, round 5
+to beat learned ones, and at a table of each other round 5 wins. The later rounds are in
 "A learned player"'s tables.
 
 Playouts can also race: play the moves out 8 deals at a time on the same deals, and drop a move

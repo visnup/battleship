@@ -31,7 +31,7 @@ Its last page has the card list and each fate card's rule.
   4. Rerun the README's tables, since every one is played by or against the default.
   `--field playouts` rechecks against quick playouts in every other seat.
 - `learned.ts`: the learned player. `board` and `move` turn a decision into numbers, and the
-  LightGBM trees in `src/model.json` (flattened as in monopoly-deal's `trees.ts`) rank the moves.
+  LightGBM trees in `src/model.json` (flattened by `trees.ts`, copied from monopoly-deal) rank the moves.
   `scripts/dataset.ts` writes every decision of default games with each move's playout value as
   JSONL shards in `dataset/data*/` (not committed); `--play` has a model's learned player play
   the games and `--rollout` play inside the playouts. `uv run scripts/learn.py [trees] [out]
@@ -39,9 +39,12 @@ Its last page has the card list and each fate card's rule.
   Each round's data and model live in `dataset/data-rN/` and `dataset/model-rN.json` (not
   committed), an `s` for labels from learned players in the playouts and `-200` for the
   200-tree rollout models; `variants.ts` names them `learned rN` and takes any variant as
-  `--field`. `src/model.json` is rounds 3–7 (`model-r34567s`), 24 MB. Don't edit `src/` while a
-  dataset runs. A new round's results go in the README's "rounds" tables, one row each, which
-  `charts.ts` draws as `charts/rounds.svg`.
+  `--field`. From round 4, round N's model is fit to rounds 3 to N's games, and its file is named for them
+  (`model-r345678s` is round 8). `src/model.json` is round 8, 24 MB. `scripts/round.sh N` runs
+  round N end to end, logging to `dataset/rN/log.txt`, and `node scripts/status.ts --round N`
+  serves its progress and ETA at localhost:3002 (open it in the browser pane). Don't edit `src/`
+  while a round runs: its workers load those files. A new round's results go in the README's
+  "rounds" tables, one row each, which `charts.ts` draws as `charts/rounds.svg`.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds, from
   the same deal played both ways.
 - `parallel.ts` and `worker.ts` are monopoly-deal's: they split a script's games into seeded

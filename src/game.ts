@@ -22,7 +22,7 @@ export type Rules = {
 };
 export const RULES: Rules = { emptyFavor: true };
 
-export const MAX_BATTLES = 500;
+const MAX_BATTLES = 500;
 
 export function mulberry32(seed: number) {
   return () => {
@@ -204,13 +204,10 @@ export class Game {
   settle(): boolean {
     this.fighting = false;
     for (const p of this.players) this.pile.push(...p.row);
-    if (this.ended === "doves") {
-      this.log?.(`  doves: no one wins the ${this.color} chip`);
-      for (const p of this.players) p.row = [];
-    } else {
-      const w = this.leader();
-      this.log?.(`  ${w} wins the ${this.color} chip with ${this.strength(this.players[w])}`);
-      for (const p of this.players) p.row = [];
+    const w = this.ended === "doves" ? null : this.leader();
+    this.log?.(w === null ? `  doves: no one wins the ${this.color} chip` : `  ${w} wins the ${this.color} chip with ${this.strength(this.players[w])}`);
+    for (const p of this.players) p.row = [];
+    if (w !== null) {
       const winner = this.players[w];
       winner.chips[COLORS.indexOf(this.color!)]++;
       this.favor = w;
@@ -255,7 +252,7 @@ export function moves(game: Game, p: Player): Move[] {
 export const others = (game: Game, p: Player) => game.players.map((_, i) => game.players[(p.seat + 1 + i) % game.players.length]).slice(0, -1);
 
 /** Whether `p` would lead after playing `card`. */
-export function leadsWith(game: Game, p: Player, card: Card): boolean {
+function leadsWith(game: Game, p: Player, card: Card): boolean {
   if (card.kind === "winter") {
     game.winter = true;
     const leads = game.leader() === p.seat;
@@ -276,6 +273,46 @@ const COST: Record<Card["kind"], (c: Card) => number> = { force: (c) => c.value,
 
 /** A rule of the default player's: a move, `null` to pass, or `undefined` to leave it to the next rule. */
 export type Step = (game: Game, p: Player) => Move | undefined;
+
+/** With an empty row and behind, pass while `k` or more others are still in, unless the chip wins `p` the game, or anyone else with fewer than `deny` others in. */
+export const waitWhile =
+  (k: number, deny = Infinity): Step =>
+  (game, p) => {
+    if (p.row.length || game.leader() === p.seat || decisive(game, p)) return undefined;
+    const alive = others(game, p).filter((q) => !q.passed).length;
+    if (alive < deny && others(game, p).some((q) => decisive(game, q))) return undefined;
+    return alive >= k ? null : undefined;
+  };
+
+/** With an empty row and behind, a 1 or a Fury while `k` or more others are still in. */
+export const openWith =
+  (k: number): Step =>
+  (game, p) => {
+    if (others(game, p).filter((q) => !q.passed).length < k || p.row.length || game.leader() === p.seat) return undefined;
+    const card = p.hand.find((c) => c.kind === "force" && c.value === 1) ?? p.hand.find((c) => c.kind === "fury" && game.playable(p, c));
+    return card ? { card } : undefined;
+  };
+
+/** With nobody else in and behind, the strongest card, if the strongest `k` in hand would overtake. */
+export const finishIn =
+  (k: number): Step =>
+  (game, p) => {
+    if (game.leader() === p.seat || others(game, p).some((q) => !q.passed)) return undefined;
+    const strong = p.hand.filter((c) => (c.kind === "force" || c.kind === "legend" || c.kind === "fury") && game.playable(p, c)).sort((a, b) => b.value - a.value || +(a.kind === "fury") - +(b.kind === "fury"));
+    const row = p.row;
+    p.row = [...row, ...strong.slice(0, k)];
+    const reaches = game.leader() === p.seat;
+    p.row = row;
+    return reaches ? { card: strong[0] } : undefined;
+  };
+
+/** Behind, a 1, with at most `row` cards already played. */
+export const oneWithin =
+  (row: number): Step =>
+  (game, p) => {
+    const card = p.hand.find((c) => c.kind === "force" && c.value === 1);
+    return card && p.row.length <= row && game.leader() !== p.seat ? { card } : undefined;
+  };
 
 export const STEPS = {
   /** Once everyone else has passed, Bait back the biggest force card that still leaves the lead: +2 to +4 points. */
@@ -329,36 +366,19 @@ export const STEPS = {
    * waiting before `open` wins 46.7%, 41.4%, 37.6% and 34.5% at 3–6 players, and opening first
    * 44.8%, 30.1%, 21.1% and 16.4%.
    */
-  wait(game, p) {
-    if (p.row.length || game.leader() === p.seat || decisive(game, p)) return undefined;
-    const alive = others(game, p).filter((q) => !q.passed).length;
-    if (alive < 3 && others(game, p).some((q) => decisive(game, q))) return undefined;
-    return alive >= 2 ? null : undefined;
-  },
+  wait: waitWhile(2, 3),
   /**
    * Behind with nothing played and someone else still in, a 1 or a Fury, which cost the least:
    * +9 to +15 points over chasing with the cheapest card that takes the lead. With nobody else
    * in, `chase` wins the battle outright.
    */
-  open(game, p) {
-    if (p.row.length || game.leader() === p.seat || others(game, p).every((q) => q.passed)) return undefined;
-    const card = p.hand.find((c) => c.kind === "force" && c.value === 1) ?? p.hand.find((c) => c.kind === "fury" && game.playable(p, c));
-    return card ? { card } : undefined;
-  },
+  open: openWith(1),
   /**
    * Behind with nobody else in, nobody can answer: play the strongest card if the strongest 4 in
    * hand would overtake, and `harvest` takes back what isn't needed. +1.4 to +6 points over
    * only taking the lead with a single card.
    */
-  finish(game, p) {
-    if (game.leader() === p.seat || others(game, p).some((q) => !q.passed)) return undefined;
-    const strong = p.hand.filter((c) => (c.kind === "force" || c.kind === "legend" || c.kind === "fury") && game.playable(p, c)).sort((a, b) => b.value - a.value || +(a.kind === "fury") - +(b.kind === "fury"));
-    const row = p.row;
-    p.row = [...row, ...strong.slice(0, 4)];
-    const reaches = game.leader() === p.seat;
-    p.row = row;
-    return reaches ? { card: strong[0] } : undefined;
-  },
+  finish: finishIn(4),
   /**
    * Behind with others still in, Bait back a 1: it stays in the battle without spending
    * anything. +4.5 to +7 points against the default, +3.5 to +6 against every default so far.
@@ -369,10 +389,7 @@ export const STEPS = {
     return bait && take && game.leader() !== p.seat && others(game, p).some((q) => !q.passed) ? { card: bait, take } : undefined;
   },
   /** Behind, a 1 before anything that would take the lead: +3.5 to +7.5 points against the default, +2.5 to +5.5 against every default so far. */
-  one(game, p) {
-    const card = p.hand.find((c) => c.kind === "force" && c.value === 1);
-    return card && game.leader() !== p.seat ? { card } : undefined;
-  },
+  one: oneWithin(Infinity),
   /**
    * Behind, take the lead with the cheapest card that does it, if this battle has cost at most 3
    * cards so far, or without limit when the chip wins or loses the game.
@@ -413,7 +430,7 @@ function first(steps: Step[]): Policy["move"] {
 }
 
 /** The chip that leaves `p` fewest chips from winning, then the one that helps the closest opponent least. */
-export function pickColor(game: Game, p: Player): Color {
+function pickColor(game: Game, p: Player): Color {
   const score = (i: number) => {
     const mine = needed(p.chips.map((c, j) => c + +(i === j)));
     const theirs = Math.min(...others(game, p).map((q) => needed(q.chips.map((c, j) => c + +(i === j)))));

@@ -172,7 +172,7 @@ export function playout(game: Game, p: Player, move: Move, seeds: number[], roll
 }
 
 /** A copy of `game` with the cards `p` can't see dealt again at random, everyone played by `rollout`. */
-export function sample(game: Game, p: Player, rng: () => number, rollout: Policy): Game {
+function sample(game: Game, p: Player, rng: () => number, rollout: Policy): Game {
   const g = game.clone();
   g.rng = rng;
   g.log = undefined;
