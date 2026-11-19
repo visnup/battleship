@@ -97,6 +97,17 @@ export default function Cards() {
         </Guides>
       </section>
       <section className="flex flex-col gap-[0.8em]">
+        <h2 className="label">On the table</h2>
+        <div className="flex items-center gap-[0.8em] pt-[1.2em]">
+          <div className="flex *:not-first:-ml-[1.9rem]">
+            {ALL.map((c, i) => (
+              <Card key={i} card={c} small />
+            ))}
+          </div>
+          <Backs n={12} />
+        </div>
+      </section>
+      <section className="flex flex-col gap-[0.8em]">
         <h2 className="label">Each card</h2>
         <div className="flex flex-wrap gap-[0.4em]">
           {ALL.map((c, i) => (
@@ -107,17 +118,6 @@ export default function Cards() {
           {ALL.map((c, i) => (
             <Card key={i} card={c} small />
           ))}
-        </div>
-      </section>
-      <section className="flex flex-col gap-[0.8em]">
-        <h2 className="label">On the table</h2>
-        <div className="flex items-center gap-[0.8em] pt-[1.2em]">
-          <div className="flex *:not-first:-ml-[1.9em]">
-            {ALL.map((c, i) => (
-              <Card key={i} card={c} small />
-            ))}
-          </div>
-          <Backs n={12} />
         </div>
       </section>
     </main>

@@ -342,14 +342,14 @@ function Seat({
             <span className="label">{fighting ? (p.passed ? "passed" : leads ? "leads" : "strength") : leads ? "won" : ""}</span>
           </span>
         )}
-        <div className={`flex *:not-first:-ml-[1.9em] ${fighting ? "" : "opacity-50"}`}>
+        <div className={`flex *:not-first:-ml-[1.9rem] ${fighting ? "" : "opacity-50"}`}>
           {row.map((c, i) => (
             <Card key={i} card={c} small />
           ))}
         </div>
         {played.length > 0 && (
           <div
-            className={`flex *:not-first:-ml-[1.9em] ${fighting ? "" : "opacity-50"}`}
+            className={`flex *:not-first:-ml-[1.9rem] ${fighting ? "" : "opacity-50"}`}
             title="Played and discarded: not in the row, and not counted as cards played. A Bait shows the card it took back above it, grayed, since it's back in hand."
           >
             {played.map(({ card, took }, i) => (
