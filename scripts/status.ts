@@ -13,10 +13,11 @@ const data = `dataset/data-r${args.round}`;
 const log = `dataset/r${args.round}/log.txt`;
 // rough minutes for the stages after the data, from earlier rounds
 const AFTER = [
-  ["extract", 2],
-  ["train", 13],
-  ["compare learned", 5],
-  ["trained on its own data alone", 17],
+  ["extract", 1],
+  ["train", 4],
+  ["compare learned", 3],
+  ["compare against learned", 7],
+  ["compare playouts", 10],
   ["done", 0],
 ] as const;
 
@@ -30,7 +31,8 @@ const PROGRESS: Record<string, () => number | undefined> = {
   extract: () => (existsSync(`dataset/features-r${args.round}`) ? readdirSync(`dataset/features-r${args.round}`).length / (256 * 4 * 3) : 0),
   train: () => trees(`dataset/r${args.round}/trees.txt`),
   "compare learned": () => lines(`dataset/r${args.round}/compare.txt`, /^learned, /gm) / 4,
-  "trained on its own data alone": () => trees(`dataset/r${args.round}/trees-only.txt`),
+  "compare against learned": () => lines(`dataset/r${args.round}/field.txt`, /^learned against /gm) / 4,
+  "compare playouts": () => lines(`dataset/r${args.round}/playouts.txt`, /^playouts, /gm) / 2,
 };
 
 /** Games finished in each shard of `players`, from the game number on its last row. */
@@ -94,8 +96,8 @@ function status() {
   const rate = ((labeled - from.v) * games * 14) / ((Date.now() - t0) / 60e3);
   const left = (1 - labeled) * games * 14;
   const since = (Date.now() - (evs.at(-1)?.t ?? Date.now())) / 60e3;
-  const after = AFTER.map(([name, min]) => ({ name, min, done: real.includes(`] ${name}`) || real.includes(`: ${name}`), progress: 0 }));
-  // a run that skips a stage still ends
+  const after = AFTER.map(([name, min]) => ({ name, min, done: real.includes(`] ${name}`) || real.includes(`: ${name}`) || (name === "done" && /^round \S+ done$/m.test(real)), progress: 0 }));
+  // a round that skips the playouts, when the learned player didn't gain, still ends
   if (after.at(-1)!.done) for (const a of after) a.done = true;
   const current = dataDone ? after.find((a) => !a.done) : undefined;
   if (current) current.progress = Math.min(PROGRESS[current.name]?.() ?? since / current.min, 0.99);
@@ -133,7 +135,9 @@ function status() {
         ]
       : [],
   ];
-  const forecast = Number.isFinite(eta) ? [...(dataT ? [] : [[tracks[0].at(-1)!, { t: dataEnd, v: 1 }]]), ...(staged < 1 ? [[dataT ? tracks[1].at(-1)! : { t: dataEnd, v: 0 }, { t: Date.now() + eta * 60e3, v: 1 }]] : [])] : [];
+  const forecast = Number.isFinite(eta)
+    ? [...(dataT ? [] : [[tracks[0].at(-1)!, { t: dataEnd, v: 1 }]]), ...(staged < 1 ? [[dataT ? tracks[1].at(-1)! : { t: dataEnd, v: 0 }, { t: Date.now() + eta * 60e3, v: 1 }]] : [])]
+    : [];
   /** One stretch of a track, as wide as its `weight`: a bar of how much is done, over its name and a note. */
   const seg = (weight: number, name: string, note: string, f: number) =>
     `<div class="seg" style="flex:${weight} 1 4em"><div class="bar"><div style="width:${(100 * Math.min(1, f)).toFixed(1)}%"></div></div>${name}<small>${note}</small></div>`;
@@ -198,7 +202,7 @@ function events(real: string) {
 }
 
 const CORES = availableParallelism();
-type Usage = { t: number; cores: number; load: number; done?: number };
+type Usage = { t: number; cores: number; load: number; done?: number; temp?: number; watts?: number };
 // kept in a file beside the log, so restarting this page doesn't lose it
 const USAGE = `dataset/r${args.round}/usage.jsonl`;
 const recent = (u: Usage) => Date.now() - u.t < 12 * 3600e3;
@@ -209,8 +213,17 @@ const usage: Usage[] = existsSync(USAGE)
       .map((l) => JSON.parse(l))
       .filter(recent)
   : [];
+/** The CPU's temperature and the machine's power draw, from `macmon` (`brew install macmon`), if it's installed. */
+const heat = (): { temp?: number; watts?: number } => {
+  try {
+    const m = JSON.parse(execSync("macmon pipe -s 1", { stdio: ["ignore", "pipe", "ignore"], timeout: 5000 }).toString());
+    return { temp: m.temp.cpu_temp_avg, watts: m.sys_power };
+  } catch {
+    return {};
+  }
+};
 const sample = () => {
-  const u = { t: Date.now(), cores: working(), load: loadavg()[0], done: labeled };
+  const u = { t: Date.now(), cores: working(), load: loadavg()[0], done: labeled, ...heat() };
   usage.push(u);
   appendFileSync(USAGE, JSON.stringify(u) + "\n");
   while (!recent(usage[0])) usage.shift();
@@ -218,11 +231,11 @@ const sample = () => {
 
 // The charts are drawn in the page by Observable Plot, from the round's start to its ETA, so the
 // gap right of "now" is what's left: each track from 0 to 100%, with a dashed line on to where it
-// should finish and a dashed rule where each later stage should, then cores used, then the load
-// against the core count (dashed).
+// should finish and a dashed rule where each later stage should, then cores used, the load
+// against the core count (dashed), and the CPU's temperature.
 const page = (s: ReturnType<typeof status>) => `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>${s.title}</title>
-<style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.row{display:flex;justify-content:space-between;align-items:baseline}.track{display:flex;gap:3px;margin:.3em 0 1.2em}.seg{min-width:0;font-size:12px;line-height:1.3}.seg small{display:block}.bar{background:#ffffff26;border-radius:3px;height:10px;margin-bottom:.35em;overflow:hidden}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}#chart{margin-bottom:1.2em}</style>
+<style>body{font:15px system-ui;background:#1d6b4a;color:#fff;max-width:36em;margin:2em auto;padding:0 1em}.row{display:flex;justify-content:space-between;align-items:baseline}.track{display:flex;gap:3px;margin:.3em 0 1.2em}.seg{min-width:0;font-size:12px;line-height:1.3}.seg small{display:block}.bar{background:#ffffff26;border-radius:3px;height:10px;margin-bottom:.35em;overflow:hidden}.bar div{background:#f2c94c;height:100%;border-radius:6px}h1{font-size:1.4em}small{opacity:.7}#chart{margin-bottom:1.2em}#chart svg{display:block}</style>
 <header>${s.head}</header>
 <div id="chart"></div>
 <main>${s.body}</main>
@@ -244,10 +257,9 @@ const draw = (s) => {
     Plot.ruleX(s.ahead, { x: (a) => time(a.t), stroke: "#f2c94c", strokeOpacity: 0.6, strokeDasharray: "3 3" }),
     Plot.ruleX([now], { x: time, stroke: "#fff" }),
   ];
-  document.querySelector("#chart").replaceChildren(
-    Plot.plot({
-      ...shared,
-      height: 190,
+  const charts = [
+    {
+      height: 170,
       y: { domain: [0, 1], label: null, grid: true, tickFormat: "%", ticks: 4 },
       marks: [
         ...stages,
@@ -257,23 +269,33 @@ const draw = (s) => {
         s.tracks.map((track) => [Plot.areaY(track, { x: (p) => time(p.t), y: "v", fill: "#f2c94c", fillOpacity: 0.2 }), Plot.lineY(track, { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2 })]),
         s.forecast.map((line) => Plot.lineY(line, { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2, strokeDasharray: "4 4" })),
       ],
-    }),
+    },
     ...[
-      ["cores", "#f2c94c", s.cores, (v) => v.toFixed(1) + " of " + s.cores + " cores"],
-      ["load", "#ffffffcc", Math.max(2 * s.cores, ...s.usage.map((u) => u.load)), (v) => "load " + v.toFixed(1)],
-    ].map(([key, stroke, top, name]) =>
-      Plot.plot({
-        ...shared,
-        height: 100,
-        y: { domain: [0, top], label: null, grid: true, ticks: 3 },
-        marks: [
-          Plot.ruleY([s.cores], { stroke: "#fff6", strokeDasharray: "3 3" }),
-          ...stages,
-          Plot.lineY(s.usage, { x: (u) => time(u.t), y: key, stroke, strokeWidth: 2 }),
-          Plot.text(s.usage.slice(-1), { x: (u) => time(u.t), y: key, text: (u) => name(u[key]), fill: stroke, textAnchor: "start", dx: 6, fontSize: 12, stroke: "#1d6b4a", strokeWidth: 4 }),
-        ],
-      }),
-    ),
+      ["cores", "#f2c94c", [0, s.cores], (u) => u.cores.toFixed(1) + " of " + s.cores + " cores", s.cores],
+      ["load", "#ffffffcc", [0, Math.max(2 * s.cores, ...s.usage.map((u) => u.load))], (u) => "load " + u.load.toFixed(1), s.cores],
+      ["temp", "#ffab91", [30, Math.max(100, ...s.usage.map((u) => u.temp ?? 0))], (u) => Math.round(u.temp) + " °C, " + Math.round(u.watts) + " W"],
+    ].map(([key, stroke, domain, name, rule]) => {
+      const rows = s.usage.filter((u) => u[key] !== undefined);
+      return rows.length
+        ? {
+            height: 70,
+            y: { domain, label: null, grid: true, ticks: 3 },
+            marks: [
+              rule ? Plot.ruleY([rule], { stroke: "#fff6", strokeDasharray: "3 3" }) : null,
+              ...stages,
+              Plot.lineY(rows, { x: (u) => time(u.t), y: key, stroke, strokeWidth: 2 }),
+              Plot.text(rows.slice(-1), { x: (u) => time(u.t), y: key, text: name, fill: stroke, textAnchor: "start", dx: 6, fontSize: 12, stroke: "#1d6b4a", strokeWidth: 4 }),
+            ],
+          }
+        : null;
+    }),
+  ].filter(Boolean);
+  // one time axis, under the last chart
+  document.querySelector("#chart").replaceChildren(
+    ...charts.map((c, i) => {
+      const last = i === charts.length - 1;
+      return Plot.plot({ ...shared, ...c, marginTop: 6, marginBottom: last ? 24 : 4, height: c.height + (last ? 20 : 0), x: last ? x : { ...x, axis: null } });
+    }),
   );
 };
 draw(${JSON.stringify(s)});
