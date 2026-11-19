@@ -30,6 +30,9 @@ function useTip() {
   return { tip, show, hide: () => tip.current?.hidePopover() };
 }
 
+/** The corner index, centered in a column just wide enough for a 10, with tabular figures, so every card's lines up when overlapped. */
+const corner = "absolute left-[0.2em] flex w-[1.1em] flex-col items-center tabular-nums";
+
 /** A card, black as printed: a force card's value, or a fate card's name and what it does in a tooltip. `dim` is for a card that can't be played now. */
 export function Card({ card, selected, hinted, dim, small, onClick }: { card: CardType; selected?: boolean; hinted?: boolean; dim?: boolean; small?: boolean; onClick?: () => void }) {
   const Tag = onClick ? "button" : "div";
@@ -48,18 +51,22 @@ export function Card({ card, selected, hinted, dim, small, onClick }: { card: Ca
           <span className="text-[1.6em] leading-none">{fate.glyph}</span>
           <span className="mt-[0.3em] text-[0.8em] font-extrabold tracking-wide uppercase">{fate.title}</span>
           {card.kind === "legend" ? (
-            <span className="absolute top-[0.2em] left-[0.35em] flex flex-col items-start">
+            <span className={`${corner} top-[0.2em]`}>
               <span className="font-numbers text-[0.9em] font-bold">10</span>
               <span className="text-[0.8em] leading-none">{fate.glyph}</span>
             </span>
           ) : (
-            <span className={`absolute ${card.kind === "bait" ? "top-[0.6em]" : "top-[0.45em]"} left-[0.35em] text-[0.8em] leading-none`}>{fate.glyph}</span>
+            <span className={`${corner} ${card.kind === "bait" ? "top-[0.6em]" : "top-[0.45em]"}`}>
+              <span className="text-[0.8em] leading-none">{fate.glyph}</span>
+            </span>
           )}
         </>
       ) : (
         <>
           <span className="font-numbers text-[3.2em] leading-none font-bold">{card.value}</span>
-          <span className="absolute top-[0.2em] left-[0.35em] font-numbers text-[0.9em] font-bold">{card.value}</span>
+          <span className={`${corner} top-[0.2em]`}>
+            <span className="font-numbers text-[0.9em] font-bold">{card.value}</span>
+          </span>
         </>
       )}
       <span ref={tip} popover="manual" className="tip">

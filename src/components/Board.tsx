@@ -231,7 +231,7 @@ const ORDER: CardType["kind"][] = ["force", "legend", "fury", "bait", "winter", 
 const rank = (c: CardType) => ORDER.indexOf(c.kind) * 100 + c.value;
 
 /** A hand, sorted and overlapped so every card shows its corner without scrolling. `onClick` and the rest take places in the hand as dealt, not as shown. */
-function Hand({ cards, onClick, selected, hinted, dim }: { cards: CardType[]; onClick?: (i: number) => void; selected?: number; hinted?: number; dim?: (c: CardType) => boolean }) {
+export function Hand({ cards, onClick, selected, hinted, dim }: { cards: CardType[]; onClick?: (i: number) => void; selected?: number; hinted?: number; dim?: (c: CardType) => boolean }) {
   const order = cards.map((_, i) => i).sort((a, b) => rank(cards[a]) - rank(cards[b]));
   // the cards that can't be played now, held apart to the right
   const groups = [order.filter((i) => !dim?.(cards[i])), order.filter((i) => dim?.(cards[i]))].filter((g) => g.length);
