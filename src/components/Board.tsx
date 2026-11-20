@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useEffectEvent, useLayoutEffect, useMemo, us
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { BIRTHDAY, type Card as CardType, COLORS, DEBT } from "../cards.ts";
-import { banked, COLOR_NAMES, count, defaultPolicy, fullSets, type Game, isAction, moves, type Move, name, payable, type Placed, type Player, rent, size, worth } from "../game.ts";
+import { banked, COLOR_NAMES, colorsOf, count, defaultPolicy, fullSets, type Game, isAction, moves, type Move, name, payable, type Placed, type Player, rent, size, worth } from "../game.ts";
 import { street } from "../streets.ts";
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, PAINT, Slot } from "./Card";
@@ -14,8 +14,18 @@ type Props = { game: Doc<"games"> & { log: Choice[]; names: (string | null)[] };
 
 const id = (r: Ref) => `${r.pile}${r.i}`;
 
-function Row({ children }: { children: ReactNode }) {
-  return <Scroller className="gap-[0.4em] pt-[0.8em]">{children}</Scroller>;
+/**
+ * A hand in the order it's shown, each card with its place in the hand, which is how a choice
+ * names it: properties by color with each wild beside its first, then Rent, actions and money.
+ */
+const sorted = (hand: CardType[]) => {
+  const rank = (c: CardType) => (c.kind === "property" || c.kind === "wild" ? COLOR_NAMES.indexOf(colorsOf(c)[0]) + (c.kind === "wild" ? 0.5 : 0) : c.kind === "rent" ? 20 : c.kind === "action" ? 30 : 40 + c.value);
+  return hand.map((c, i) => [c, i] as const).sort(([a, i], [b, j]) => rank(a) - rank(b) || name(a).localeCompare(name(b)) || i - j);
+};
+
+/** A row of cards; a hand's overlap like a fan held flat, the one under the pointer on top. */
+function Row({ children, fan }: { children: ReactNode; fan?: boolean }) {
+  return <Scroller className={fan ? "pt-[0.8em] *:not-first:-ml-[1.2rem] *:hover:z-10 *:hover:-translate-y-[0.6em]" : "gap-[0.4em] pt-[0.8em]"}>{children}</Scroller>;
 }
 
 const deck = "card flex flex-col items-center justify-center px-[0.3em] text-center leading-[1.2]";
@@ -274,8 +284,8 @@ export function Board({ game, me }: Props) {
             <div className="flex items-end gap-[0.8em]">
               <div className="min-w-0 flex-1">
                 {seat >= 0 && (
-                  <Row>
-                    {g.players[seat].hand.map((c, i) => (
+                  <Row fan>
+                    {sorted(g.players[seat].hand).map(([c, i]) => (
                       <Card key={i} card={c} />
                     ))}
                   </Row>
@@ -296,8 +306,8 @@ export function Board({ game, me }: Props) {
             <div className="flex items-end gap-[0.8em]">
               <div className="min-w-0 flex-1">
                 {seat >= 0 && (
-                  <Row>
-                    {g.players[seat].hand.map((c, i) => (
+                  <Row fan>
+                    {sorted(g.players[seat].hand).map(([c, i]) => (
                       <Card key={i} card={c} />
                     ))}
                   </Row>
@@ -584,8 +594,8 @@ function Ask({
   });
   const toggle = (k: string) => setChosen((s) => (s.has(k) ? new Set([...s].filter((x) => x !== k)) : new Set([...s, k])));
   const hand = (onClick: (i: number) => void, selected: (i: number) => boolean) => (
-    <Row>
-      {p.hand.map((c, i) => (
+    <Row fan>
+      {sorted(p.hand).map(([c, i]) => (
         <Card key={i} card={c} selected={selected(i)} onClick={() => onClick(i)} />
       ))}
     </Row>
