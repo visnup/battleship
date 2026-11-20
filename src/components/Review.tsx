@@ -75,9 +75,24 @@ function Chances({ rows, fair, show }: { rows: Scored[]; fair: number; show: (n:
           ),
         ],
       });
+      // clicking the play under the pointer, now pinned, shows the board then
       plot.addEventListener("click", () => {
         const d = (plot as unknown as { value?: Scored }).value;
         if (d) latest.current(d.n);
+      });
+      // Plot unpins on a click away from the pinned point, with no option to re-pin instead
+      // (pointerdown in 0.6.19's pointer.js). After its own listener has unpinned, point and press
+      // again where the click was. On the pinned marks Plot stays pinned, for these too.
+      let pinned = false;
+      plot.addEventListener("pointerdown", (event) => {
+        const e = event as PointerEvent;
+        if (e.pointerType !== "mouse" || !e.isTrusted) return;
+        if (!(pinned = !pinned)) {
+          const init = { clientX: e.clientX, clientY: e.clientY, pointerType: "mouse", bubbles: true };
+          e.target!.dispatchEvent(new PointerEvent("pointermove", init));
+          e.target!.dispatchEvent(new PointerEvent("pointerdown", init));
+          pinned = true;
+        }
       });
       plot.style.cursor = "pointer";
       el.replaceChildren(plot);
