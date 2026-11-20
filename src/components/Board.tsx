@@ -321,7 +321,7 @@ export function Played({ played, className = "" }: { played: { card: CardType; t
       {played.map(({ card, took }, i) => (
         <div key={i} className="relative">
           {took && (
-            <div className="absolute -top-[calc(1.4*var(--small))] left-[calc(0.3*var(--small))]">
+            <div className="absolute -top-[calc(1.7*var(--small))] left-[calc(0.3*var(--small))]">
               <Card card={took} small dim />
             </div>
           )}
