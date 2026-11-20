@@ -35,8 +35,9 @@
       next round, and `scripts/status.ts --round 9` shows its progress.
 - [x] Round 9: beats round 8's by 0.5 to 0.9 at 4 to 6 players and ties at 3, adopted
       (2026-11-20). The gains are levelling off.
-- [ ] More strong rounds while they gain, and more games a round now that they cost less than
-      expected. Check each against every earlier model, not just the last, since these cycle too.
+- [x] Round 10, on twice the games: 0.3 to 0.7 over round 9, within the noise, not adopted
+      (2026-11-20). More of the same games no longer helps; the next gain needs something new
+      (more deals a label, features, or labels from playouts against a league).
 - [x] Use the model to prune playouts to its top moves, and race on more deals, 2026-11-19:
       racing on 512 deals wins 75.7% at 3 players and 56.7% at 6; pruning to the model's top 3
       loses 1 to 5 points at 128 deals and at 512.

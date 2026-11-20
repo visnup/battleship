@@ -277,6 +277,7 @@ data so far. One player of each model at a table of the model before it, 20,000 
 | 7 | round 6 | 34.6% | 27.1% | 22.3% | 18.6% |
 | 8 | round 7 | 34.4% | 26.7% | 21.3% | 17.7% |
 | 9 | round 8 | 33.4% | 25.9% | 20.5% | 17.3% |
+| 10 | round 9 | 34.0% | 25.3% | 20.5% | 17.0% |
 
 And each against the default:
 
@@ -289,6 +290,7 @@ And each against the default:
 | 7 | 42.2% | 45.9% | 40.5% | 34.1% |
 | 8 | 38.7% | 44.5% | 37.9% | 33.0% |
 | 9 | 41.1% | 43.3% | 37.1% | 32.0% |
+| 10 | 43.0% | 43.3% | 36.8% | 31.6% |
 
 Every round still beats the one before, by less each time: round 7 by 1.3 to 2.3 points over a
 fair share, against round 6's 1.7 to 3.8. Each also beats the older models by more than the one
@@ -305,6 +307,11 @@ Round 9 gains 0.5 to 0.9 points over round 8 at 4 to 6 players and ties it at 3 
 older models it does about as well as round 8 did, within half a point either way, so the rounds
 are levelling off. Against the default it wins 2.4 points more at 3 players and about a point less
 at 4 to 6. Round 9 is `src/model.json` now.
+
+Round 10 played twice the games (6,000 a player count) and gains only 0.3 to 0.7 points over
+round 9, within the noise, so it wasn't adopted. Against older models it does a little better than
+round 9 did (a table of round 8 wins it 34.7%, 26.2%, 20.6% and 17.4%), but by less than a point.
+More games of the same kind don't restart the gains.
 
 ## Which chip to fight over
 
