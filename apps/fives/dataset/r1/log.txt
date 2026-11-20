@@ -1,0 +1,23 @@
+Thu Nov 19 23:41:34 PST 2026 round 1: 4000 games, 16 deals, 1000 trees, from r0
+23:51 3 players: 4000 games, 170558 decisions, 10.0 min
+  [10 min, 23:51] 170558 decisions so far
+  [20 min, 00:01] 300565 decisions so far
+00:05 4 players: 4000 games, 182169 decisions, 14.4 min
+  [24 min, 00:05] data
+held out, points of win chance a decision over the default's pick (model's pick, and the best move's, which is noisy):
+  3 players: +1.77 (best +4.87) on 5117 decisions
+  4 players: +1.71 (best +3.91) on 5460 decisions
+  [27 min, 00:09] train
+20000 games each: one player's wins against "learned r0" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r1 | 47.5% | 38.6% |
+20000 games each: one player's wins against the default player in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r1 | 79.6% | 78.0% |
+  [30 min, 00:11] compare
+  [30 min, 00:12] train rollout
+Fri Nov 20 00:12:08 PST 2026 round 1: done

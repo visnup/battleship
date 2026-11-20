@@ -1,0 +1,20 @@
+20000 games each: one player's wins against "learned r2" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r3 | 37.1% | 27.5% |
+20000 games each: one player's wins against "learned r1" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r3 | 46.4% | 41.7% |
+20000 games each: one player's wins against "learned r0" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r3 | 54.3% | 52.1% |
+20000 games each: one player's wins against the default player in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r3 | 84.6% | 85.3% |

@@ -1,0 +1,1 @@
+{ "round": "6", "prev": "5", "start": 1795172997000, "games": 8000, "trees": 1000, "data": "dataset/data-r6", "compares": 4, "stages": ["data", "train", "compare", "train rollout"] }

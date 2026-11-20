@@ -1,0 +1,11 @@
+Fri Nov 20 05:48:56 PST 2026 round 9: 12000 games, 16 deals, 1500 trees, from r8
+  [10 min, 05:58] 71031 decisions so far
+  [20 min, 06:08] 128983 decisions so far
+  [30 min, 06:18] 191126 decisions so far
+  [40 min, 06:28] 254105 decisions so far
+  [50 min, 06:38] 312639 decisions so far
+  [60 min, 06:48] 371551 decisions so far
+  [70 min, 06:58] 429282 decisions so far
+  [80 min, 07:08] 487847 decisions so far
+07:15 3 players: 12000 games, 513239 decisions, 86.2 min
+  [90 min, 07:19] 527002 decisions so far

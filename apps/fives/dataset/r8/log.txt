@@ -1,0 +1,36 @@
+Fri Nov 20 04:44:05 PST 2026 round 8: 12000 games, 16 deals, 1000 trees, from r7
+  [10 min, 04:54] 263473 decisions so far
+05:03 3 players: 12000 games, 511446 decisions, 19.6 min
+  [20 min, 05:04] 516701 decisions so far
+  [30 min, 05:14] 692506 decisions so far
+  [40 min, 05:24] 869314 decisions so far
+  [50 min, 05:34] 1044914 decisions so far
+05:35 4 players: 12000 games, 546787 decisions, 31.9 min
+  [51 min, 05:35] data
+held out, points of win chance a decision over the default's pick (model's pick, and the best move's, which is noisy):
+  3 players: +1.82 (best +5.71) on 15710 decisions
+  4 players: +2.00 (best +4.99) on 16700 decisions
+  [54 min, 05:39] train
+10000 games each: one player's wins against "learned r7" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r8 | 33.5% | 25.8% |
+10000 games each: one player's wins against "learned r6" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r8 | 33.4% | 26.9% |
+10000 games each: one player's wins against "learned r5" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r8 | 35.1% | 26.8% |
+10000 games each: one player's wins against the default player in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r8 | 89.5% | 87.4% |
+  [56 min, 05:40] compare
+  [58 min, 05:42] train rollout
+Fri Nov 20 05:42:22 PST 2026 round 8: done
