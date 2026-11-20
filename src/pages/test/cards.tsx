@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import type { Card as CardType } from "../../cards.ts";
-import { Hand } from "../../components/Board";
+import { Hand, Played } from "../../components/Board";
 import { Backs, Card } from "../../components/Card";
 
 // Every kind of card, in a hand and on the table, to check the cards' look at a glance; `Cards.spec.ts` screenshots it.
@@ -104,6 +104,7 @@ export default function Cards() {
               <Card key={i} card={c} small />
             ))}
           </div>
+          <Played played={[{ card: { kind: "winter", value: 0 } }, { card: { kind: "bait", value: 0 }, took: { kind: "force", value: 6 } }, { card: { kind: "bait", value: 0 }, took: { kind: "force", value: 10 } }]} />
           <Backs n={12} />
         </div>
       </section>

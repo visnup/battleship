@@ -311,6 +311,29 @@ function discarded(lines: string[]) {
   return out;
 }
 
+/** Winters and Baits played and discarded this battle, each Bait with the card it took back peeking out above it, grayed, since it's back in hand. */
+export function Played({ played, className = "" }: { played: { card: CardType; took?: CardType }[]; className?: string }) {
+  return (
+    <div
+      className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${className}`}
+      title="Played and discarded: not in the row, and not counted as cards played. A Bait shows the card it took back above it, grayed, since it's back in hand."
+    >
+      {played.map(({ card, took }, i) => (
+        <div key={i} className="relative">
+          {took && (
+            <div className="absolute -top-[calc(1.4*var(--small))] left-[calc(0.3*var(--small))]">
+              <Card card={took} small dim />
+            </div>
+          )}
+          <div className="relative">
+            <Card card={card} small />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** A player's place at the table: chips, the Favor, cards in hand, and their row in the battle `onBoard` picks. */
 function Seat({
   game,
@@ -368,25 +391,7 @@ function Seat({
             <Card key={i} card={c} small />
           ))}
         </div>
-        {played.length > 0 && (
-          <div
-            className={`flex *:not-first:-ml-[calc(var(--small)*1.9/0.65)] ${muted}`}
-            title="Played and discarded: not in the row, and not counted as cards played. A Bait shows the card it took back above it, grayed, since it's back in hand."
-          >
-            {played.map(({ card, took }, i) => (
-              <div key={i} className="relative">
-                {took && (
-                  <div className="absolute -top-[1.1em] left-[0.5em]">
-                    <Card card={took} small dim />
-                  </div>
-                )}
-                <div className="relative">
-                  <Card card={card} small />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {played.length > 0 && <Played played={played} className={muted} />}
         {fighting && p.passed && (
           <span className={`label ${muted}`} title="Passed for the rest of the battle; their cards still count">
             Passed

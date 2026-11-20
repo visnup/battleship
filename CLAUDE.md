@@ -95,6 +95,12 @@ Other players' hands aren't hidden from their browsers; it's for friends.
 - `src/pages/` and `src/components/`: `Game` joins and shows the lobby, `Board` the table and
   the prompt. Playwright specs sit next to components and need `pnpm dev` running.
 - Prettier is 220 wide, to match the engine, and leaves Markdown alone.
+- `next dev` under Turbopack goes stale in a long session: a new Tailwind class is on the element
+  with no CSS rule for it, or a new export renders as "Element type is invalid … got: undefined".
+  Restart the dev server. We already use `@tailwindcss/postcss`, the fix for
+  [tailwindcss#20581](https://github.com/tailwindlabs/tailwindcss/issues/20581); others report
+  the rest unsolved ([next.js#90034](https://github.com/vercel/next.js/discussions/90034)), and
+  `next dev --webpack` avoids it, which we passed on to keep Turbopack (2026-11-19, Next 16.4.6).
 
 ## Rules worth knowing
 
