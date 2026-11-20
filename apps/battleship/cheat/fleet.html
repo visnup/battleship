@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Battleship Fleet Test</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="fleet.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Test your fleet</h1>
+      <p class="help">Place your ships, then every algorithm on the <a href="./">cheat sheet</a> plays against them. Tap a ship to pick it up.</p>
+      <p class="actions" id="ships"></p>
+      <p class="actions"><button id="rotate"></button> <button id="random">Random</button> <button id="clear">Clear</button></p>
+      <div id="board" role="grid" aria-label="Your board"></div>
+      <h2>Shots to sink your fleet</h2>
+      <p class="help">The average of up to 10 games each; tap one to see its first game on the board. Fewer is worse for you.</p>
+      <table id="results"></table>
+    </main>
+  </body>
+</html>

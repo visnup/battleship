@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Battleship Cheat Sheet</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="cheat.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Battleship cheat sheet</h1>
+      <p class="help">Fire where it says, or anywhere: tap a cell, then say what happened. Or <a href="fleet.html">test your own fleet</a> against them.</p>
+      <label class="algo">
+        Shade the board by
+        <select id="algo"></select>
+      </label>
+      <div id="board" role="grid" aria-label="Opponent's board"></div>
+      <div id="answer" hidden>
+        <span id="target"></span>
+        <button data-result="miss">Miss</button>
+        <button data-result="hit">Hit</button>
+        <span id="sinks"></span>
+      </div>
+      <p class="actions"><button id="undo">Undo</button> <button id="reset">New game</button> <span id="count"></span></p>
+      <p id="mistake" hidden>No fleet fits these answers, so one of them is probably wrong. Undo back to it.</p>
+      <h2>Next shot by each algorithm</h2>
+      <p class="help">Each tuned one assumes a habit; the bar is how likely that habit is, from how many of 20,000 sample fleets hidden that way still fit your shots. Adaptive goes by the bars.</p>
+      <table id="picks"></table>
+    </main>
+  </body>
+</html>

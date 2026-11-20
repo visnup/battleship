@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cheat",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["cheat", "--port", "8137", "--strictPort"],
+      "port": 8137
+    }
+  ]
+}
