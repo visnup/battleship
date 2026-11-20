@@ -21,8 +21,7 @@ export async function library(n: number) {
 /** A task: `n` fleets from each placer, a row each. */
 export function sample(heat: number[], seed: number, n: number) {
   const rng = mulberry32(seed);
-  return Array.from({ length: n }, () =>
-    (["naive", ...PLACERS] as PlacerName[]).map((name) => ({ placer: name, ...Object.fromEntries(placer(name, heat)(rng).map((p, s) => [SHIPS[s], p])) })));
+  return Array.from({ length: n }, () => (["naive", ...PLACERS] as PlacerName[]).map((name) => ({ placer: name, ...Object.fromEntries(placer(name, heat)(rng).map((p, s) => [SHIPS[s], p])) })));
 }
 
 if (import.meta.main) {

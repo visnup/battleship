@@ -1,0 +1,9 @@
+**/src/packed/
+**/convex/_generated/
+**/charts/
+**/dataset/
+**/cheat/public/
+**/cheat/dist/
+**/.convex/
+*.md
+pnpm-lock.yaml

@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32 } from "../src/game.ts";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 const KINDS = ["action", "property", "money"] as const;
 /** What a card counts as in an opening hand: Rent cards are actions, and wilds properties. */

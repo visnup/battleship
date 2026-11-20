@@ -5,7 +5,7 @@ import { decisive, defaultPolicy, finishIn, type Game, heuristic, mulberry32, ne
 import { parallel } from "kit/parallel.ts";
 import { learned } from "../src/learned.ts";
 import { colorPlayouts, crowsAhead, dumpPlayouts, headToHead, playouts, STRATEGIES } from "../src/strategies.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 const steps = Object.keys(STEPS) as (keyof typeof STEPS)[];
 

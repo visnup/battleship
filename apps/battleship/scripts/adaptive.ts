@@ -47,17 +47,23 @@ export function games(heatMap: number[], lib: Record<string, Uint8Array>, dialLi
     "mostly uniform": () => adaptive(rng, big, { prior: [0.6, 0.1, 0.1, 0.1, 0.1] }),
     dials: () => adaptive(rng, grid),
   };
-  return Array.from({ length: n }, () => hiders.flatMap(([hider, place]) => {
-    const fleet = place(rng);
-    return Object.entries(variants).map(([shooter, make]) => ({ hider, shooter, shots: play(fleet, make()).shots.length }));
-  }));
+  return Array.from({ length: n }, () =>
+    hiders.flatMap(([hider, place]) => {
+      const fleet = place(rng);
+      return Object.entries(variants).map(([shooter, make]) => ({ hider, shooter, shots: play(fleet, make()).shots.length }));
+    }),
+  );
 }
 
 /** Prints each variant's average shots against each hider, and its difference from adaptive, with 95% intervals. */
 if (import.meta.main) {
-  const dialLib = await parallel<Record<string, number[]>>(import.meta.url, "dials", [], 100_000, (a, b) =>
-    Object.fromEntries(Object.entries(a).map(([k, v]) => [k, v.concat(b[k])])));
-  const rows = await collect<{ hider: string; shooter: string; shots: number }>(import.meta.url, "games", [await heat(), await library(100_000), Object.fromEntries(Object.entries(dialLib).map(([k, v]) => [k, Uint8Array.from(v)]))], 2000);
+  const dialLib = await parallel<Record<string, number[]>>(import.meta.url, "dials", [], 100_000, (a, b) => Object.fromEntries(Object.entries(a).map(([k, v]) => [k, v.concat(b[k])])));
+  const rows = await collect<{ hider: string; shooter: string; shots: number }>(
+    import.meta.url,
+    "games",
+    [await heat(), await library(100_000), Object.fromEntries(Object.entries(dialLib).map(([k, v]) => [k, Uint8Array.from(v)]))],
+    2000,
+  );
   const ci = (xs: number[]) => {
     const m = xs.reduce((a, b) => a + b) / xs.length;
     const sd = Math.sqrt(xs.reduce((a, x) => a + (x - m) ** 2, 0) / (xs.length - 1));

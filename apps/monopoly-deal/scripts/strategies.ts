@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 import { headToHead, STRATEGIES } from "../src/strategies.ts";
 
 export const run = (strategy: string, players: number, seed: number, n: number) => headToHead(STRATEGIES[strategy], players, seed, n);

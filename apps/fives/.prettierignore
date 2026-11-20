@@ -1,5 +1,0 @@
-src/*.json
-src/packed/
-convex/_generated/
-charts/
-*.md

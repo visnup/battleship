@@ -14,8 +14,7 @@ export function placements(length: number, size = SIZE): number[][] {
   const out: number[][] = [];
   for (const vertical of [false, true])
     for (let r = 0; r < (vertical ? size - length + 1 : size); r++)
-      for (let c = 0; c < (vertical ? size : size - length + 1); c++)
-        out.push(Array.from({ length }, (_, i) => (vertical ? (r + i) * size + c : r * size + c + i)));
+      for (let c = 0; c < (vertical ? size : size - length + 1); c++) out.push(Array.from({ length }, (_, i) => (vertical ? (r + i) * size + c : r * size + c + i)));
   return out;
 }
 
@@ -29,7 +28,8 @@ export const fleetCells = (fleet: Fleet) => fleet.map((p, ship) => shipPlacement
 
 /** The orthogonal neighbors of `cell`. */
 export function neighbors(cell: number): number[] {
-  const r = rowOf(cell), c = colOf(cell);
+  const r = rowOf(cell),
+    c = colOf(cell);
   const out: number[] = [];
   if (r > 0) out.push(cell - SIZE);
   if (r < SIZE - 1) out.push(cell + SIZE);
@@ -40,11 +40,10 @@ export function neighbors(cell: number): number[] {
 
 /** The up to eight cells around `cell`, diagonals included. */
 export function around(cell: number): number[] {
-  const r = rowOf(cell), c = colOf(cell);
+  const r = rowOf(cell),
+    c = colOf(cell);
   const out: number[] = [];
-  for (let dr = -1; dr <= 1; dr++)
-    for (let dc = -1; dc <= 1; dc++)
-      if ((dr || dc) && r + dr >= 0 && r + dr < SIZE && c + dc >= 0 && c + dc < SIZE) out.push(cell + dr * SIZE + dc);
+  for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if ((dr || dc) && r + dr >= 0 && r + dr < SIZE && c + dc >= 0 && c + dc < SIZE) out.push(cell + dr * SIZE + dc);
   return out;
 }
 

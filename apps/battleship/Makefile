@@ -1,11 +1,8 @@
 # Regenerates results/ and charts/ from whatever changed.
 SRC := $(filter-out %.test.ts,$(wildcard src/*.ts))
 
-.PHONY: all test
+.PHONY: all
 all: charts/matrix.svg cheat/public/library.bin
-
-test:
-	node --test
 
 results/arrangements.parquet: scripts/count.ts src/arrangements.ts src/board.ts
 	node scripts/count.ts

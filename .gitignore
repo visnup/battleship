@@ -1,2 +1,10 @@
 node_modules
 .DS_Store
+.next/
+.vercel
+.env*
+*.tsbuildinfo
+next-env.d.ts
+test-results
+__pycache__
+**/rules/*.pdf

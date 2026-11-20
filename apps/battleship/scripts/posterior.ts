@@ -30,6 +30,10 @@ if (import.meta.main) {
   };
   for (const [name, rs] of by) console.log(name, "shots", ci(rs.map((r) => r.shots)), "first hit", ci(rs.map((r) => r.first_hit)));
   const shots = (name: string) => by.get(name)!.map((r) => r.shots);
-  for (const [a, b] of [["exact", "density"], ["info", "density"], ["info", "exact"]])
+  for (const [a, b] of [
+    ["exact", "density"],
+    ["info", "density"],
+    ["info", "exact"],
+  ])
     console.log(`${a} − ${b}`, ci(shots(a).map((x, i) => x - shots(b)[i])));
 }

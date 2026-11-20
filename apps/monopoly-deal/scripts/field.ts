@@ -3,7 +3,7 @@ import { defaultPolicy, type Policy } from "../src/game.ts";
 import { learned, MODEL } from "../src/learned.ts";
 import { parallel } from "kit/parallel.ts";
 import { headToHead, STRATEGIES } from "../src/strategies.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 // One player against learned players in every other seat, instead of the default: whether what
 // beats the default still wins when the others play better. The learned player itself should

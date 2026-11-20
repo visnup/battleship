@@ -3,10 +3,16 @@ import { ALGORITHMS, models } from "./algorithms.js";
 
 const $ = (id) => document.getElementById(id);
 const load = (key, fallback) => {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+  try {
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
+  } catch {
+    return fallback;
+  }
 };
 const save = (key, value) => {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
 };
 
 /** @type {{ cell: number, hit: boolean, sunk: number | null }[]} */
@@ -66,23 +72,27 @@ function render() {
   $("target").textContent = selected === null ? "" : label(selected);
   const can = selected === null ? null : options(selected, afloat, sunkCells);
   $("answer").querySelector("[data-result=hit]").disabled = !can?.hit;
-  $("sinks").replaceChildren(...afloat.map((i) => {
-    const b = Object.assign(document.createElement("button"), { textContent: `Sank ${SHIPS[i]}`, disabled: !can?.sinks.has(i) });
-    b.onclick = () => record(true, i);
-    return b;
-  }));
+  $("sinks").replaceChildren(
+    ...afloat.map((i) => {
+      const b = Object.assign(document.createElement("button"), { textContent: `Sank ${SHIPS[i]}`, disabled: !can?.sinks.has(i) });
+      b.onclick = () => record(true, i);
+      return b;
+    }),
+  );
   $("count").textContent = `${history.length} shots, ${history.filter((h) => h.hit).length} hits, ${SHIPS.length - afloat.length} of ${SHIPS.length} sunk`;
   $("mistake").hidden = picks.find((p) => p.name === "exact").s.fits !== false;
 
   const { belief } = picks.find((p) => p.name === "adaptive").s;
-  $("picks").replaceChildren(...picks.map(({ name, cell }) => {
-    const tr = document.createElement("tr");
-    tr.className = name === algo ? "current" : "";
-    const k = models.findIndex((m) => name === `tuned ${m.name}`);
-    const odds = k < 0 ? "" : `<span class="bar" style="width:${belief[k] * 6}rem"></span>${Math.round(belief[k] * 100)}%`;
-    tr.innerHTML = `<td>${name}</td><td>${odds}</td><td>${cell === null ? "—" : label(cell)}</td>`;
-    return tr;
-  }));
+  $("picks").replaceChildren(
+    ...picks.map(({ name, cell }) => {
+      const tr = document.createElement("tr");
+      tr.className = name === algo ? "current" : "";
+      const k = models.findIndex((m) => name === `tuned ${m.name}`);
+      const odds = k < 0 ? "" : `<span class="bar" style="width:${belief[k] * 6}rem"></span>${Math.round(belief[k] * 100)}%`;
+      tr.innerHTML = `<td>${name}</td><td>${odds}</td><td>${cell === null ? "—" : label(cell)}</td>`;
+      return tr;
+    }),
+  );
 }
 
 /**

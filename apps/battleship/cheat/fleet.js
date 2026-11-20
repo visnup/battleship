@@ -52,7 +52,9 @@ $("random").onclick = () => ((fleet = uniform(Math.random)), (ship = -1), change
 $("clear").onclick = () => ((fleet = SHIPS.map(() => null)), (ship = 0), changed());
 
 function changed() {
-  try { localStorage.setItem("fleet", JSON.stringify(fleet)); } catch {}
+  try {
+    localStorage.setItem("fleet", JSON.stringify(fleet));
+  } catch {}
   results = {};
   simulate(++run);
   render();
@@ -82,23 +84,29 @@ function render() {
     b.ariaLabel = `${label(c)}${owner[c] >= 0 ? ` ${SHIPS[owner[c]]}` : ""}${n ? `, shot ${n}` : ""}`;
   });
 
-  $("ships").replaceChildren(...SHIPS.map((name, s) => {
-    const b = Object.assign(document.createElement("button"), { textContent: name, className: s === ship ? "current" : fleet[s] !== null ? "placed" : "" });
-    b.onclick = () => ((ship = s), render());
-    return b;
-  }));
+  $("ships").replaceChildren(
+    ...SHIPS.map((name, s) => {
+      const b = Object.assign(document.createElement("button"), { textContent: name, className: s === ship ? "current" : fleet[s] !== null ? "placed" : "" });
+      b.onclick = () => ((ship = s), render());
+      return b;
+    }),
+  );
   $("rotate").textContent = vertical ? "Down ↓" : "Across →";
 
   const rows = Object.entries(results)
     .map(([name, { shots }]) => ({ name, shots, mean: shots.reduce((a, b) => a + b) / shots.length }))
     .sort((a, b) => a.mean - b.mean);
-  $("results").replaceChildren(...(fleet.includes(null) ? [] : rows.map(({ name, shots, mean }) => {
-    const tr = document.createElement("tr");
-    tr.className = name === shown ? "current" : "";
-    tr.onclick = () => ((shown = name), render());
-    tr.innerHTML = `<td>${name}</td><td><span class="bar" style="width:${mean / 25}rem"></span>${new Set([Math.min(...shots), Math.max(...shots)]).values().toArray().join("–")}</td><td>${mean.toFixed(1)}</td>`;
-    return tr;
-  })));
+  $("results").replaceChildren(
+    ...(fleet.includes(null)
+      ? []
+      : rows.map(({ name, shots, mean }) => {
+          const tr = document.createElement("tr");
+          tr.className = name === shown ? "current" : "";
+          tr.onclick = () => ((shown = name), render());
+          tr.innerHTML = `<td>${name}</td><td><span class="bar" style="width:${mean / 25}rem"></span>${new Set([Math.min(...shots), Math.max(...shots)]).values().toArray().join("–")}</td><td>${mean.toFixed(1)}</td>`;
+          return tr;
+        })),
+  );
 }
 
 render();

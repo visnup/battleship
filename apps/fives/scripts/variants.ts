@@ -4,7 +4,7 @@ import { defaultPolicy, heuristic, mulberry32, type Policy, STEPS, type Step, ta
 import { learned } from "../src/learned.ts";
 import { parallel } from "kit/parallel.ts";
 import { headToHead, playouts, STRATEGIES } from "../src/strategies.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 const steps = Object.keys(STEPS) as (keyof typeof STEPS)[];
 

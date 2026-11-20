@@ -88,7 +88,6 @@ from photos of one card of each property color and each wild (`rules/properties.
   `src/packed/discard.ts`, and `discarded()` in `learned.ts` discards by it.
 - `memory.ts`: card memory, what a player hasn't seen yet, appended to the move, Just Say No and
   discard numbers. `scripts/memory.sh` refit the last two with it.
-- `scripts/table.ts`: the markdown table header the scripts print their results under.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds.
   A card that's worth less than nothing shows where the default player misplays it.
 - `sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins by seat;

@@ -28,7 +28,15 @@ export function huntTarget(rng: () => number, parity = false): Shooter {
   return {
     next() {
       let cell: number;
-      do cell = stack.length ? stack.pop()! : (hunt.length ? hunt.splice(Math.floor(rng() * hunt.length), 1)[0] : pick([...shot.keys()].filter((c) => !shot[c]), rng));
+      do
+        cell = stack.length
+          ? stack.pop()!
+          : hunt.length
+            ? hunt.splice(Math.floor(rng() * hunt.length), 1)[0]
+            : pick(
+                [...shot.keys()].filter((c) => !shot[c]),
+                rng,
+              );
       while (shot[cell]);
       return cell;
     },
@@ -59,10 +67,12 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
     score.fill(0);
     let total = 0;
     for (const ship of afloat) {
-      const placements = shipPlacements(ship), missed = crossesMiss[ship];
+      const placements = shipPlacements(ship),
+        missed = crossesMiss[ship];
       next: for (let p = 0; p < placements.length; p++) {
         if (missed[p]) continue;
-        const cells = placements[p], n = cells.length;
+        const cells = placements[p],
+          n = cells.length;
         let hits = 0;
         for (let i = 0; i < n; i++) {
           const s = state[cells[i]];
@@ -75,7 +85,11 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
         }
         if (hits === n || (target && !hits)) continue;
         const w = (weights ? weights[ship][p] : 1) * 100 ** hits;
-        for (let i = 0; i < n; i++) if (!state[cells[i]]) (score[cells[i]] += w), (total += w);
+        for (let i = 0; i < n; i++)
+          if (!state[cells[i]]) {
+            score[cells[i]] += w;
+            total += w;
+          }
       }
     }
     return total;
@@ -88,7 +102,10 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
       const ties: number[] = [];
       for (let c = 0; c < CELLS; c++) {
         if (state[c] || score[c] < best) continue;
-        if (score[c] > best) (best = score[c]), (ties.length = 0);
+        if (score[c] > best) {
+          best = score[c];
+          ties.length = 0;
+        }
         ties.push(c);
       }
       return ties.length ? pick(ties, rng) : state.indexOf(0);
@@ -96,7 +113,10 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
     observe(cell, hit, sunk) {
       state[cell] = shot[cell] = hit ? 2 : 1;
       order[cell] = shots++;
-      if (sunk !== null) afloat.delete(sunk), sinks.push({ ship: sunk, cell });
+      if (sunk !== null) {
+        afloat.delete(sunk);
+        sinks.push({ ship: sunk, cell });
+      }
       if (sinks.length) claim();
     },
   };
@@ -108,28 +128,32 @@ export function density(rng: () => number, weights?: number[][]): Shooter & { sc
    * again after every shot, since later shots can rule a choice out.
    */
   function claim() {
-    const options = sinks.map(({ ship, cell }) =>
-      shipPlacements(ship).filter((cs) => cs.includes(cell) && cs.every((c) => shot[c] === 2 && order[c] <= order[cell])));
+    const options = sinks.map(({ ship, cell }) => shipPlacements(ship).filter((cs) => cs.includes(cell) && cs.every((c) => shot[c] === 2 && order[c] <= order[cell])));
     const taken = new Uint8Array(CELLS);
-    let best = Infinity, lines: number[][] = [];
+    let best = Infinity,
+      lines: number[][] = [];
     const chosen: number[][] = [];
     if (options.every((o) => o.length === 1)) lines = options.map((o) => o[0]);
-    else (function choose(i: number) {
-      if (!best) return;
-      if (i === options.length) {
-        const b = unexplained(taken);
-        if (b < best) (best = b), (lines = chosen.slice());
-        return;
-      }
-      for (const cs of options[i]) {
-        if (cs.some((c) => taken[c])) continue;
-        for (const c of cs) taken[c] = 1;
-        chosen.push(cs);
-        choose(i + 1);
-        chosen.pop();
-        for (const c of cs) taken[c] = 0;
-      }
-    })(0);
+    else
+      (function choose(i: number) {
+        if (!best) return;
+        if (i === options.length) {
+          const b = unexplained(taken);
+          if (b < best) {
+            best = b;
+            lines = chosen.slice();
+          }
+          return;
+        }
+        for (const cs of options[i]) {
+          if (cs.some((c) => taken[c])) continue;
+          for (const c of cs) taken[c] = 1;
+          chosen.push(cs);
+          choose(i + 1);
+          chosen.pop();
+          for (const c of cs) taken[c] = 0;
+        }
+      })(0);
     state.set(shot);
     for (const c of lines.length ? lines.flat() : sinks.map((s) => s.cell)) state[c] = 3;
   }
@@ -167,7 +191,8 @@ export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Sho
   let ships = SHIPS.map((_, s) => s);
   let pool: { owner: Int8Array; fleet: number[] }[] = [];
   let shots = 0;
-  const owner = new Int8Array(CELLS), fleet = SHIPS.map(() => 0);
+  const owner = new Int8Array(CELLS),
+    fleet = SHIPS.map(() => 0);
   const draw = () => {
     owner.fill(-1);
     for (const s of ships) {
@@ -185,8 +210,7 @@ export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Sho
     fits: true,
     next() {
       const possible = allowed.every((a) => a.length);
-      for (let tries = 0; possible && pool.length < n && (tries < 1000 * n || (!pool.length && tries < 2_000_000)); tries++)
-        if (draw()) pool.push({ owner: owner.slice(), fleet: fleet.slice() });
+      for (let tries = 0; possible && pool.length < n && (tries < 1000 * n || (!pool.length && tries < 2_000_000)); tries++) if (draw()) pool.push({ owner: owner.slice(), fleet: fleet.slice() });
       if (!(this.fits = pool.length > 0)) return order.indexOf(-1);
       let best = -Infinity;
       const ties: number[] = [];
@@ -199,7 +223,10 @@ export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Sho
         const hits = pool.length - counts[0];
         score[c] = goal === "hit" ? hits : counts.reduce((h, k) => (k ? h - k * Math.log(k / pool.length) : h), 0) + hits * 1e-9;
         if (score[c] < best) continue;
-        if (score[c] > best) (best = score[c]), (ties.length = 0);
+        if (score[c] > best) {
+          best = score[c];
+          ties.length = 0;
+        }
         ties.push(c);
       }
       return pick(ties, rng);
@@ -208,7 +235,7 @@ export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Sho
       order[cell] = shots++;
       hit[cell] = +h;
       if (sunk !== null) sunkAt[sunk] = cell;
-      pool = pool.filter(({ owner, fleet }) => (owner[cell] >= 0) === h && (!h || (sinks(fleet, owner[cell], cell) ? owner[cell] === sunk : sunk === null)));
+      pool = pool.filter(({ owner, fleet }) => owner[cell] >= 0 === h && (!h || (sinks(fleet, owner[cell], cell) ? owner[cell] === sunk : sunk === null)));
       SHIPS.forEach((_, s) => {
         allowed[s] = allowed[s].filter((p) => {
           const cells = shipPlacements(s)[p];
@@ -228,7 +255,8 @@ export function posterior(rng: () => number, goal: "hit" | "info", n = 200): Sho
  * density shooter tuned to them uses.
  */
 export function model(name: string, fleets: ArrayLike<number>) {
-  const n = fleets.length / SHIPS.length, words = Math.ceil(n / 32);
+  const n = fleets.length / SHIPS.length,
+    words = Math.ceil(n / 32);
   const cover = new Uint32Array(CELLS * words);
   const counts = SHIPS.map((_, s) => shipPlacements(s).map(() => 1));
   for (let i = 0; i < n; i++)
@@ -264,7 +292,7 @@ const popcount = (x: number) => {
 export function adaptive(rng: () => number, models: Model[], { probe = false, prior = models.map(() => 1) } = {}): Shooter & { score: Float64Array; belief: number[] } {
   const alive = models.map((m) => {
     const a = new Uint32Array(m.words).fill(~0);
-    if (m.n % 32) a[m.words - 1] = (1 << m.n % 32) - 1;
+    if (m.n % 32) a[m.words - 1] = (1 << (m.n % 32)) - 1;
     return a;
   });
   const belief = prior.map((p) => p / prior.reduce((a, b) => a + b));
@@ -272,9 +300,9 @@ export function adaptive(rng: () => number, models: Model[], { probe = false, pr
   const inner = density(rng, mix);
   const shot = new Uint8Array(CELLS);
   const score = new Float64Array(CELLS);
-  let unresolved = 0, frozen = false;
-  const retune = () =>
-    mix.forEach((ps, s) => ps.forEach((_, p) => (ps[p] = models.reduce((w, m, k) => w + belief[k] * m.weights[s][p], 0))));
+  let unresolved = 0,
+    frozen = false;
+  const retune = () => mix.forEach((ps, s) => ps.forEach((_, p) => (ps[p] = models.reduce((w, m, k) => w + belief[k] * m.weights[s][p], 0))));
   retune();
   return {
     score,
@@ -286,7 +314,11 @@ export function adaptive(rng: () => number, models: Model[], { probe = false, pr
         return cell;
       }
       const p = models.map((m, k) => {
-        const a = alive[k], n = Math.max(1, a.reduce((t, w) => t + popcount(w), 0));
+        const a = alive[k],
+          n = Math.max(
+            1,
+            a.reduce((t, w) => t + popcount(w), 0),
+          );
         return Array.from({ length: CELLS }, (_, c) => {
           let hits = 0;
           for (let w = 0; w < m.words; w++) hits += popcount(a[w] & m.cover[c * m.words + w]);
@@ -300,7 +332,10 @@ export function adaptive(rng: () => number, models: Model[], { probe = false, pr
         const mixed = belief.reduce((s, b, k) => s + b * p[k][c], 0);
         score[c] = entropy(mixed) - belief.reduce((s, b, k) => s + b * entropy(p[k][c]), 0);
         if (score[c] < best) continue;
-        if (score[c] > best) (best = score[c]), (ties.length = 0);
+        if (score[c] > best) {
+          best = score[c];
+          ties.length = 0;
+        }
         ties.push(c);
       }
       return pick(ties, rng);
@@ -312,7 +347,9 @@ export function adaptive(rng: () => number, models: Model[], { probe = false, pr
       if (frozen) return;
       const flip = hit ? 0 : ~0;
       const counts = models.map((m, k) => {
-        const a = alive[k], cover = m.cover, at = cell * m.words;
+        const a = alive[k],
+          cover = m.cover,
+          at = cell * m.words;
         let n = 0;
         for (let w = 0; w < m.words; w++) n += popcount(a[w] & (cover[at + w] ^ flip));
         return n;
@@ -320,7 +357,9 @@ export function adaptive(rng: () => number, models: Model[], { probe = false, pr
       // Once few sample fleets fit, their shares are mostly noise: keep the last belief.
       if (Math.max(...counts) < 20) return void (frozen = true);
       models.forEach((m, k) => {
-        const a = alive[k], cover = m.cover, at = cell * m.words;
+        const a = alive[k],
+          cover = m.cover,
+          at = cell * m.words;
         for (let w = 0; w < m.words; w++) a[w] &= cover[at + w] ^ flip;
       });
       const shares = models.map((m, k) => (prior[k] * counts[k]) / m.n);
@@ -337,16 +376,17 @@ type Entry = { note: string; make: (rng: () => number) => Shooter };
  * Every shooter by name, with a line on what it does. `tuned` are the habits the tuned shooters
  * each assume, and `models` the ones adaptive chooses between.
  */
-export const lineup = (models: Model[], tuned = models) => ({
-  random: { note: "anywhere it hasn't fired", make: (rng) => random(rng) },
-  hunt: { note: "at random, then neighbors of hits", make: (rng) => huntTarget(rng) },
-  parity: { note: "checkerboard, then neighbors of hits", make: (rng) => huntTarget(rng, true) },
-  density: { note: "the classic probability density", make: (rng) => density(rng) },
-  exact: { note: "likeliest cell, from 1,000 fleets that fit", make: (rng) => posterior(rng, "hit", 1000) },
-  info: { note: "the shot that tells you most", make: (rng) => posterior(rng, "info", 1000) },
-  ...Object.fromEntries(tuned.map((m) => [`tuned ${m.name}`, { note: `if they always hide ${m.name}`, make: (rng) => density(rng, m.weights) } satisfies Entry])),
-  adaptive: { note: "works out their habit as it goes", make: (rng) => adaptive(rng, models) },
-}) satisfies Record<string, Entry>;
+export const lineup = (models: Model[], tuned = models) =>
+  ({
+    random: { note: "anywhere it hasn't fired", make: (rng) => random(rng) },
+    hunt: { note: "at random, then neighbors of hits", make: (rng) => huntTarget(rng) },
+    parity: { note: "checkerboard, then neighbors of hits", make: (rng) => huntTarget(rng, true) },
+    density: { note: "the classic probability density", make: (rng) => density(rng) },
+    exact: { note: "likeliest cell, from 1,000 fleets that fit", make: (rng) => posterior(rng, "hit", 1000) },
+    info: { note: "the shot that tells you most", make: (rng) => posterior(rng, "info", 1000) },
+    ...Object.fromEntries(tuned.map((m) => [`tuned ${m.name}`, { note: `if they always hide ${m.name}`, make: (rng) => density(rng, m.weights) } satisfies Entry])),
+    adaptive: { note: "works out their habit as it goes", make: (rng) => adaptive(rng, models) },
+  }) satisfies Record<string, Entry>;
 
 /** The shooters that need no habits. */
 export const SHOOTERS = ["random", "hunt", "parity", "density"] as const;
@@ -366,7 +406,10 @@ export function play(fleet: Fleet, s: Shooter) {
     if (fired[cell]++) throw new Error(`fired at ${cell} twice`);
     const ship = owner[cell];
     const sunk = ship >= 0 && --left[ship] === 0 ? ship : null;
-    if (sunk !== null) (sunkAt[sunk] = shots.length + 1), afloat--;
+    if (sunk !== null) {
+      sunkAt[sunk] = shots.length + 1;
+      afloat--;
+    }
     shots.push({ cell, hit: ship >= 0, sunk });
     s.observe(cell, ship >= 0, sunk);
   }

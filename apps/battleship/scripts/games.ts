@@ -13,18 +13,24 @@ let shooters: [string, (rng: () => number) => Shooter][];
  * first 100,000. Every shooter faces the same fleets.
  */
 export function games(heatMap: number[], lib: Record<string, Uint8Array>, seed: number, n: number) {
-  shooters ??= Object.entries(lineup(
-    PLACERS.map((name) => model(name, lib[name].subarray(0, 100_000 * SHIPS.length))),
-    PLACERS.map((name) => model(name, lib[name])),
-  )).filter(([name]) => name !== "exact" && name !== "info").map(([name, { make }]) => [name, make]);
+  shooters ??= Object.entries(
+    lineup(
+      PLACERS.map((name) => model(name, lib[name].subarray(0, 100_000 * SHIPS.length))),
+      PLACERS.map((name) => model(name, lib[name])),
+    ),
+  )
+    .filter(([name]) => name !== "exact" && name !== "info")
+    .map(([name, { make }]) => [name, make]);
   const rng = mulberry32(seed);
-  return Array.from({ length: n }, () => PLACERS.flatMap((p) => {
-    const fleet = placer(p, heatMap)(rng);
-    return shooters.map(([name, make]) => {
-      const { shots, sunkAt } = play(fleet, make(rng));
-      return { shooter: name, placer: p, shots: shots.length, first_hit: shots.findIndex((s) => s.hit) + 1, ...Object.fromEntries(SHIPS.map((s, i) => [s, sunkAt[i]])) };
-    });
-  }));
+  return Array.from({ length: n }, () =>
+    PLACERS.flatMap((p) => {
+      const fleet = placer(p, heatMap)(rng);
+      return shooters.map(([name, make]) => {
+        const { shots, sunkAt } = play(fleet, make(rng));
+        return { shooter: name, placer: p, shots: shots.length, first_hit: shots.findIndex((s) => s.hit) + 1, ...Object.fromEntries(SHIPS.map((s, i) => [s, sunkAt[i]])) };
+      });
+    }),
+  );
 }
 
 /** A task: every shot of `n` games against uniform fleets, by each plain shooter. */
@@ -32,8 +38,7 @@ export function shots(seed: number, n: number) {
   const rng = mulberry32(seed);
   return Array.from({ length: n }, () => {
     const fleet = placer("uniform", [])(rng);
-    return SHOOTERS.flatMap((name) => play(fleet, shooter(name, rng)).shots.map((s, i) =>
-      ({ shooter: name, shot: i + 1, cell: s.cell, hit: +s.hit, sunk: s.sunk === null ? null : SHIPS[s.sunk] })));
+    return SHOOTERS.flatMap((name) => play(fleet, shooter(name, rng)).shots.map((s, i) => ({ shooter: name, shot: i + 1, cell: s.cell, hit: +s.hit, sunk: s.sunk === null ? null : SHIPS[s.sunk] })));
   });
 }
 

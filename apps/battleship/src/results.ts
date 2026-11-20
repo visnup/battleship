@@ -15,10 +15,7 @@ export async function write(name: string, rows: Rows) {
   const columnData = Object.keys(rows[0]).map((column) => {
     const data = rows.map((r) => r[column] ?? null);
     const sample = data.find((x) => x !== null);
-    const type =
-      typeof sample === "string" ? "STRING"
-      : data.every((x) => x === null || (Number.isInteger(x) && Math.abs(x as number) < 2 ** 31)) ? "INT32"
-      : "DOUBLE";
+    const type = typeof sample === "string" ? "STRING" : data.every((x) => x === null || (Number.isInteger(x) && Math.abs(x as number) < 2 ** 31)) ? "INT32" : "DOUBLE";
     return { name: column, data, type } as const;
   });
   const tmp = path(`${name}.tmp`);
@@ -33,6 +30,7 @@ export const parquet = (name: string) => `read_parquet('${path(name)}')`;
 let connection: import("@duckdb/node-api").DuckDBConnection | undefined;
 
 /** Runs `sql` in DuckDB and returns its rows as objects. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB rows
 export async function query<T = Record<string, any>>(sql: string): Promise<T[]> {
   if (!connection) {
     const { DuckDBInstance } = await import("@duckdb/node-api");

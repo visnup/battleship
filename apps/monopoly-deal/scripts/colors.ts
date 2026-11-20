@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { COLOR_NAMES, fullColors, Game, mulberry32 } from "../src/game.ts";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 /** At the end of `n` games, which colors the winner's sets were, and the full sets losers held. */
 export function colors(players: number, seed: number, n: number) {

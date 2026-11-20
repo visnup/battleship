@@ -175,6 +175,48 @@ importers:
 
   .:
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.64.1
+        version: 1.65.1
+      '@tailwindcss/postcss':
+        specifier: ^4.3.5
+        version: 4.3.5
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      concurrently:
+        specifier: ^10.0.6
+        version: 10.0.7
+      eslint:
+        specifier: ^10.14.0
+        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint-config-next:
+        specifier: ^16.4.3
+        version: 16.4.6(@typescript-eslint/parser@8.73.0(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))
+      eslint-plugin-prettier:
+        specifier: ^5.5.7
+        version: 5.5.7(eslint-config-prettier@10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2)))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(prettier@3.10.1)
+      jsdom:
+        specifier: ^31.0.1
+        version: 31.0.1
+      prettier:
+        specifier: ^3.9.10
+        version: 3.10.1
+      tailwindcss:
+        specifier: ^4.3.5
+        version: 4.3.5
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
       vercel:
         specifier: ^66.2.0
         version: 66.2.0(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(supports-color@10.2.2)
@@ -190,9 +232,6 @@ importers:
       hyparquet-writer:
         specifier: ^0.18.0
         version: 0.18.0
-      jsdom:
-        specifier: ^31.0.1
-        version: 31.0.1
       kit:
         specifier: workspace:*
         version: link:../../packages/kit
@@ -223,49 +262,6 @@ importers:
       react-dom:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
-    devDependencies:
-      '@playwright/test':
-        specifier: ^1.64.1
-        version: 1.65.1
-      '@tailwindcss/postcss':
-        specifier: ^4.3.5
-        version: 4.3.5
-      '@types/node':
-        specifier: ^26.6.6
-        version: 26.6.6
-      '@types/react':
-        specifier: ^19.3.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.3.0
-        version: 19.3.0(@types/react@19.3.0)
-      concurrently:
-        specifier: ^10.0.6
-        version: 10.0.7
-      eslint:
-        specifier: ^10.14.0
-        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
-      eslint-config-next:
-        specifier: ^16.4.3
-        version: 16.4.6(@typescript-eslint/parser@8.73.0(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))
-      eslint-plugin-prettier:
-        specifier: ^5.5.7
-        version: 5.5.7(eslint-config-prettier@10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2)))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(prettier@3.10.1)
-      jsdom:
-        specifier: ^31.0.1
-        version: 31.0.1
-      prettier:
-        specifier: ^3.9.10
-        version: 3.10.1
-      tailwindcss:
-        specifier: ^4.3.5
-        version: 4.3.5
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
 
   apps/hilt:
     dependencies:
@@ -290,52 +286,12 @@ importers:
       react-dom:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
-    devDependencies:
-      '@playwright/test':
-        specifier: ^1.64.1
-        version: 1.65.1
-      '@tailwindcss/postcss':
-        specifier: ^4.3.5
-        version: 4.3.5
-      '@types/node':
-        specifier: ^26.6.6
-        version: 26.6.6
-      '@types/react':
-        specifier: ^19.3.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.3.0
-        version: 19.3.0(@types/react@19.3.0)
-      concurrently:
-        specifier: ^10.0.6
-        version: 10.0.7
-      eslint:
-        specifier: ^10.14.0
-        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
-      eslint-config-next:
-        specifier: ^16.4.3
-        version: 16.4.6(@typescript-eslint/parser@8.73.0(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))
-      eslint-plugin-prettier:
-        specifier: ^5.5.7
-        version: 5.5.7(eslint-config-prettier@10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2)))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(prettier@3.10.1)
-      jsdom:
-        specifier: ^31.0.1
-        version: 31.0.1
-      prettier:
-        specifier: ^3.9.10
-        version: 3.10.1
-      tailwindcss:
-        specifier: ^4.3.5
-        version: 4.3.5
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
 
   apps/monopoly-deal:
     dependencies:
+      '@observablehq/plot':
+        specifier: ^0.6.19
+        version: 0.6.19
       '@vercel/analytics':
         specifier: ^2.0.1
         version: 2.0.1(next@16.4.6(@babel/core@7.29.13(supports-color@10.2.2))(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
@@ -354,52 +310,6 @@ importers:
       react-dom:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
-    devDependencies:
-      '@observablehq/plot':
-        specifier: ^0.6.19
-        version: 0.6.19
-      '@playwright/test':
-        specifier: ^1.64.1
-        version: 1.65.1
-      '@tailwindcss/postcss':
-        specifier: ^4.3.5
-        version: 4.3.5
-      '@types/node':
-        specifier: ^26.6.6
-        version: 26.6.6
-      '@types/react':
-        specifier: ^19.3.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.3.0
-        version: 19.3.0(@types/react@19.3.0)
-      concurrently:
-        specifier: ^10.0.6
-        version: 10.0.7
-      eslint:
-        specifier: ^10.14.0
-        version: 10.15.0(jiti@2.7.0)(supports-color@10.2.2)
-      eslint-config-next:
-        specifier: ^16.4.3
-        version: 16.4.6(@typescript-eslint/parser@8.73.0(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))
-      eslint-plugin-prettier:
-        specifier: ^5.5.7
-        version: 5.5.7(eslint-config-prettier@10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2)))(eslint@10.15.0(jiti@2.7.0)(supports-color@10.2.2))(prettier@3.10.1)
-      jsdom:
-        specifier: ^31.0.1
-        version: 31.0.1
-      prettier:
-        specifier: ^3.9.10
-        version: 3.10.1
-      tailwindcss:
-        specifier: ^4.3.5
-        version: 4.3.5
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
 
   packages/kit: {}
 

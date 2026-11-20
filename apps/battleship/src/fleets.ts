@@ -66,43 +66,50 @@ export const clustered: Placer = (rng) => {
  * The coldest of `tries` uniform fleets: the one whose cells are least often occupied, by the
  * exact heat map `heat` (a chance per cell). It hides where a density shooter looks last.
  */
-export const cold = (heat: number[], tries = 100): Placer => (rng) => {
-  let best: Fleet = [], low = Infinity;
-  for (let i = 0; i < tries; i++) {
-    const fleet = uniform(rng);
-    const h = fleet.reduce((s, p, ship) => s + shipPlacements(ship)[p].reduce((t, c) => t + heat[c], 0), 0);
-    if (h < low) (low = h), (best = fleet);
-  }
-  return best;
-};
+export const cold =
+  (heat: number[], tries = 100): Placer =>
+  (rng) => {
+    let best: Fleet = [],
+      low = Infinity;
+    for (let i = 0; i < tries; i++) {
+      const fleet = uniform(rng);
+      const h = fleet.reduce((s, p, ship) => s + shipPlacements(ship)[p].reduce((t, c) => t + heat[c], 0), 0);
+      if (h < low) {
+        low = h;
+        best = fleet;
+      }
+    }
+    return best;
+  };
 
 /**
  * A habit as two dials: each ship goes on the outer ring with chance `edge`, and each one after the
  * carrier is placed so it touches one already placed (`clustered`), touches none even diagonally
  * (`spread`), or either (`any`). Ships go down biggest first; a dead end starts over.
  */
-export const dialed = (edge: number, touch: "spread" | "any" | "clustered"): Placer => (rng) => {
-  for (;;) {
-    const taken = new Int8Array(CELLS).fill(-1);
-    const fleet: Fleet = [];
-    for (const ship of SHIPS.keys()) {
-      const rim = rng() < edge;
-      const options = all(ship).filter((p) => {
-        const cs = shipPlacements(ship)[p];
-        if (cs.some((c) => taken[c] >= 0) || (rim && !cs.every(onEdge))) return false;
-        if (touch === "any" || ship === 0) return true;
-        return touch === "clustered" ? cs.some((c) => neighbors(c).some((n) => taken[n] >= 0)) : !cs.some((c) => around(c).some((n) => taken[n] >= 0));
-      });
-      if (!options.length) break;
-      fleet.push(pick(options, rng));
-      for (const c of shipPlacements(ship)[fleet[ship]]) taken[c] = ship;
+export const dialed =
+  (edge: number, touch: "spread" | "any" | "clustered"): Placer =>
+  (rng) => {
+    for (;;) {
+      const taken = new Int8Array(CELLS).fill(-1);
+      const fleet: Fleet = [];
+      for (const ship of SHIPS.keys()) {
+        const rim = rng() < edge;
+        const options = all(ship).filter((p) => {
+          const cs = shipPlacements(ship)[p];
+          if (cs.some((c) => taken[c] >= 0) || (rim && !cs.every(onEdge))) return false;
+          if (touch === "any" || ship === 0) return true;
+          return touch === "clustered" ? cs.some((c) => neighbors(c).some((n) => taken[n] >= 0)) : !cs.some((c) => around(c).some((n) => taken[n] >= 0));
+        });
+        if (!options.length) break;
+        fleet.push(pick(options, rng));
+        for (const c of shipPlacements(ship)[fleet[ship]]) taken[c] = ship;
+      }
+      if (fleet.length === SHIPS.length) return fleet;
     }
-    if (fleet.length === SHIPS.length) return fleet;
-  }
-};
+  };
 
 export const PLACERS = ["uniform", "edges", "spread", "clustered", "cold"] as const;
 export type PlacerName = (typeof PLACERS)[number] | "naive";
 
-export const placer = (name: PlacerName, heat: number[]): Placer =>
-  ({ uniform, naive, edges, spread, clustered, cold: cold(heat) })[name];
+export const placer = (name: PlacerName, heat: number[]): Placer => ({ uniform, naive, edges, spread, clustered, cold: cold(heat) })[name];

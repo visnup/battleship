@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32, type Rules } from "../src/game.ts";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 /** Each unsettled rule read the other way from `defaultRules`. */
 const READINGS: [string, Partial<Rules>][] = [

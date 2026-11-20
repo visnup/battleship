@@ -15,17 +15,22 @@ export function arrangements(lengths: number[], size: number, first?: number) {
   // Placements of one ship that share 2+ cells with one of the other's, and how many cells beyond
   // the first: what summing coverage over a placement's cells counts too often.
   const shared = (from: number[][], to: number[][]) =>
-    from.map((p) => to.flatMap((q, j) => {
-      const k = q.filter((c) => p.includes(c)).length;
-      return k >= 2 ? [[j, k - 1]] : [];
-    }));
-  const sharedAB = shared(ps[a], ps[b]), sharedBA = shared(ps[b], ps[a]);
+    from.map((p) =>
+      to.flatMap((q, j) => {
+        const k = q.filter((c) => p.includes(c)).length;
+        return k >= 2 ? [[j, k - 1]] : [];
+      }),
+    );
+  const sharedAB = shared(ps[a], ps[b]),
+    sharedBA = shared(ps[b], ps[a]);
   const cover = lengths.map(() => new Float64Array(cells));
   const weight = ps.map((p) => new Float64Array(p.length));
   const taken = new Uint8Array(cells);
   const path: number[] = [];
-  const freeA = new Uint8Array(ps[a].length), freeB = new Uint8Array(ps[b].length);
-  const covA = new Float64Array(cells), covB = new Float64Array(cells);
+  const freeA = new Uint8Array(ps[a].length),
+    freeB = new Uint8Array(ps[b].length);
+  const covA = new Float64Array(cells),
+    covB = new Float64Array(cells);
   let total = 0;
 
   const free = (list: number[][], flags: Uint8Array, cov: Float64Array) => {
@@ -56,7 +61,8 @@ export function arrangements(lengths: number[], size: number, first?: number) {
 
   (function lay(ship: number) {
     if (ship === a) {
-      const fa = free(ps[a], freeA, covA), fb = free(ps[b], freeB, covB);
+      const fa = free(ps[a], freeA, covA),
+        fb = free(ps[b], freeB, covB);
       const count = pairs(ps[a], freeA, fb, covB, sharedAB, freeB, cover[a]);
       pairs(ps[b], freeB, fa, covA, sharedBA, freeA, cover[b]);
       path.forEach((p, s) => (weight[s][p] += count));

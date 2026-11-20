@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, mulberry32, type Policy } from "../src/game.ts";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 /**
  * In `n` default-player games, every payment: how many there are, how many cost properties, and

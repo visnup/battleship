@@ -2,7 +2,7 @@ import { parseArgs } from "node:util";
 import { type Card, DECK, name } from "../src/cards.ts";
 import { Game, mulberry32 } from "../src/game.ts";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 /** One of each kind of card. */
 const KINDS: Card[] = [...new Set(DECK)];

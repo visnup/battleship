@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { Game, MAX_TURNS, mulberry32 } from "../src/game.ts";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 import { chance } from "../src/strategies.ts";
 
 const ROUNDS = 8;

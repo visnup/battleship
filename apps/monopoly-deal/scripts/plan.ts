@@ -3,7 +3,7 @@ import type { Policy } from "../src/game.ts";
 import { learned, ranked } from "../src/learned.ts";
 import { parallel } from "kit/parallel.ts";
 import { headToHead, playouts } from "../src/strategies.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 
 // Whether planning a whole turn beats picking each move on its own: the learned player, against
 // one that tries the model's top `k` moves, finishes the turn as the learned player on `n`

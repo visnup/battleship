@@ -34,7 +34,7 @@ import {
 } from "../src/game.ts";
 import { discarded, paid, said } from "../src/learned.ts";
 import { parallel } from "kit/parallel.ts";
-import { header } from "./table.ts";
+import { header } from "kit/table.ts";
 import { build, chance, headToHead, paired, STRATEGIES, translate } from "../src/strategies.ts";
 
 // Changes to `defaultPolicy`, each from a pattern in `decisions.ts`, played head to head against

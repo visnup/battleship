@@ -10,7 +10,8 @@ test("a ship of length n has 2 × 10 × (11 − n) placements", () => {
 });
 
 test("arrangements match brute force on a small board", () => {
-  const size = 5, lengths = [3, 3, 2, 2];
+  const size = 5,
+    lengths = [3, 3, 2, 2];
   const ps = lengths.map((l) => placements(l, size));
   let total = 0;
   const cover = lengths.map(() => Array(size * size).fill(0));
@@ -41,13 +42,15 @@ test("every placer makes a legal fleet", () => {
 
 test("every shooter sinks the fleet without firing twice", () => {
   const rng = mulberry32(2);
-  const makers = [...SHOOTERS.map((name) => [200, () => shooter(name, rng)] as const),
-    ...(["hit", "info"] as const).map((goal) => [20, () => posterior(rng, goal, 50)] as const)];
+  const makers = [...SHOOTERS.map((name) => [200, () => shooter(name, rng)] as const), ...(["hit", "info"] as const).map((goal) => [20, () => posterior(rng, goal, 50)] as const)];
   for (const [games, make] of makers)
     for (let i = 0; i < games; i++) {
       const { shots, sunkAt } = play(placer("uniform", [])(rng), make());
       assert.ok(shots.length <= CELLS);
-      assert.equal(shots.filter((s) => s.hit).length, LENGTHS.reduce((a, b) => a + b));
+      assert.equal(
+        shots.filter((s) => s.hit).length,
+        LENGTHS.reduce((a, b) => a + b),
+      );
       assert.equal(Math.max(...sunkAt), shots.length);
     }
 });

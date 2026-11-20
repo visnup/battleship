@@ -4,13 +4,14 @@
   "license": "MIT",
   "scripts": {
     "cheat": "vite cheat",
-    "build": "vite build cheat"
+    "build": "vite build cheat",
+    "lint": "eslint .",
+    "test": "node --test"
   },
   "devDependencies": {
     "@duckdb/node-api": "2.0.0-r.1",
     "@observablehq/plot": "^0.6.19",
     "hyparquet-writer": "^0.18.0",
-    "jsdom": "^31.0.1",
     "kit": "workspace:*",
     "vite": "^8.3.8"
   }

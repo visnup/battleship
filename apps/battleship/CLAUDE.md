@@ -2,7 +2,7 @@
 
 An analysis of Battleship (Hasbro rules: 10×10, ships of 5, 4, 3, 3 and 2 that may touch, and a
 sunk ship is named). Node 26 runs the TypeScript directly. The engine has no dependencies; the
-scripts need `pnpm install` (DuckDB, hyparquet-writer, Observable Plot and jsdom). It follows
+scripts need `pnpm install` (DuckDB, hyparquet-writer, Observable Plot, and the root's jsdom). It follows
 `../../../magical-athlete`'s layout and chart conventions.
 
 - `src/board.ts`: the grid, the fleet, and every placement of each ship. A cell is
@@ -24,7 +24,8 @@ scripts need `pnpm install` (DuckDB, hyparquet-writer, Observable Plot and jsdom
   `games.ts` → `games.parquet` and `shots.parquet`, `equilibrium.ts` prints the mixed strategies,
   and `charts.ts` draws `charts/`. `posterior.ts` and `adaptive.ts` print the README's tables
   for those shooters' variants, and take minutes, so `make` skips them. `make` reruns what's stale (about 90
-  seconds from scratch, nearly all of it `games.ts`), `node --test` the tests.
+  seconds from scratch, nearly all of it `games.ts`), `pnpm test` the tests. `tsc` skips
+  `scripts/`, as in the other apps.
 - `README.md` quotes numbers from `results/`; rerun its queries after a change to `src/`.
 
 Charts: the box's sea blue is a sequential amount (occupancy, shots); red pegs to white to blue

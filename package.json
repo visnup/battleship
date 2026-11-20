@@ -2,7 +2,26 @@
   "private": true,
   "license": "MIT",
   "packageManager": "pnpm@12.21.0",
+  "scripts": {
+    "lint": "pnpm -r lint",
+    "check": "pnpm -r exec tsc --noEmit",
+    "format": "prettier --write ."
+  },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.14.0",
+    "eslint-config-next": "^16.4.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.7",
+    "jsdom": "^31.0.1",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^6.0.3",
     "vercel": "^66.2.0"
   }
 }
