@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;
+  --color-card: var(--card);
+  --color-gold: var(--gold);
+}
+
+@layer base {
+  :root {
+    --felt: #1d6b4a;
+    --bar: #123f2c;
+    --seat: rgb(0 0 0 / 0.15);
+    --card: white;
+    --gold: #f2c94c;
+    --shadow: 0 4px 16px rgb(0 0 0 / 0.3);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --felt: #0f3a28;
+      --bar: #0a2419;
+      --seat: rgb(0 0 0 / 0.2);
+      --card: #d8d4c8;
+      --gold: #d9b443;
+      color-scheme: dark;
+    }
+  }
+
+  body {
+    background: var(--felt);
+    color: white;
+  }
+
+  p {
+    margin-block: 1em;
+  }
+
+  button {
+    padding: 0.3em 0.8em;
+    border-radius: 0.5em;
+    background: var(--card);
+    color: black;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  li button {
+    margin: 0.15em 0;
+  }
+}
+
+@layer components {
+  /* The bars, the floating panel and the lobby */
+  .panel {
+    border-radius: 0.75rem;
+    background: var(--bar);
+    box-shadow: var(--shadow);
+  }
+
+  /* A card's size, shared by cards, empty slots and the draw pile; stacks overlap by multiples of it */
+  .card {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 4.5em;
+    height: 6.3em;
+    border-radius: 0.4em;
+    font-size: 0.85rem;
+  }
+
+  /* The start page's hand, held like real cards: every card turns about one point below the
+     hand, so they fan out from a single stack along one arc. On hover they slide apart and tilt
+     a little more. `--o` is a card's offset from the middle. */
+  .fan {
+    position: relative;
+    height: 7rem;
+  }
+
+  .fan > * {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    translate: -50% 0;
+    transform-origin: 50% 300%;
+    rotate: calc(var(--o) * 10deg);
+    transition:
+      rotate 0.25s ease,
+      translate 0.25s ease;
+    animation: fan 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+
+  .fan:hover > * {
+    translate: calc(-50% + var(--o) * 1.1rem) 0;
+    rotate: calc(var(--o) * 12deg);
+  }
+
+  @keyframes fan {
+    from {
+      rotate: 0deg;
+    }
+  }
+
+  /* A full set, as a pill or on the table */
+  .full {
+    outline: 2px solid var(--gold);
+    box-shadow: 0 0 6px 1px var(--gold);
+  }
+
+  /* Holds a stuck panel, and blurs what scrolls by around it like a shadow, fading out from its edges */
+  .frosted::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    /* within the page's padding above and beside, since blurring past the window's edge lightens it */
+    inset: -0.8em -0.8em -1.5em;
+    backdrop-filter: blur(12px);
+    mask-image: linear-gradient(black calc(100% - 1.5em), transparent), linear-gradient(to right, transparent, black 0.8em, black calc(100% - 0.8em), transparent);
+    mask-composite: intersect;
+  }
+
+  /* A card's tooltip, in the top layer so rows that scroll don't clip it; `Card` places it */
+  .tip {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    width: max-content;
+    max-width: 15em;
+    border: none;
+    border-radius: 0.5em;
+    background: var(--bar);
+    box-shadow: var(--shadow);
+    padding: 0.6em 0.8em;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: normal;
+    line-height: 1.35;
+    text-align: left;
+    pointer-events: none;
+  }
+
+  .seat {
+    border-radius: 0.75rem;
+    background: var(--seat);
+    padding: 0.8em;
+  }
+
+  /* Whoever's turn it is */
+  .current {
+    outline: 2px solid var(--gold);
+  }
+
+  /* A seat's small headings: sets, bank, cards in hand */
+  .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  /* The one thing to do next */
+  button.primary {
+    background: var(--gold);
+    font-weight: 700;
+  }
+
+  /* Secondary actions that shouldn't compete with the cards */
+  button.quiet {
+    background: rgb(255 255 255 / 0.15);
+    color: white;
+  }
+}
+
+/* A card that just landed where it is, from someone else's play. Unlayered to win over the
+   card's shadow utility. */
+.card.glow {
+  outline: 3px solid var(--gold);
+  box-shadow: 0 0 6px 1px var(--gold);
+  animation: land 0.5s ease-out;
+}
+
+@keyframes land {
+  from {
+    translate: 0 -0.6em;
+    opacity: 0.4;
+  }
+}
