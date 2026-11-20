@@ -97,7 +97,7 @@ function overrules(model: string, players: number, n: number) {
 
 if (import.meta.main) {
   const { values: args } = parseArgs({
-    options: { n: { type: "string", default: "1000" }, players: { type: "string", default: "3,6" }, model: { type: "string", default: "src/model.json" }, top: { type: "string", default: "20" } },
+    options: { n: { type: "string", default: "1000" }, players: { type: "string", default: "3,6" }, model: { type: "string", default: "src/packed/model.ts" }, top: { type: "string", default: "20" } },
   });
   const top = Number(args.top);
   console.log("| feature | split gain |\n| --- | --- |");

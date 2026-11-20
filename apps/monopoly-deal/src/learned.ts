@@ -5,7 +5,7 @@ import { ACTIONS, memory } from "./memory.ts";
 import { payment, payments } from "./paying.ts";
 import { refusal } from "./refusing.ts";
 import { encode, key, observe } from "./replay.ts";
-import { type Forest, flatten, score } from "./trees.ts";
+import { type Forest, flatten, score, unpack } from "./trees.ts";
 
 // A move scorer learned from the dataset: gradient-boosted trees (`scripts/learn.py`) over what
 // the mover sees and what each move does, fitted to its two-round playout value.
@@ -127,16 +127,21 @@ function network({ mean, std, layers }: { mean: number[]; std: number[]; layers:
 }
 
 // from the repo's root, where scripts run, since Convex can't load a module that uses import.meta
-export const MODEL = "src/model.json";
-export const PAY = "src/pay.json";
-export const NO = "src/sayno.json";
-export const DISCARD = "src/discard.json";
+export const MODEL = "src/packed/model.ts";
+export const PAY = "src/packed/pay.ts";
+export const NO = "src/packed/sayno.ts";
+export const DISCARD = "src/packed/discard.ts";
 const loaded: Record<string, (x: number[]) => number> = {};
 
 // fetched here rather than imported, so Convex and browsers can load this module, given trees
 function load(file: string) {
   const fs = (globalThis as unknown as { process: { getBuiltinModule(id: "node:fs"): { readFileSync(file: string, encoding: "utf8"): string } } }).process.getBuiltinModule("node:fs");
-  const json = JSON.parse(fs.readFileSync(file, "utf8"));
+  const text = fs.readFileSync(file, "utf8");
+  if (file.endsWith(".ts")) {
+    const trees = unpack(JSON.parse(text.slice(text.indexOf('"'), text.lastIndexOf('"') + 1)));
+    return (x: number[]) => score(trees, x);
+  }
+  const json = JSON.parse(text);
   if (json.layers) return network(json);
   const trees = flatten(json);
   return (x: number[]) => score(trees, x);

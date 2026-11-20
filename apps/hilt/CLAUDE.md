@@ -26,7 +26,7 @@ Its last page has the card list and each fate card's rule.
   against `--field` (`default`, `league`, `playouts`, `learned` or any variant). "The loop" below
   says how they fit together.
 - `learned.ts`: the learned player. `board` and `move` turn a decision into numbers, and the
-  LightGBM trees in `src/model.json` (flattened by `trees.ts`, copied from monopoly-deal) rank the moves.
+  LightGBM trees in `src/packed/model.ts` (flattened by `trees.ts`, copied from monopoly-deal) rank the moves.
   One of a move's numbers is whether it's the default's pick, and `hint` is the default the
   models were trained with (before `hold`); move it to `defaultPolicy` once a round trains on the
   new default.
@@ -38,7 +38,7 @@ Its last page has the card list and each fate card's rule.
   committed), an `s` for labels from learned players in the playouts and `-200` for the
   200-tree rollout models; `variants.ts` names them `learned rN` and takes any variant as
   `--field`. From round 4, round N's model is fit to rounds 3 to N's games, and its file is named for them
-  (`model-r345678s` is round 8). `src/model.json` is round 9, 24 MB. `scripts/round.sh N` runs
+  (`model-r345678s` is round 8). `src/packed/model.ts` is round 9, 2.3 MB packed; its JSON is `dataset/model-r3456789s.json`. `scripts/round.sh N` runs
   round N end to end after a half-minute smoke test of itself (`SMOKE=0` skips it), writing
   `log.txt`, `run.json` and `events.jsonl` to `dataset/rN/`, and `node scripts/status.ts`
   (`status` in `.claude/launch.json`) serves the newest round's progress and ETA at
@@ -151,8 +151,8 @@ Other players' hands aren't hidden from their browsers; it's for friends.
   dataset/model-rN-200.json src/packed/rollout.ts` after a new model is adopted. `replay()` takes its `settle` wrapper
   back off the game it returns, or the game's clones would settle it instead of themselves.
 - `hard.ts` loads `src/packed/model.ts`, the model as base64 that Convex can bundle;
-  `node scripts/pack.ts` rewrites it after the model is retrained. `learned.ts` reads JSON
-  models through `process.getBuiltinModule` and finds `src/model.json` lazily, since Convex's
+  `node scripts/pack.ts dataset/model-rN.json` rewrites it after a model is adopted. `learned.ts` reads JSON
+  models through `process.getBuiltinModule` and finds `src/packed/model.ts` lazily, since Convex's
   bundler can't take `node:fs` or `import.meta` at load.
 - `convex/`: `players` is the join and ping. `games` holds the seed, the Favor's first seat and
   the seats; `decisions` every choice in order and whether a bot made it. `games.decide` checks

@@ -1,4 +1,4 @@
-import { type Forest, flatten, score } from "./trees.ts";
+import { type Forest, flatten, score, unpack } from "./trees.ts";
 import { BACK, type Card, COLORS as HUES } from "./cards.ts";
 import { beats, defaultPolicy, face, type Game, HANDS, others, type Play, type Player, type Policy, sure, TARGET, top, total, TRUMP, unseen, winning } from "./game.ts";
 
@@ -126,11 +126,14 @@ const forests = new Map<string, Forest>();
 const load = (path: string) => {
   // getBuiltinModule, so Convex's bundler, which has no file system, never sees an import of node:fs
   const fs = (globalThis as unknown as { process: { getBuiltinModule(id: "node:fs"): { readFileSync(file: string, encoding: "utf8"): string } } }).process.getBuiltinModule("node:fs");
-  if (!forests.has(path)) forests.set(path, flatten(JSON.parse(fs.readFileSync(path, "utf8"))));
+  if (!forests.has(path)) {
+    const text = fs.readFileSync(path, "utf8");
+    forests.set(path, path.endsWith(".ts") ? unpack(JSON.parse(text.slice(text.indexOf('"'), text.lastIndexOf('"') + 1))) : flatten(JSON.parse(text)));
+  }
   return forests.get(path)!;
 };
-/** `src/model.json`, found when first needed, since Convex can't evaluate `import.meta` as it loads a module. */
-const MODEL = () => new URL("./model.json", import.meta.url).pathname;
+/** `src/packed/model.ts`, found when first needed, since Convex can't evaluate `import.meta` as it loads a module. */
+const MODEL = () => new URL("./packed/model.ts", import.meta.url).pathname;
 
 /** Whether two plays are the same. */
 export const same = (a: Play, b: Play) => a.card === b.card && a.down === b.down;

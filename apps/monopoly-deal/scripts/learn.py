@@ -2,7 +2,7 @@
 # dependencies = ["lightgbm", "numpy"]
 # ///
 """Fits `src/learned.ts`'s move scorer to the dataset's features, and writes the trees to
-src/model.json, which `playouts` ranks moves with. `uv run scripts/learn.py [trees] [out]
+dataset/model.json, by default. `uv run scripts/learn.py [trees] [out]
 [features directories…]`; with `dataset/pay`, a payment scorer on `paydata.ts`'s features.
 LightGBM needs `brew install libomp`."""
 
@@ -28,7 +28,7 @@ model = lgb.train(
     valid_sets=[lgb.Dataset(Xh, Yh, reference=train)],
     callbacks=[lgb.early_stopping(20), lgb.log_evaluation(50)],
 )
-out = Path(sys.argv[2]) if len(sys.argv) > 2 else features.parent.parent / "src" / "model.json"
+out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(__file__).parent.parent / "dataset" / "model.json"
 out.write_text(json.dumps({"tree_info": [{"tree_structure": t["tree_structure"]} for t in model.dump_model(num_iteration=model.best_iteration)["tree_info"]]}))
 
 print("\nheld out, points of win chance a decision against the default's pick (best is noisy, an upper bound):")

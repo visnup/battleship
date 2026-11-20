@@ -54,8 +54,8 @@ from photos of one card of each property color and each wild (`rules/properties.
   `uvx --from huggingface_hub hf upload visnup/monopoly-deal dataset . --repo-type dataset --include README.md --include 'data/*.parquet'`.
 - `learned.ts`: the learned player, and the features it scores moves by. `scripts/learn.ts
   extract --data --features` turns dataset shards into features; `uv run scripts/learn.py
-  [trees] [out] [features directories…]` fits LightGBM trees (needs `brew install libomp`) to
-  `src/model.json`, which the `playouts` strategy uses to pick the 5 moves it plays out, and
+  [trees] [out] [features directories…]` fits LightGBM trees (needs `brew install libomp`),
+  adopted as `src/packed/model.ts`, which the `playouts` strategy uses to pick the 5 moves it plays out, and
   `uv run scripts/learn_mlx.py` a network on the GPU. Both read the features through
   `scripts/shards.py`, holding out the last directory's last 8 shards a player count.
   `scripts/learn.ts --model` plays one head to head, and `scripts/compare.ts a.json b.json`
@@ -73,17 +73,19 @@ from photos of one card of each property color and each wild (`rules/properties.
   `scripts/field.ts` plays one player against learned players, and
   `scripts/plan.ts` tests looking ahead to the end of the turn.
 - `trees.ts` flattens LightGBM's trees into typed arrays and packs them as base64;
-  `scripts/pack.ts` writes the four models to `src/packed/`, which `hard.ts` loads for the
-  online game's hard bots without a file system. Rerun it after retraining a model.
+  `scripts/pack.ts` writes a model to `src/packed/`, which `learned.ts` reads by default and
+  `hard.ts` imports for the online game's hard bots without a file system. Rerun it after
+  retraining a model. The models' JSON stays in `dataset/` (`model-rN.json`, `model-pay.json`,
+  `model-sayno.json`, `model-discard.json`), out of git.
 - `paying.ts`: the ways to pay worth considering, and each as numbers. `scripts/paydata.ts`
-  plays each out (in `dataset/pay/`), `learn.py … dataset/pay` fits `src/pay.json`, and
+  plays each out (in `dataset/pay/`), `learn.py … dataset/pay` fits `src/packed/pay.ts`, and
   `paid()` in `learned.ts` pays by it, for the learned player and `playouts`.
 - `refusing.ts`: whether to Just Say No, as numbers, the same way. `scripts/saynodata.ts` plays
   out both answers at every chance (in `dataset/sayno/`), `learn.py … dataset/sayno` fits
-  `src/sayno.json`, and `said()` in `learned.ts` answers by it.
+  `src/packed/sayno.ts`, and `said()` in `learned.ts` answers by it.
 - `discarding.ts`: what to discard past 7, as numbers, the same way. `scripts/discarddata.ts`
   plays out each discard (in `dataset/discard/`), `learn.py … dataset/discard` fits
-  `src/discard.json`, and `discarded()` in `learned.ts` discards by it.
+  `src/packed/discard.ts`, and `discarded()` in `learned.ts` discards by it.
 - `memory.ts`: card memory, what a player hasn't seen yet, appended to the move, Just Say No and
   discard numbers. `scripts/memory.sh` refit the last two with it.
 - `scripts/table.ts`: the markdown table header the scripts print their results under.

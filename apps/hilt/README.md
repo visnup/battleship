@@ -334,7 +334,7 @@ another 1 to 3.5 points.
 Round 9 gains 0.5 to 0.9 points over round 8 at 4 to 6 players and ties it at 3 (33.4%). Against
 older models it does about as well as round 8 did, within half a point either way, so the rounds
 are levelling off. Against the default it wins 2.4 points more at 3 players and about a point less
-at 4 to 6. Round 9 is `src/model.json` now.
+at 4 to 6. Round 9 is `src/packed/model.ts` now.
 
 Round 10 played twice the games (6,000 a player count) and gains only 0.3 to 0.7 points over
 round 9, within the noise, so it wasn't adopted. Against older models it does a little better than

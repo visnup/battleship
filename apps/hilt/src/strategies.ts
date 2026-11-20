@@ -45,7 +45,7 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
   playouts: (seed) => playouts(32, seed),
   "quick playouts": (seed) => playouts(8, seed),
   "deep playouts": (seed) => playouts(128, seed),
-  /** The default, but making the move `src/model.json` ranks first: trees fit to every move's value in playouts among learned players (`learn.py`). */
+  /** The default, but making the move `src/packed/model.ts` ranks first: trees fit to every move's value in playouts among learned players (`learn.py`). */
   learned: () => learned(),
   "racing playouts": (seed) => playouts(128, seed, defaultPolicy, 2),
   "long racing playouts": (seed) => playouts(512, seed, defaultPolicy, 2),
@@ -87,7 +87,7 @@ export function random(seed = 1): Policy {
  * wins most. Each playout first deals the cards `p` can't see again, so it doesn't peek. With
  * `z`, moves race on shared deals, 8 at a time, and a move drops out once it's `z` standard errors
  * of the paired difference behind the leader, until `n` deals a move. With `top`, only the moves
- * `src/model.json` ranks highest are played out.
+ * `src/packed/model.ts` ranks highest are played out.
  */
 export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 0, top = Infinity): Policy {
   const rng = mulberry32(seed);

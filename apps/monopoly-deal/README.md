@@ -396,7 +396,7 @@ Round 4's model laid down plain properties before wilds. All three are now in th
 **As a filter it makes playouts stronger.** Playing out only the trees' top 5 moves, with twice
 the shuffles (160), wins 1.3 to 3.1 points more than playing out every move on 80 (59.1%,
 48.6%, 43.7% and 38.7%), at 1.2× the time (10,000 games each). That's now `playouts`, with the
-trees in `src/model.json`. Using the model as the player inside the imagined games instead
+trees in `src/packed/model.ts`. Using the model as the player inside the imagined games instead
 costs 20× the time and wins less. A network trained to judge the table in place of `chance` is even
 on the top 5 with 160 shuffles.
 
@@ -416,7 +416,7 @@ trees are fit to that round and the one before. Round 0 is the trees above.
 
 All on the same 50,000 deals against the default in every other seat (`scripts/compare.ts`),
 where two rounds differ by ±0.35 to ±0.46 points. Round 1 played 10,000 games a player count,
-round 2 2,500, and round 3 5,000 with the playouts paying by the learned payer (`src/pay.json`).
+round 2 2,500, and round 3 5,000 with the playouts paying by the learned payer (`src/packed/pay.ts`).
 Round 4 played 10,000 on 16 shuffles a move instead of 32, with only the mover paying that way.
 That beat 5,000 games on 32 (+0.1 to +0.3) and 10,000 with half the decisions played out (0 to
 +0.6), each against round 3: more decisions beat less noise in each. Ranked playouts gain nothing
@@ -432,9 +432,9 @@ default everywhere else (100,000 games; the default itself wins 49.6%, 33.4%, 24
 
 | learned | 2 players (fair 50.0%) | 3 players (fair 33.3%) | 4 players (fair 25.0%) | 5 players (fair 20.0%) |
 | --- | --- | --- | --- | --- |
-| paying (`src/pay.json`) | 50.7% | 35.1% | 26.6% | 21.6% |
-| Just Say No (`src/sayno.json`) | 51.3% | 34.6% | 26.0% | 21.0% |
-| discarding (`src/discard.json`) | 50.1% | 33.8% | 25.6% | 20.7% |
+| paying (`src/packed/pay.ts`) | 50.7% | 35.1% | 26.6% | 21.6% |
+| Just Say No (`src/packed/sayno.ts`) | 51.3% | 34.6% | 26.0% | 21.0% |
+| discarding (`src/packed/discard.ts`) | 50.1% | 33.8% | 25.6% | 20.7% |
 
 None of them is a rule anyone could write down: the discard model disagrees with the default's
 on 82% to 86% of discards at 3 to 5 players. With all three, round 4's trees win 59.6%, 47.5%,
@@ -449,7 +449,7 @@ three on playouts where the mover already decides them by the models gains only 
 and of the Rent cards the mover hasn't seen in a hand, bank, building or the discard pile, and how
 many cards are hidden, gain +0.2, +0.3, +0.3 and +0.4 points over the same data without them
 (each ±0.3 to ±0.4, 50,000 deals). Against round 4's trees, +0.3, +0.4, +0.5 and +1.0 (±0.3 to
-±0.5), so that model is now `src/model.json`, for `playouts` and the online game's hard bots.
+±0.5), so that model is now `src/packed/model.ts`, for `playouts` and the online game's hard bots.
 With the three models above, it wins 59.8%, 47.5%, 41.4% and 36.9% against today's default
 (`scripts/learn.ts`, 100,000 games).
 

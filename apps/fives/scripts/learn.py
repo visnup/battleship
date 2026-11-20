@@ -2,7 +2,7 @@
 # dependencies = ["lightgbm", "numpy"]
 # ///
 """Fits `src/learned.ts`'s move scorer to `dataset.ts`'s shards and writes the trees to
-`src/model.json`. `uv run scripts/learn.py [trees] [out] [data directories…]`, with `LEAVES` leaves a tree (63). Holds out the
+`dataset/model.json`. `uv run scripts/learn.py [trees] [out] [data directories…]`, with `LEAVES` leaves a tree (63). Holds out the
 last directory's last 8 shards of each player count, and reports the playout value the model's
 pick gains over the default's there. LightGBM needs `brew install libomp`."""
 
@@ -15,7 +15,7 @@ import lightgbm as lgb
 import numpy as np
 
 trees = int(sys.argv[1]) if len(sys.argv) > 1 else 500
-out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(__file__).parent.parent / "src" / "model.json"
+out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(__file__).parent.parent / "dataset" / "model.json"
 dirs = [Path(d) for d in sys.argv[3:]] or [Path(__file__).parent.parent / "dataset" / "data"]
 data = dirs[-1]
 
