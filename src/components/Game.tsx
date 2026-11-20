@@ -38,7 +38,7 @@ export function Game({ table }: { table: string }) {
     return game ? (
       <>
         <p className="m-0 pt-[0.8em] text-center text-sm opacity-80">Every seat is taken, so you&apos;re watching.</p>
-        <Board game={game} />
+        <Board key={game._id} game={game} />
       </>
     ) : (
       <p className={notice}>Every seat is taken.</p>
@@ -46,7 +46,7 @@ export function Game({ table }: { table: string }) {
   const playing = game && game.winner === undefined && game.seats.some((s) => "player" in s && s.player === player.id);
   return (
     <>
-      {game && <Board game={game} me={player.id} />}
+      {game && <Board key={game._id} game={game} me={player.id} />}
       {!playing && <Lobby table={table} me={player.id} alone={!game} />}
     </>
   );

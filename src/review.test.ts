@@ -8,16 +8,17 @@ const setup: Setup = { players: 3, seed: 7, first: 0, bots: ["default", "default
 const log = replay(setup, []).decisions.map((d) => d.choice);
 const all = (...[game, p, left]: Parameters<typeof moves>) => [null, ...moves(game, p, left)];
 
-test("a review plays out what the player chose and what the Hint would at each of their plays", () => {
-  const rows = [...review(setup, log, 1, all, { deals: 8, top: 3 })];
-  assert.ok(rows.length > 5);
+test("a review plays out what the player chose and what the Hint would at each of their decisions", () => {
+  const rows = [...review(setup, log, 1, all, { deals: 8, top: 3, cap: 4 })];
+  assert.ok(rows.filter((r) => r.kind === "move").length > 5);
+  assert.ok(rows.some((r) => r.kind === "pay"));
   for (const r of rows) {
-    assert.equal(log[r.n].seat, 1);
+    assert.deepEqual([log[r.n].seat, log[r.n].kind], [1, r.kind]);
     // a game the default player played: its choice is the Hint's
-    assert.equal(r.chose, r.hint);
+    assert.equal(r.chose, r.hint, `${r.kind} ${r.n}`);
     const keys = r.options.map((o) => o.key);
-    assert.ok(keys.includes(r.chose) && keys.includes(r.hard));
-    assert.ok(r.options.length <= 4 && r.options.every((o) => o.win >= 0 && o.win <= 1));
+    assert.ok(keys.includes(r.chose) && (r.kind !== "move" || keys.includes(r.hard!)));
+    assert.ok(r.options.length >= 2 && r.options.length <= 4 && r.options.every((o) => o.win >= 0 && o.win <= 1));
   }
 });
 

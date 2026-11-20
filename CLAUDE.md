@@ -140,7 +140,8 @@ their browsers; it's for friends.
   next person. Clients replay the log themselves.
 - `review.ts` plays out a player's options at each play they made (the Hard bot's top 5 moves,
   theirs and the Hint's, on 400 deals, like the `playouts` strategy), for the "How you played"
-  report at a game's end. `Review.tsx` splits it across a web worker per core
+  report at a game's end. Payments, Just Say No and discards too, up to 8 ways on 100 deals,
+  each a replay of the game to that moment, as `scripts/midturn.ts` does. `Review.tsx` splits it across a web worker per core
   (`review.worker.ts`), which ranks moves by `src/packed/light.ts`, a 200-tree model
   (`node scripts/pack.ts dataset/model-r10-200.json src/packed/light.ts`). It's the only model a
   browser loads; the Hard bot itself plays on Convex.

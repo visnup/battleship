@@ -168,10 +168,27 @@ export function Board({ game, me }: Props) {
     const decisions = decisionsTo(game, line);
     setPast(decisions >= game.log.length ? undefined : { decisions, line });
   };
+  // the past play's line, centered in the log; by hand, since scrollIntoView would move the page too
+  useEffect(() => {
+    const ul = log.current;
+    const li = ul?.querySelector("[aria-current]");
+    if (ul && li) ul.scrollTop += li.getBoundingClientRect().top - ul.getBoundingClientRect().top - (ul.clientHeight - li.clientHeight) / 2;
+  }, [past?.line]);
   /** A move of decision `n`, by its key, in words for the review. */
   const say = (n: number, k: string) => {
     const { game: then, prompt } = until(game, n);
     const p = then.players[seat];
+    const list = (xs: string[]) => new Intl.ListFormat("en").format(xs);
+    if (prompt?.kind === "sayNo") return k === "true" ? "Just Say No" : "Accept";
+    if (prompt?.kind === "discard") return `Discard ${list(k.split(",").map((i) => label(p.hand[Number(i)])))}`;
+    if (prompt?.kind === "pay") {
+      const paid = k.split(",").flatMap((at) => {
+        const pile = at.match(/^[a-z]+/)?.[0] as Ref["pile"] | undefined;
+        const x = pile && p[pile][Number(at.slice(pile.length))];
+        return x ? ["kind" in x ? label(x) : pile === "built" ? label(x.card) : named(x)] : [];
+      });
+      return paid.length ? `Pay with ${list(paid)}` : "Pay nothing";
+    }
     const m = prompt?.kind === "move" ? moves(then, p, prompt.left).find((m) => key(encode(then, p, m)) === k) : undefined;
     if (!m) return "End turn";
     if (m.type === "bank") return `Bank ${label(m.card)}`;
@@ -211,7 +228,12 @@ export function Board({ game, me }: Props) {
                 )}
                 <ul>
                   {lines.map(({ text, line }) => (
-                    <li key={line} onClick={() => visit(line)} className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line ? "bg-white/20" : ""}`}>
+                    <li
+                      key={line}
+                      onClick={() => visit(line)}
+                      aria-current={past?.line === line || undefined}
+                      className={`cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10 ${past?.line === line ? "bg-white/20" : ""}`}
+                    >
                       {money(
                         text
                           .replace(/P(\d)/g, (_, n) => who(Number(n)))
@@ -230,7 +252,7 @@ export function Board({ game, me }: Props) {
           </div>
         </section>
       </div>
-      {result && !stepping && seat >= 0 && <Review key={game._id} setup={setup(game)} log={game.log} seat={seat} say={say} show={(n) => setPast({ decisions: n, line: (until(game, n).game.log?.length ?? 0) - 1 })} />}
+      {result && !stepping && seat >= 0 && <Review key={game._id} setup={setup(game)} log={game.log} seat={seat} say={say} show={(n) => visit(until(game, n).game.log?.length ?? 0)} />}
       <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
           <Seat

@@ -6,12 +6,14 @@ const pct = (x: number) => `${Math.round(100 * x)}%`;
 const points = (x: number) => Math.round(100 * x);
 
 type Option = { key: string; win: number };
+// a difference that rounds to a point or more
+const POINT = 0.005;
 type Scored = Reviewed & { best: Option; mine: Option; lost: number; beat: number; did: string; better: string };
 
 /**
  * Your chance of winning after each of your plays, like a chess engine's evaluation chart: a red
- * drop where another play had more, a blue dot where you beat the Hard bot's pick, turns along
- * the bottom, and a fair share dashed. Clicking a play shows the board then.
+ * drop where another play had more, a blue dot where you beat the Hard bot's pick, larger from 5
+ * points, turns along the bottom, and a fair share dashed. Clicking a play shows the board then.
  */
 function Chances({ rows, fair, show }: { rows: Scored[]; fair: number; show: (n: number) => void }) {
   const box = useRef<HTMLDivElement>(null);
@@ -40,7 +42,7 @@ function Chances({ rows, fair, show }: { rows: Scored[]; fair: number; show: (n:
         marks: [
           Plot.ruleY([fair], { strokeDasharray: "3 3", strokeOpacity: 0.5 }),
           Plot.ruleX(
-            data.filter((d) => d.lost >= 0.05),
+            data.filter((d) => d.lost >= POINT),
             { x: "i", y1: (d) => d.best.win, y2: "win", stroke: "#ff8a8a", strokeWidth: 2 },
           ),
           Plot.lineY(data, { x: "i", y: "win", stroke: "#f2c94c", strokeWidth: 2 }),
@@ -48,7 +50,7 @@ function Chances({ rows, fair, show }: { rows: Scored[]; fair: number; show: (n:
             x: "i",
             y: "win",
             r: (d) => (d.lost >= 0.05 || d.beat >= 0.05 ? 4 : 2.5),
-            fill: (d) => (d.lost >= 0.05 ? "#ff8a8a" : d.beat >= 0.05 ? "#7fb3ff" : "white"),
+            fill: (d) => (d.lost >= POINT ? "#ff8a8a" : d.beat >= POINT ? "#7fb3ff" : "white"),
             stroke: "#123f2c",
             strokeWidth: 1.5,
           }),
@@ -70,7 +72,7 @@ function Chances({ rows, fair, show }: { rows: Scored[]; fair: number; show: (n:
                 if (x !== undefined) g.setAttribute("text-anchor", x < dimensions.width / 3 ? "start" : x > (2 * dimensions.width) / 3 ? "end" : "middle");
                 return g;
               },
-              text: (d) => `Turn ${d.turn}: ${d.did}, ${pct(d.win)}${d.lost >= 0.01 ? ` · ${d.better} had ${pct(d.best.win)}` : ""}`,
+              text: (d) => `Turn ${d.turn}: ${d.did}, ${pct(d.win)}${d.lost >= POINT ? ` · ${d.better} had ${pct(d.best.win)}` : ""}`,
             }),
           ),
         ],
@@ -112,14 +114,15 @@ function Chances({ rows, fair, show }: { rows: Scored[]; fair: number; show: (n:
 export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Choice[]; seat: number; say: (n: number, key: string) => string; show: (n: number) => void }) {
   const [rows, setRows] = useState<Reviewed[]>([]);
   const [finished, setFinished] = useState(0);
-  const total = log.filter((c) => c.kind === "move" && c.seat === seat).length;
+  const total = log.filter((c) => c.seat === seat).length;
   const k = Math.max(1, Math.min(globalThis.navigator?.hardwareConcurrency || 4, total));
-  const done = finished === k;
+  const done = finished >= k;
   useEffect(() => {
     // a worker per core, each taking every kth play
     const workers = Array.from({ length: k }, (_, i) => {
       const worker = new Worker(new URL("./review.worker.ts", import.meta.url), { type: "module" });
-      worker.onmessage = ({ data }: MessageEvent<Reviewed | null>) => (data ? setRows((r) => [...r, data].sort((a, b) => a.n - b.n)) : setFinished((f) => f + 1));
+      // a hot reload runs the workers again over the rows already here
+      worker.onmessage = ({ data }: MessageEvent<Reviewed | null>) => (data ? setRows((r) => [...r.filter((x) => x.n !== data.n), data].sort((a, b) => a.n - b.n)) : setFinished((f) => f + 1));
       worker.postMessage([setup, log, seat, [i, k]]);
       return worker;
     });
@@ -133,7 +136,7 @@ export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Cho
       rows.map((r): Scored => {
         const best = r.options.reduce((a, b) => (b.win > a.win ? b : a));
         const mine = r.options.find((o) => o.key === r.chose) ?? best;
-        const hard = r.options.find((o) => o.key === r.hard) ?? best;
+        const hard = r.options.find((o) => o.key === r.hard) ?? mine;
         return { ...r, best, mine, lost: best.win - mine.win, beat: mine.win - hard.win, did: say(r.n, r.chose), better: say(r.n, best.key) };
       }),
     // say() is new each render, and words a play the same way every time
@@ -141,9 +144,11 @@ export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Cho
     [rows],
   );
   const costly = scored.filter((r) => r.lost >= 0.05).sort((a, b) => b.lost - a.lost);
-  const found = scored.filter((r) => r.chose !== r.hard && r.beat >= 0.05).sort((a, b) => b.beat - a.beat);
+  const found = scored.filter((r) => r.beat >= 0.05).sort((a, b) => b.beat - a.beat);
   const peak = scored.reduce<Scored | undefined>((a, b) => (!a || b.mine.win > a.mine.win ? b : a), undefined);
-  const agreed = scored.filter((r) => r.chose === r.hard).length;
+  // the Hard bot's model only ranks plays
+  const plays = scored.filter((r) => r.hard !== undefined);
+  const agreed = plays.filter((r) => r.chose === r.hard).length;
   const item = "cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10";
 
   return (
@@ -151,13 +156,13 @@ export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Cho
       <h2 className="label m-0">How you played</h2>
       {!done && (
         <p className="my-[0.4em] opacity-70">
-          Playing out your plays… {rows.length} of {total}
+          Playing out your decisions… {rows.length} of {total}
         </p>
       )}
       {peak && (
         <p className="my-[0.4em]">
-          Your chances: {pct(scored[0].mine.win)} after your first play, {pct(peak.mine.win)} at their best (turn {peak.turn}), {pct(scored.at(-1)!.mine.win)} after your last. You played the Hard bot&apos;s pick {agreed}{" "}
-          of {scored.length} times.
+          Your chances: {pct(scored[0].mine.win)} after your first decision, {pct(peak.mine.win)} at their best (turn {peak.turn}), {pct(scored.at(-1)!.mine.win)} after your last. You played the Hard bot&apos;s pick{" "}
+          {agreed} of {plays.length} times.
         </p>
       )}
       {scored.length > 0 && <Chances rows={scored} fair={1 / setup.players} show={show} />}
@@ -180,16 +185,16 @@ export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Cho
           <ul>
             {found.slice(0, 3).map((r) => (
               <li key={r.n} className={item} onClick={() => show(r.n)}>
-                Turn {r.turn}: {r.did} over {say(r.n, r.hard)}. <b>+{points(r.beat)}</b>
+                Turn {r.turn}: {r.did} over {say(r.n, r.hard!)}. <b>+{points(r.beat)}</b>
               </li>
             ))}
           </ul>
         </>
       )}
-      {done && costly.length === 0 && <p className="my-[0.4em]">No play cost you more than 5 points.</p>}
+      {done && costly.length === 0 && <p className="my-[0.4em]">No decision cost you more than 5 points.</p>}
       <p className="mt-[0.8em] mb-0 text-xs opacity-60">
         At each of your plays, the Hard bot&apos;s top 5 moves (by a lighter version of its model), yours and the Hint&apos;s were each played out on {DEALS} deals of the cards you couldn&apos;t see, everyone playing
-        like the Medium bot for two rounds. Points are chances of winning the game. Paying, Just Say No and discards aren&apos;t reviewed. Click a play to see the board then.
+        like the Medium bot for two rounds. Payments, Just Say No and discards the same way, up to 8 ways each on {DEALS / 4} deals. Points are chances of winning the game. Click a decision to see the board then.
       </p>
     </section>
   );
