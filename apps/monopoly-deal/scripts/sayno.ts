@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, type Game, type Move, name, type Player, rent } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { merge, report, search as searchAt } from "./midturn.ts";
 
 // When to Just Say No, by playouts at each of the default player's chances to say it (`midturn.ts`).

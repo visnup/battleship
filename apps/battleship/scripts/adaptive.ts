@@ -1,6 +1,6 @@
 import { mulberry32, onEdge, shipPlacements, SHIPS } from "../src/board.ts";
 import { dialed, PLACERS, placer } from "../src/fleets.ts";
-import { collect, parallel } from "../src/parallel.ts";
+import { collect, parallel } from "kit/parallel.ts";
 import { adaptive, density, type Model, model, play } from "../src/shooters.ts";
 import { heat, library } from "./placements.ts";
 

@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { type Card, DECK } from "../src/cards.ts";
 import { defaultPolicy, Game, mulberry32, name, type Policy } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { header } from "./table.ts";
 
 const KINDS = [...new Map(DECK.map((c) => [JSON.stringify(c), c])).values()];

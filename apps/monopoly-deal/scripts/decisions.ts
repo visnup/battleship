@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, type Move, moves, mulberry32, name, type Policy } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { encode, key } from "../src/replay.ts";
 import { playout } from "../src/strategies.ts";
 import { merge, report } from "./midturn.ts";

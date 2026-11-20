@@ -1,6 +1,6 @@
 import { mulberry32 } from "../src/board.ts";
 import { placer } from "../src/fleets.ts";
-import { collect } from "../src/parallel.ts";
+import { collect } from "kit/parallel.ts";
 import { density, play, posterior } from "../src/shooters.ts";
 
 /** A task: `n` uniform fleets, each shot at by density and by both posterior shooters. */

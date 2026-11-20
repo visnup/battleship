@@ -11,6 +11,7 @@
     "@observablehq/plot": "^0.6.19",
     "hyparquet-writer": "^0.18.0",
     "jsdom": "^31.0.1",
+    "kit": "workspace:*",
     "vite": "^8.3.8"
   }
 }

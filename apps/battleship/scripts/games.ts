@@ -1,6 +1,6 @@
 import { mulberry32, SHIPS } from "../src/board.ts";
 import { PLACERS, placer } from "../src/fleets.ts";
-import { collect } from "../src/parallel.ts";
+import { collect } from "kit/parallel.ts";
 import { write } from "../src/results.ts";
 import { lineup, model, play, type Shooter, SHOOTERS, shooter } from "../src/shooters.ts";
 import { heat, library } from "./placements.ts";

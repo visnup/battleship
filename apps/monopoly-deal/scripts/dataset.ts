@@ -2,7 +2,7 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game.ts";
 import { discarded, learned, paid, ranked, said } from "../src/learned.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { encode, key, observe } from "../src/replay.ts";
 import { playout } from "../src/strategies.ts";
 

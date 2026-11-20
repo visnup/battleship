@@ -33,7 +33,7 @@ import {
   type Target,
 } from "../src/game.ts";
 import { discarded, paid, said } from "../src/learned.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { header } from "./table.ts";
 import { build, chance, headToHead, paired, STRATEGIES, translate } from "../src/strategies.ts";
 

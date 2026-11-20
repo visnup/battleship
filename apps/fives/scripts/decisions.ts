@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, mulberry32, type Play, type Player, type Policy, TARGET, total, TRUMP, winning } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { playout } from "../src/strategies.ts";
 
 /** A play by what it does: taking the trick or under it, face down or up, trump, led or off color, and the card's rank in hand. */

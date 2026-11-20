@@ -1,4 +1,6 @@
-packages: [] # pnpm 9 (Vercel default) errors without this
+packages:
+  - apps/*
+  - packages/*
 
 allowBuilds:
   esbuild: true

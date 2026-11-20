@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { board, type Enc, learned, MODEL, move } from "../src/learned.ts";
 import { memory } from "../src/memory.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { headToHead } from "../src/strategies.ts";
 import { shardName } from "./dataset.ts";
 

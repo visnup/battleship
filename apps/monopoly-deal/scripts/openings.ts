@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32 } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { header } from "./table.ts";
 
 const KINDS = ["action", "property", "money"] as const;

@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { name } from "../src/cards.ts";
 import { decisive, defaultPolicy, Game, type Move, moves, mulberry32, others, type Player, type Policy } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { playout } from "../src/strategies.ts";
 
 /** A move as a short label: `pass`, a card, or `bait 6`. */

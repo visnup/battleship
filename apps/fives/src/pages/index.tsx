@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { DECK } from "../cards.ts";
 import { Card } from "../components/Card";
-import { randomWord } from "../words.ts";
+import { randomWord } from "kit/words.ts";
 
 const FAN = [
   DECK.find((c) => c.color === "blue" && c.value === 8),

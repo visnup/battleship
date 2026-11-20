@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32 } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { header } from "./table.ts";
 import { headToHead, STRATEGIES } from "../src/strategies.ts";
 import { VARIANTS } from "./variants.ts";

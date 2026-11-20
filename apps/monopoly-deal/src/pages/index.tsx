@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import type { Card as CardType } from "../cards.ts";
 import { Card } from "../components/Card";
 import { onStreet } from "../streets.ts";
-import { randomWord } from "../words.ts";
+import { randomWord } from "kit/words.ts";
 
 const FAN: CardType[] = [
   onStreet({ kind: "property", color: "darkBlue", value: 4 }, "Boardwalk"),

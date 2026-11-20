@@ -1,6 +1,6 @@
 # monopoly-deal
 
-A simulator of Hasbro's Monopoly Deal card game, in the vein of `../magical-athlete`. Node 26 (`.node-version`) runs
+A simulator of Hasbro's Monopoly Deal card game, in the vein of `../../../magical-athlete`. Node 26 (`.node-version`) runs
 the TypeScript directly, and the engine has no dependencies.
 
 The rules are the 2023 US edition's sheet (G0351, `rules/g0351.pdf`), which settles three
@@ -93,7 +93,7 @@ from photos of one card of each property color and each wild (`rules/properties.
   `--log` prints every play and `--csv` a row per game, both on one core with `--seed`.
 - `sensitivity.ts`: each game played as read and with one `Rules` flag flipped, from the same
   seed, for the "Rule readings" section of `README.md`.
-- `parallel.ts` and `worker.ts` are magical-athlete's: they split a script's games into seeded
+- `kit/parallel.ts` and `worker.ts` (`../../packages/kit`) split a script's games into seeded
   chunks across cores, so results don't depend on the core count. Scripts guard their main code
   with `if (import.meta.main)`.
 - `scripts/charts.ts` draws `charts/*.svg` from the tables in `README.md`, with Observable Plot
@@ -149,7 +149,7 @@ their browsers; it's for friends.
   browser loads; the Hard bot itself plays on Convex.
 - `src/pages/` and `src/components/`: `Game` joins and shows the lobby, `Board` the table and
   the prompt. Playwright specs sit next to components and need `pnpm dev` running.
-  `src/streets.ts` gives each property in an online game its street name, and `src/words.ts`
+  `src/streets.ts` gives each property in an online game its street name, and `kit/words.ts`
   names new tables.
 - Prettier is 220 wide, to match the engine.
 

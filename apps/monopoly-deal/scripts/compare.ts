@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, mulberry32, type Policy } from "../src/game.ts";
 import { learned, ranked } from "../src/learned.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { playouts } from "../src/strategies.ts";
 
 const player = (strategy: string, model: string, seed: number): Policy => {

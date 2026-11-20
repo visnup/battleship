@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { defaultPolicy, mulberry32 } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { refusal } from "../src/refusing.ts";
 import { shardName } from "./dataset.ts";
 import { learnedSeat, replay, watch } from "./midturn.ts";

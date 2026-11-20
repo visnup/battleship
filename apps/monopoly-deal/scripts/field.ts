@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, type Policy } from "../src/game.ts";
 import { learned, MODEL } from "../src/learned.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { headToHead, STRATEGIES } from "../src/strategies.ts";
 import { header } from "./table.ts";
 

@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, mulberry32, type Policy } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { header } from "./table.ts";
 
 /**

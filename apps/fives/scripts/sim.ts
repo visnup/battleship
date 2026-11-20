@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32, share } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 
 /** Plays `n` default games of `players`, and tallies wins by seat (seat 0 deals first), busts, and hands that hit 25. */
 export function simulate(players: number, seed: number, n: number, emit?: { csv?: boolean; log?: boolean }) {

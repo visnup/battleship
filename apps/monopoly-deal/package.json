@@ -16,6 +16,7 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "convex": "^1.49.0",
+    "kit": "workspace:*",
     "next": "^16.4.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

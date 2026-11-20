@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32 } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 
 /** Plays `n` games of `players`, the Favor card starting in seat 0, and tallies wins by seat. */
 export function simulate(players: number, seed: number, n: number, emit?: { csv?: boolean; log?: boolean }) {

@@ -2,7 +2,7 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { type Card, COLORS } from "../src/cards.ts";
 import { decisive, defaultPolicy, finishIn, type Game, heuristic, mulberry32, needed, oneWithin, openWith, others, type Player, type Policy, STEPS, type Step, waitWhile } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { learned } from "../src/learned.ts";
 import { colorPlayouts, crowsAhead, dumpPlayouts, headToHead, playouts, STRATEGIES } from "../src/strategies.ts";
 import { header } from "./table.ts";

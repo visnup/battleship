@@ -1,5 +1,5 @@
 import { CELLS, colOf, LENGTHS, rowOf, SHIPS, SIZE, shipPlacements } from "../src/board.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { write } from "../src/results.ts";
 
 /** Counts every legal arrangement of the fleet exactly, and how many put each ship on each cell. */

@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { heuristic, STEPS } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { paired } from "../src/strategies.ts";
 
 type Name = keyof typeof STEPS;

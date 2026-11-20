@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { headToHead, STRATEGIES } from "../src/strategies.ts";
 import { header } from "./table.ts";
 

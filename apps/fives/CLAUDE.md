@@ -48,7 +48,7 @@ last page has the components and a summary.
   writing `log.txt`, `run.json` and `events.jsonl` to `dataset/rN/`, and `node scripts/status.ts`
   serves the newest round's progress at localhost:3003. Don't edit `src/` while a round runs: its
   workers load those files.
-- `parallel.ts` and `worker.ts` are hilt's: they split a script's games into seeded chunks across
+- `kit/parallel.ts` and `worker.ts` (`../../packages/kit`) split a script's games into seeded chunks across
   cores, so results don't depend on the core count. Scripts guard their main code with
   `if (import.meta.main)`.
 - `scripts/sim.ts`: quick Monte Carlo, wins by seat, busts and 25s. `--log` prints every play.

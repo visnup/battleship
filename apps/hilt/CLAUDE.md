@@ -47,7 +47,7 @@ Its last page has the card list and each fate card's rule.
   "rounds" tables, one row each, which `charts.ts` draws as `charts/rounds.svg`.
 - `scripts/cards.ts`: each card's value, as the wins one more copy in an opening hand adds, from
   the same deal played both ways.
-- `parallel.ts` and `worker.ts` are monopoly-deal's: they split a script's games into seeded
+- `kit/parallel.ts` and `worker.ts` (`../../packages/kit`) split a script's games into seeded
   chunks across cores, so results don't depend on the core count. Scripts guard their main code
   with `if (import.meta.main)`.
 - `scripts/sim.ts`: quick Monte Carlo. `node scripts/sim.ts --n 100000 --players 4` prints wins

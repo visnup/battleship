@@ -1,9 +1,9 @@
 # battleship
 
 An analysis of Battleship (Hasbro rules: 10×10, ships of 5, 4, 3, 3 and 2 that may touch, and a
-sunk ship is named). Node 24 runs the TypeScript directly. The engine has no dependencies; the
+sunk ship is named). Node 26 runs the TypeScript directly. The engine has no dependencies; the
 scripts need `pnpm install` (DuckDB, hyparquet-writer, Observable Plot and jsdom). It follows
-`../magical-athlete`'s layout and chart conventions.
+`../../../magical-athlete`'s layout and chart conventions.
 
 - `src/board.ts`: the grid, the fleet, and every placement of each ship. A cell is
   `row * 10 + col`; a fleet is a placement index per ship.
@@ -19,7 +19,7 @@ scripts need `pnpm install` (DuckDB, hyparquet-writer, Observable Plot and jsdom
   is what lets it import `src/`'s TypeScript. `fleet.html` plays every shooter in the lineup
   against a fleet you place. `public/library.bin` is 20,000 fleets per placer
   from `scripts/library.ts`, a byte per ship in `PLACERS` order.
-- `src/parallel.ts` and `worker.ts` are magical-athlete's: seeded chunks over a worker per core.
+- `kit/parallel.ts` and `worker.ts` (`../../packages/kit`): seeded chunks over a worker per core.
 - `scripts/`: `count.ts` → `results/arrangements.parquet`, `placements.ts` → `placements.parquet`,
   `games.ts` → `games.parquet` and `shots.parquet`, `equilibrium.ts` prints the mixed strategies,
   and `charts.ts` draws `charts/`. `posterior.ts` and `adaptive.ts` print the README's tables

@@ -1,6 +1,6 @@
 import { CELLS, mulberry32, SHIPS } from "../src/board.ts";
 import { type PlacerName, PLACERS, placer } from "../src/fleets.ts";
-import { collect } from "../src/parallel.ts";
+import { collect } from "kit/parallel.ts";
 import { parquet, query, write } from "../src/results.ts";
 
 /** The chance each cell holds a ship when every arrangement is equally likely, from `count.ts`. */

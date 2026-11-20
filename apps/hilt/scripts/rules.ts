@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { Game, mulberry32, RULES, type Rules } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 
 /** Plays `n` default games under `rules`, and tallies the Favor seat's and seat 2's wins, battles, and battles the Favor holder starts with no cards. */
 export function play(players: number, rules: Rules, seed: number, n: number) {

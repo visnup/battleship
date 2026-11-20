@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { type Game, loose, payable, type Player, worth } from "../src/game.ts";
-import { parallel } from "../src/parallel.ts";
+import { parallel } from "kit/parallel.ts";
 import { payments } from "../src/paying.ts";
 import { merge, report, search as searchAt } from "./midturn.ts";
 
