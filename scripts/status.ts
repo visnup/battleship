@@ -4,39 +4,65 @@ import { createServer } from "node:http";
 import { availableParallelism, loadavg } from "node:os";
 import { parseArgs } from "node:util";
 
-// A page at http://localhost:3001 showing how far a round (`round.sh`, `overnight.sh`) has got:
-// each stage from its log, games labeled so far from the data's shards, and an ETA from the
-// recent rate. It only reads files, so it can't disturb the round.
+// A page at http://localhost:3001 showing how far a round (`round.sh`) has got: the newest one
+// in dataset/, or `--round N`. The round says what it is in `run.json` and when each stage
+// started and ended in `events.jsonl`; this adds games labeled so far from the data's shards and
+// an ETA from the recent rate. It only reads the round's files, so it can't disturb it.
 
-const { values: args } = parseArgs({ options: { round: { type: "string", default: "7" }, games: { type: "string", default: "5000" }, port: { type: "string", default: "3001" } } });
-const data = `dataset/data-r${args.round}`;
-const log = `dataset/r${args.round}/log.txt`;
-// rough minutes for the stages after the data, from earlier rounds
-const AFTER = [
-  ["extract", 1],
-  ["train", 4],
-  ["compare learned", 3],
-  ["compare against learned", 7],
-  ["compare playouts", 10],
-  ["done", 0],
-] as const;
+const { values: args } = parseArgs({ options: { round: { type: "string" }, port: { type: "string", default: "3001" } } });
 
-/** How far along a stage after the data is, from what it has written, when that says. */
-const trees = (file: string) => {
-  const done = existsSync(file) && [...readFileSync(file, "utf8").matchAll(/^\[(\d+)\]/gm)].at(-1);
-  return done ? Number(done[1]) / 1000 : undefined;
+type Run = { round: string; prev: string; start: number; games: number; shards: number; trees: number; strong: number; stages: string[] };
+type Event = { t: number; stage: string; state: "start" | "done" | "skipped" | "failed" };
+type Usage = { t: number; cores: number; load: number; done?: number; temp?: number; watts?: number };
+
+const jsonl = <T>(file: string): T[] =>
+  existsSync(file)
+    ? readFileSync(file, "utf8")
+        .split("\n")
+        .filter(Boolean)
+        .map((l) => JSON.parse(l))
+    : [];
+const read = (round: string): Run | undefined => {
+  try {
+    return JSON.parse(readFileSync(`dataset/r${round}/run.json`, "utf8"));
+  } catch {
+    // no run.json, or a smoke test's round deleted since it was listed
+  }
 };
-const lines = (file: string, re: RegExp) => (existsSync(file) ? (readFileSync(file, "utf8").match(re)?.length ?? 0) : 0);
-const PROGRESS: Record<string, () => number | undefined> = {
-  extract: () => (existsSync(`dataset/features-r${args.round}`) ? readdirSync(`dataset/features-r${args.round}`).length / (256 * 4 * 3) : 0),
-  train: () => trees(`dataset/r${args.round}/trees.txt`),
-  "compare learned": () => lines(`dataset/r${args.round}/compare.txt`, /^learned, /gm) / 4,
-  "compare against learned": () => lines(`dataset/r${args.round}/field.txt`, /^learned against /gm) / 4,
-  "compare playouts": () => lines(`dataset/r${args.round}/playouts.txt`, /^playouts, /gm) / 2,
+/** The round started last. */
+const newest = () =>
+  readdirSync("dataset")
+    .flatMap((d) => (d.startsWith("r") ? (read(d.slice(1)) ?? []) : []))
+    .sort((a, b) => a.start - b.start)
+    .at(-1);
+
+// minutes a stage takes, when the round before didn't time it
+const MINUTES: Record<string, number> = { "rollout model": 3, data: 90, extract: 1, train: 4, "compare learned": 3, "compare playouts": 10 };
+/** How long each stage of `round` took, in minutes. */
+const durations = (round: string) => {
+  const evs = jsonl<Event>(`dataset/r${round}/events.jsonl`);
+  return new Map(evs.flatMap((e) => (e.state === "done" ? [[e.stage, (e.t - evs.find((s) => s.stage === e.stage && s.state === "start")!.t) / 60e3] as const] : [])));
+};
+
+/** How far along a running stage is, from what it has written, when that says. */
+const progress = (run: Run, stage: string) => {
+  const dir = `dataset/r${run.round}`;
+  const trees = (file: string, of: number) => {
+    const done = existsSync(file) && [...readFileSync(file, "utf8").matchAll(/^\[(\d+)\]/gm)].at(-1);
+    return done ? Number(done[1]) / of : undefined;
+  };
+  const lines = (file: string, of: number) => (existsSync(file) ? (readFileSync(file, "utf8").match(/ deals, /g)?.length ?? 0) / of : 0);
+  if (stage === "rollout model") return trees(`${dir}/rollout.txt`, run.strong);
+  if (stage === "extract") return existsSync(`dataset/features-r${run.round}`) ? readdirSync(`dataset/features-r${run.round}`).length / (run.shards * 4 * 3) : 0;
+  if (stage === "train") return trees(`${dir}/trees.txt`, run.trees);
+  if (stage === "compare learned") return lines(`${dir}/compare.txt`, 4);
+  if (stage === "compare against learned") return lines(`${dir}/field.txt`, 4);
+  if (stage === "compare playouts") return lines(`${dir}/playouts.txt`, 2);
+  if (stage.startsWith("compare against r")) return lines(`${dir}/base.txt`, 4);
 };
 
 /** Games finished in each shard of `players`, from the game number on its last row. */
-function played(players: number) {
+function played(data: string, players: number) {
   if (!existsSync(data)) return 0;
   let n = 0;
   for (const f of readdirSync(data).filter((f) => f.startsWith(`${players}p-`))) {
@@ -61,158 +87,123 @@ const working = () =>
     .filter((l) => /scripts\/(?!status)|learn\.py/.test(l))
     .reduce((s, l) => s + parseFloat(l), 0) / 100;
 
-/** How much of the labeling is done, by game-seats, for `sample` to keep. */
-let labeled = 0;
+const CORES = availableParallelism();
+const clock = (t: number) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+const mins = (m: number) => (Math.round(m) ? `${Math.round(m)} min` : "<1 min");
+type Point = { t: number; v: number };
 
 function status() {
-  const text = existsSync(log) ? readFileSync(log, "utf8") : "";
-  const at = text.lastIndexOf("the real thing");
-  const real = text.slice(at);
-  // the log says how many once a player count finishes
-  const games = Number(/^\d players: (\d+) games/m.exec(real)?.[1] ?? args.games);
-  const counts = [2, 3, 4, 5].map((p) => {
-    const done = new RegExp(`^${p} players: \\d+ games, \\d+ decisions, ([\\d.]+) min`, "m").exec(real);
-    return { p, done: !!done, minutes: done ? Number(done[1]) : 0, games: done ? games : played(p) };
+  const run = args.round ? read(args.round) : newest();
+  // the machine's zone, since the page may be viewed somewhere set to another, like UTC
+  const base = { cores: CORES, zone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+  if (!run) {
+    const what = args.round ? `dataset/r${args.round}/run.json` : "round with a run.json in dataset/";
+    return {
+      ...base,
+      title: "No round",
+      head: `<h1>No ${what}</h1>`,
+      body: "<p>scripts/round.sh writes one when it starts.</p>",
+      usage: [] as Usage[],
+      events: [],
+      ahead: [],
+      tracks: [],
+      forecast: [],
+      start: null,
+      live: undefined,
+      labeled: 0,
+    };
+  }
+  const dir = `dataset/r${run.round}`;
+  const now = Date.now();
+  const evs = jsonl<Event>(`${dir}/events.jsonl`);
+  const usage = jsonl<Usage>(`${dir}/usage.jsonl`);
+  const before = durations(run.prev);
+  const stages = run.stages
+    .map((name) => {
+      const of = evs.filter((e) => e.stage === name);
+      const t0 = of.find((e) => e.state === "start")?.t;
+      const end = of.find((e) => e.state !== "start");
+      const min = before.get(name) ?? MINUTES[name] ?? 7;
+      const running = t0 !== undefined && !end;
+      return { name, min, t0, t1: end?.t, state: end?.state ?? (running ? "running" : "pending"), f: end?.state === "done" ? 1 : running ? Math.min(progress(run, name) ?? (now - t0) / 60e3 / min, 0.99) : 0 };
+    })
+    .filter((s) => s.state !== "skipped");
+  const failed = stages.find((s) => s.state === "failed");
+  const live = !failed && stages.some((s) => s.state !== "done");
+
+  // labeling, by game-seats: each player count's games so far, and the rate over the last 15 minutes
+  const data = stages.find((s) => s.name === "data");
+  const counts = [2, 3, 4, 5].map((p) => ({ p, games: data?.state === "done" ? run.games : data?.t0 ? played(`dataset/data-r${run.round}`, p) : 0 }));
+  const seats = run.games * 14;
+  const labeled = counts.reduce((s, c) => s + c.games * c.p, 0) / seats;
+  const series: Point[] = data?.t0 ? [{ t: data.t0, v: 0 }, ...usage.flatMap((u) => (u.done && u.t > data.t0! && u.t < (data.t1 ?? now) ? [{ t: u.t, v: u.done }] : [])), { t: data.t1 ?? now, v: labeled }] : [];
+  const from = series.find((p, i) => now - p.t < 15 * 60e3 && (now - p.t > 3 * 60e3 || i === 0)) ?? series.findLast((p) => now - p.t > 3 * 60e3) ?? series[0];
+  const rate = from && data?.state === "running" ? ((labeled - from.v) * seats) / ((now - from.t) / 60e3) : NaN;
+  if (data?.state === "running") data.f = Math.min(labeled, 0.99);
+  /** Minutes a stage still needs: the labeling by its rate once there is one, the rest by how long they usually take. */
+  const left = (s: (typeof stages)[number]) => (s.state === "done" ? 0 : s === data && rate > 0 ? ((1 - labeled) * seats) / rate : s.min * (1 - s.f));
+
+  // three tracks, each 0 to 100%: what comes before the labeling, the labeling, and what comes after
+  const at = stages.indexOf(data!);
+  const groups = [
+    { name: "Prepare", stages: at < 0 ? [] : stages.slice(0, at) },
+    { name: "Label games", stages: data ? [data] : [] },
+    { name: "Train and compare", stages: stages.slice(at + 1) },
+  ].filter((g) => g.stages.length);
+  let t = now;
+  const ahead: { t: number; name: string }[] = [];
+  const tracks: Point[][] = [];
+  const forecast: Point[][] = [];
+  const html = groups.map((g) => {
+    const total = g.stages.reduce((s, a) => s + a.min, 0);
+    const f = g.stages.reduce((s, a) => s + a.min * a.f, 0) / total;
+    const begun = g.stages[0].t0;
+    const complete = g.stages.every((s) => s.state === "done");
+    // the track over time: the labeling as sampled, the others a point as each stage ends
+    let spent = 0;
+    const track: Point[] =
+      g.stages[0] === data ? series : begun ? [{ t: begun, v: 0 }, ...g.stages.flatMap((s) => (s.state === "done" ? [{ t: s.t1!, v: (spent += s.min) / total }] : [])), ...(complete ? [] : [{ t: now, v: f }])] : [];
+    tracks.push(track);
+    const starts = t;
+    for (const s of g.stages) if (s.state !== "done") ahead.push({ t: (t += left(s) * 60e3), name: s.name });
+    if (!complete && !failed) forecast.push([track.at(-1) ?? { t: starts, v: 0 }, { t, v: 1 }]);
+    const segs = g.stages.flatMap((s) => {
+      const note = s.state === "done" ? mins((s.t1! - s.t0!) / 60e3) : s.state === "failed" ? "failed" : s.state === "running" ? `~${Math.ceil(left(s))} min left` : `~${mins(s.min)}`;
+      return s === data
+        ? counts.map((c) => [c.p, `${c.p} players`, c.games === run.games ? "" : c.games ? `${c.games.toLocaleString()} of ${run.games.toLocaleString()}` : "", c.games / run.games] as const)
+        : [[s.min, s.name, note, s.f] as const];
+    });
+    const note =
+      g.stages[0] === data && data.state !== "pending" ? (data.state === "done" ? mins((data.t1! - data.t0!) / 60e3) : `${Math.round(100 * f)}%, ~${Math.ceil(left(data))} min left`) : `${Math.round(100 * f)}%`;
+    return `<div class="row"><span>${g.name}</span><small>${note}</small></div><div class="track">${segs
+      .map(([weight, name, note, f]) => `<div class="seg" style="flex:${weight} 1 4em"><div class="bar"><div style="width:${(100 * Math.min(1, f)).toFixed(1)}%"></div></div>${name}<small>${note}</small></div>`)
+      .join("")}</div>`;
   });
-  const total = counts.reduce((s, c) => s + c.games * c.p, 0);
-  labeled = total / (games * 14);
-  const dataDone = counts.every((c) => c.done);
-  const head = text.slice(text.lastIndexOf("\n", at) + 1);
-  const evs = events(head);
-  const start = Date.parse(head.slice(0, head.indexOf(" round")));
-  // the labeling done over time: each player count's finish from the log, then what `sample` kept
-  let seats = 0;
-  const progress = Number.isFinite(start)
-    ? [
-        { t: start, v: 0 },
-        ...evs.flatMap((e) => (/^\d players$/.test(e.name) ? [{ t: e.t, v: (seats += Number(e.name[0])) / 14 }] : [])),
-        ...usage.flatMap((u) => (u.done && u.t > start ? [{ t: u.t, v: u.done }] : [])),
-        { t: Date.now(), v: labeled },
-      ].sort((a, b) => a.t - b.t)
-    : [{ t: Date.now(), v: labeled }];
-  // the rate since the first of those in the last 15 minutes, or the one before if that's too recent to say
-  const from = progress.find((p, i) => Date.now() - p.t < 15 * 60e3 && (Date.now() - p.t > 3 * 60e3 || i === 0)) ?? progress.findLast((p) => Date.now() - p.t > 3 * 60e3) ?? progress[0];
-  const t0 = from.t;
-  const rate = ((labeled - from.v) * games * 14) / ((Date.now() - t0) / 60e3);
-  const left = (1 - labeled) * games * 14;
-  const since = (Date.now() - (evs.at(-1)?.t ?? Date.now())) / 60e3;
-  const after = AFTER.map(([name, min]) => ({ name, min, done: real.includes(`] ${name}`) || real.includes(`: ${name}`) || (name === "done" && /^round \S+ done$/m.test(real)), progress: 0 }));
-  // a round that skips the playouts, when the learned player didn't gain, still ends
-  if (after.at(-1)!.done) for (const a of after) a.done = true;
-  const current = dataDone ? after.find((a) => !a.done) : undefined;
-  if (current) current.progress = Math.min(PROGRESS[current.name]?.() ?? since / current.min, 0.99);
-  const afterLeft = after.filter((a) => !a.done).reduce((s, a) => s + a.min * (1 - a.progress), 0);
-  const dataLeft = dataDone ? 0 : rate > 0 ? left / rate : NaN;
-  const eta = dataLeft + afterLeft;
-  // when each stage still to come should finish
-  let t = Date.now() + dataLeft * 60e3;
-  const ahead = Number.isFinite(eta) ? [...(dataDone ? [] : [{ t, name: "data" }]), ...after.filter((a) => !a.done && a.min).map((a) => ({ t: (t += a.min * (1 - a.progress) * 60e3), name: a.name }))] : [];
-  /** How long a finished stage took, to the log's minute: from the milestone before it. */
-  const took = (name: string) => {
-    const i = evs.findIndex((e) => e.name === name);
-    if (i < 1) return "";
-    const min = Math.round((evs[i].t - evs[i - 1].t) / 60e3);
-    return min ? `${min} min` : "<1 min";
-  };
-  const stages = after.filter((a) => a.min);
-  // Each track's 0 to 100% over time, for the chart: the labeling up to when the data was done,
-  // then the stages after it by their usual minutes; and a line on from each to where it should end.
-  const minutes = stages.reduce((s, a) => s + a.min, 0);
-  const staged = stages.reduce((s, a) => s + a.min * (a.done ? 1 : a.progress), 0) / minutes;
-  const dataT = evs.find((e) => e.name === "data")?.t;
-  const dataEnd = Date.now() + dataLeft * 60e3;
-  let spent = 0;
-  const tracks = [
-    dataT ? [...progress.filter((p) => p.t < dataT), { t: dataT, v: 1 }] : progress,
-    dataT
-      ? [
-          { t: dataT, v: 0 },
-          ...stages.flatMap((a) => {
-            const at = evs.find((e) => e.name === a.name)?.t;
-            return a.done && at ? [{ t: at, v: (spent += a.min) / minutes }] : [];
-          }),
-          ...(staged < 1 ? [{ t: Date.now(), v: staged }] : []),
-        ]
-      : [],
-  ];
-  const forecast = Number.isFinite(eta)
-    ? [...(dataT ? [] : [[tracks[0].at(-1)!, { t: dataEnd, v: 1 }]]), ...(staged < 1 ? [[dataT ? tracks[1].at(-1)! : { t: dataEnd, v: 0 }, { t: Date.now() + eta * 60e3, v: 1 }]] : [])]
-    : [];
-  /** One stretch of a track, as wide as its `weight`: a bar of how much is done, over its name and a note. */
-  const seg = (weight: number, name: string, note: string, f: number) =>
-    `<div class="seg" style="flex:${weight} 1 4em"><div class="bar"><div style="width:${(100 * Math.min(1, f)).toFixed(1)}%"></div></div>${name}<small>${note}</small></div>`;
-  /** A 0–100% track of `segs`, under its name and how far along it is. */
-  const track = (name: string, note: string, segs: string[]) => `<div class="row"><span>${name}</span><small>${note}</small></div><div class="track">${segs.join("")}</div>`;
-  const when = Number.isFinite(eta) ? new Date(Date.now() + eta * 60e3).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "…";
-  const title = `Round ${args.round} · ${Number.isFinite(eta) ? `${Math.round(eta)} min` : "…"}`;
-  // a run that isn't a round (no `data-rN`) just lists its milestones
-  const round = existsSync(data);
+  const eta = (t - now) / 60e3;
+  const state = failed
+    ? `failed at ${failed.name}`
+    : live
+      ? `done ~${clock(t)} <small>(${Math.round(eta)} min)</small>`
+      : `done at ${clock(stages.at(-1)!.t1!)} <small>(${mins((stages.at(-1)!.t1! - run.start) / 60e3)})</small>`;
+  const log = existsSync(`${dir}/log.txt`) ? readFileSync(`${dir}/log.txt`, "utf8").trim().split("\n").slice(-8).join("\n") : "";
   return {
-    title: round ? title : `Round ${args.round}`,
-    head: round ? `<h1>Round ${args.round}: done ~${when} <small>(${Number.isFinite(eta) ? Math.round(eta) : "…"} min)</small></h1>` : `<h1>Round ${args.round}</h1>`,
-    body: `${
-      round
-        ? `${track(
-            "Label games",
-            `${Math.round(100 * labeled)}%`,
-            counts.map((c) => seg(c.p, `${c.p} players`, c.done ? `${c.minutes} min` : c.games ? `${c.games.toLocaleString()} of ${games.toLocaleString()}` : "", c.games / games)),
-          )}
-${track(
-  "Train and compare",
-  `${Math.round(100 * staged)}%`,
-  stages.map((a) => seg(a.min, a.name, a === current ? `~${Math.ceil(a.min * (1 - a.progress))} min left` : a.done ? took(a.name) : `~${a.min} min`, a.done ? 1 : a.progress)),
-)}
-<p><small>Labeling ${Number.isFinite(rate) ? Math.round(rate) : "…"} game-seats a minute over the last ${Math.round((Date.now() - t0) / 60e3)} min. Updates every 15 s.</small></p>`
-        : `${evs.map((e) => `<div>✓ ${e.name} <small>${new Date(e.t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>`).join("\n")}`
-    }
-<pre style="opacity:.7;white-space:pre-wrap">${real.split("\n").slice(-8).join("\n")}</pre>`,
-    usage,
-    cores: CORES,
-    // the machine's, since the page may be viewed somewhere set to another, like UTC
-    zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    events: evs,
-    ahead,
+    ...base,
+    title: `Round ${run.round} · ${failed ? "failed" : live ? `${Math.round(eta)} min` : "done"}`,
+    head: `<h1>Round ${run.round}: ${state}</h1>`,
+    body: `${html.join("\n")}
+<p><small>${rate > 0 ? `Labeling ${Math.round(rate)} game-seats a minute over the last ${Math.round((now - from.t) / 60e3)} min. ` : ""}Updates every 15 s.</small></p>
+<pre style="opacity:.7;white-space:pre-wrap">${log.replaceAll("&", "&amp;").replaceAll("<", "&lt;")}</pre>`,
+    usage: usage.filter((u) => u.t >= run.start),
+    events: stages.flatMap((s) => (s.state === "done" ? [{ t: s.t1!, name: s.name }] : [])),
+    ahead: failed ? [] : ahead,
     tracks,
     forecast,
-    start: Number.isFinite(start) ? start : null,
+    start: run.start,
+    live: live ? dir : undefined,
+    labeled,
   };
 }
 
-/**
- * When each milestone of the real run finished: a line's own clock time (`12:34` in brackets, or
- * a `date` before "round"), or else the start's plus its `[N min]`, or the player counts' minutes
- * added up.
- */
-function events(real: string) {
-  const start = Date.parse(real.slice(0, real.indexOf(" round")));
-  if (!Number.isFinite(start)) return [];
-  const out: { t: number; name: string }[] = [];
-  let labeled = 0;
-  for (const line of real.split("\n").slice(1)) {
-    const count = line.match(/^(\d) players: .*, ([\d.]+) min$/);
-    const lap = line.match(/^\s*\[(\d+) min(?:, (\d+):(\d+))?\] (.+)$/);
-    const dated = line.match(/^(\w{3} \w{3} +\d+ [\d:]+ \w+ \d{4}) round \w+: (.+)$/);
-    if (count) out.push({ t: start + (labeled += Number(count[2])) * 60e3, name: `${count[1]} players` });
-    else if (lap && !lap[4].endsWith("so far")) {
-      const clock = lap[2] && new Date(start).setHours(Number(lap[2]), Number(lap[3]), 0, 0);
-      out.push({ t: clock || start + Number(lap[1]) * 60e3, name: lap[4] });
-    } else if (dated) out.push({ t: Date.parse(dated[1]), name: dated[2] });
-  }
-  return out;
-}
-
-const CORES = availableParallelism();
-type Usage = { t: number; cores: number; load: number; done?: number; temp?: number; watts?: number };
-// kept in a file beside the log, so restarting this page doesn't lose it
-const USAGE = `dataset/r${args.round}/usage.jsonl`;
-const recent = (u: Usage) => Date.now() - u.t < 12 * 3600e3;
-const usage: Usage[] = existsSync(USAGE)
-  ? readFileSync(USAGE, "utf8")
-      .trim()
-      .split("\n")
-      .map((l) => JSON.parse(l))
-      .filter(recent)
-  : [];
 /** The CPU's temperature and the machine's power draw, from `macmon` (`brew install macmon`), if it's installed. */
 const heat = (): { temp?: number; watts?: number } => {
   try {
@@ -222,11 +213,12 @@ const heat = (): { temp?: number; watts?: number } => {
     return {};
   }
 };
+/** A round that's still running gets a line in its `usage.jsonl`, so restarting this page loses nothing. */
 const sample = () => {
-  const u = { t: Date.now(), cores: working(), load: loadavg()[0], done: labeled, ...heat() };
-  usage.push(u);
-  appendFileSync(USAGE, JSON.stringify(u) + "\n");
-  while (!recent(usage[0])) usage.shift();
+  const s = status();
+  if (!s.live) return;
+  const u: Usage = { t: Date.now(), cores: working(), load: loadavg()[0], done: s.labeled, ...heat() };
+  if (existsSync(s.live)) appendFileSync(`${s.live}/usage.jsonl`, JSON.stringify(u) + "\n");
 };
 
 // The charts are drawn in the page by Observable Plot, from the round's start to its ETA, so the
@@ -246,7 +238,9 @@ const draw = (s) => {
   document.querySelector("main").innerHTML = s.body;
   document.title = s.title;
   const now = Date.now();
-  const end = Math.max(now, ...s.ahead.map((a) => a.t));
+  // a round still running runs on to its ETA; one that's over ends at the last thing it wrote
+  const running = s.ahead.length ? [now] : [];
+  const end = Math.max(...running, ...s.ahead.map((a) => a.t), ...s.events.map((e) => e.t), ...s.usage.map((u) => u.t), s.start ?? now);
   const time = (t) => new Date(t);
   const x = { domain: [time(s.start ?? now - 2 * 3600e3), time(end)], label: null, tickFormat: (d) => d.toLocaleTimeString([], { timeZone: s.zone, hour: "numeric", minute: "2-digit" }) };
   const label = { text: "name", frameAnchor: "top", textAnchor: "start", dx: 3, rotate: 90, fontSize: 10 };
@@ -255,7 +249,7 @@ const draw = (s) => {
   const stages = [
     Plot.ruleX(s.events, { x: (e) => time(e.t), stroke: "#fff4" }),
     Plot.ruleX(s.ahead, { x: (a) => time(a.t), stroke: "#f2c94c", strokeOpacity: 0.6, strokeDasharray: "3 3" }),
-    Plot.ruleX([now], { x: time, stroke: "#fff" }),
+    Plot.ruleX(running, { x: time, stroke: "#fff" }),
   ];
   const charts = [
     {
@@ -265,7 +259,7 @@ const draw = (s) => {
         ...stages,
         Plot.text(s.events, { ...label, x: (e) => time(e.t), fill: "#fffc" }),
         Plot.text(s.ahead, { ...label, x: (a) => time(a.t), fill: "#f2c94c" }),
-        Plot.text([now], { ...label, x: time, text: () => "now", fill: "#fff", fontWeight: "bold" }),
+        Plot.text(running, { ...label, x: time, text: () => "now", fill: "#fff", fontWeight: "bold" }),
         s.tracks.map((track) => [Plot.areaY(track, { x: (p) => time(p.t), y: "v", fill: "#f2c94c", fillOpacity: 0.2 }), Plot.lineY(track, { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2 })]),
         s.forecast.map((line) => Plot.lineY(line, { x: (p) => time(p.t), y: "v", stroke: "#f2c94c", strokeWidth: 2, strokeDasharray: "4 4" })),
       ],
@@ -302,10 +296,8 @@ draw(${JSON.stringify(s)});
 setInterval(async () => { try { draw(await (await fetch("/status")).json()); } catch {} }, 15e3);
 </script>`;
 
-status();
 sample();
 setInterval(sample, 30e3);
-setInterval(status, 30e3);
 createServer((req, res) => {
   const s = status();
   if (req.url === "/status") {

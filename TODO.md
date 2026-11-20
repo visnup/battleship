@@ -326,7 +326,29 @@
             filter it ties round 7 (−0.07 ± 0.90 at 2, +0.92 ± 1.18 at 5). `round.sh` now
             compares against the last round's learned players too. Adopted as `src/model.json`
             and `src/packed/model.ts`; the README's learned-player numbers are still round
-            6's. Round 9 runs the same recipe from round 8.
+            6's. Round 9, the same recipe from round 8 (1.32 million decisions in 77 minutes, trained
+            with rounds 6 to 8), gains less: over round 8 against round 8's learned players
+            −0.13, +0.43, +0.99 and +1.20 (40,000 deals, ±0.35–0.42), against the default −0.13,
+            −0.10, +0.26 and +0.30 (±0.3–0.4), and as playouts' filter a tie. Over the
+            card-memory model in its field it's now +0.78, +1.73, +2.51 and +3.35. Round 6's
+            default-rollout labels still earn their place in the window: without them (rounds
+            7 to 9 only) the model loses 0.1 to 0.8 against round 8's learned players and 0.1
+            to 2.4 against the default. Round 10 spends the same on 20,000 games and 2 deals
+            (2.61 million decisions in 76 minutes) and gains less again: over round 9 against
+            round 9's learned players +0.43, +0.27, +0.16 and +0.71 (±0.35–0.42), against the
+            default a tie (+0.20, −0.28, −0.28, −0.07), so no playouts comparison. Over the
+            card-memory model in its field: +0.92, +1.76, +2.20 and +3.85. Adopted as
+            `src/model.json` and `src/packed/model.ts`. Round 11, the same again from round
+            10, is a tie with it: +0.06, −0.10, +0.21 and +0.14 against round 10's learned
+            players, +0.16, +0.41, +0.35 and −0.03 against the default, and a tie as playouts'
+            filter. The recipe has run out; the model's size hasn't: 2,000 trees on round
+            10's window beat its 1,000 by +0.47, +0.24, +0.32 and +0.53 against round 10's
+            learned players (±0.30–0.36), and on round 11's window by +0.36, +0.57, +0.19 and
+            +0.22 against round 11's (`model-r11-2000`, adopted as `src/model.json` and
+            `src/packed/model.ts`, 4.7 MB, which only Convex loads). That's where it ends: asked for 4,000,
+            the fit stops early near 2,300 trees and ties 2,000 (−0.15, +0.01, +0.24, 0.00,
+            ±0.2). Round 12 plays from `model-r11-2000` with a 1,000-tree model inside the
+            playouts instead of 200, to see whether stronger playouts label better.
       - [x] Adopted the card-memory model (`model-r6m`, rounds 4b and 6 with `memory()`) as
             `src/model.json` and `src/packed/model.ts`: +0.3, +0.4, +0.5 and +1.0 over round 4
             (±0.3–0.5, 50,000 deals).

@@ -61,13 +61,16 @@ from photos of one card of each property color and each wild (`rules/properties.
   `scripts/learn.ts --model` plays one head to head, and `scripts/compare.ts a.json b.json`
   plays two models on the same deals. Each round of training on stronger play lives in
   `dataset/data-rN/`, `features-rN/` and `model-rN.json`, and `scripts/round.sh N` runs the
-  next one (its header lists the knobs), logging to `dataset/rN/`. Rounds 0 to 8's data is on
+  next one (its header lists the knobs and stages) after a smoke test of itself, writing its
+  log, `run.json` (the knobs and stages) and `events.jsonl` (each stage's start and end) to
+  `dataset/rN/`. Launch it bare: anything a round needs before or after belongs in it as a
+  stage, not chained around it. Rounds 0 to 8's data is on
   Hugging Face as `rounds/rN.tar.zst` (`tar -cf - -C dataset data-rN | zstd -9`), and only
   rounds 6 on are still on disk. Don't edit `src/` or what
-  it imports while a round runs: its workers load those files. `scripts/overnight.sh` runs a
-  round labeled by playouts among learned players (`dataset.ts --strong`), after a smoke test
-  of the whole pipeline, and `node scripts/status.ts --round N` serves its progress and ETA at
-  localhost:3001. `scripts/field.ts` plays one player against learned players, and
+  it imports while a round runs: its workers load those files. `STRONG=200` labels
+  it by playouts among learned players (`dataset.ts --strong`), and `node scripts/status.ts`
+  serves the newest round's progress and ETA at localhost:3001, from those two files.
+  `scripts/field.ts` plays one player against learned players, and
   `scripts/plan.ts` tests looking ahead to the end of the turn.
 - `trees.ts` flattens LightGBM's trees into typed arrays and packs them as base64;
   `scripts/pack.ts` writes the four models to `src/packed/`, which `hard.ts` loads for the
@@ -107,13 +110,14 @@ Anything that takes more than an hour (a round, a dataset, a big table) gets the
 mistake costs minutes, not the night:
 
 - **A smoke test first:** the whole pipeline at a tiny size (a few dozen games, 2 deals), end
-  to end, before the real run starts. `overnight.sh` does this; 2026-11-18 it caught a
+  to end, before the real run starts. `round.sh` does this; 2026-11-18 it caught a
   hard-coded shard count and an exit trap that failed the script, both of which would only have
   broken after hours.
 - **Progress in a log file:** a line at least every 10 minutes, with what's been written so far,
   appended to `dataset/rN/log.txt` (`round.sh` does this during the data step), so a stall shows.
-- **A status page:** `node scripts/status.ts --round N` at localhost:3001, with a bar per stage
-  and an ETA from the recent rate. Open it in the browser pane.
+- **A status page:** `node scripts/status.ts` at localhost:3001, with a bar per stage and an ETA
+  from the recent rate. Open it in the browser pane. It reads only what the run wrote for it
+  (`run.json`, `events.jsonl`), so a run it can't show is missing those, not misparsed.
 - **Timeouts sized to the run** (`HOURS=` for `round.sh`'s data step), and a timing run on a
   sample first: learned-player rollouts were 30–60× the default's, not the 9–20× measured
   earlier for small models inside quick playouts.
