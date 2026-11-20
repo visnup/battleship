@@ -4,12 +4,12 @@ import { createServer } from "node:http";
 import { availableParallelism, loadavg } from "node:os";
 import { parseArgs } from "node:util";
 
-// A page at http://localhost:3001 showing how far a round (`round.sh`) has got: the newest one
+// A page at http://localhost:3011 showing how far a round (`round.sh`) has got: the newest one
 // in dataset/, or `--round N`. The round says what it is in `run.json` and when each stage
 // started and ended in `events.jsonl`; this adds games labeled so far from the data's shards and
 // an ETA from the recent rate. It only reads the round's files, so it can't disturb it.
 
-const { values: args } = parseArgs({ options: { round: { type: "string" }, port: { type: "string", default: "3001" } } });
+const { values: args } = parseArgs({ options: { round: { type: "string" }, port: { type: "string", default: "3011" } } });
 
 type Run = { round: string; prev: string; start: number; games: number; shards: number; trees: number; strong: number; stages: string[] };
 type Event = { t: number; stage: string; state: "start" | "done" | "skipped" | "failed" };

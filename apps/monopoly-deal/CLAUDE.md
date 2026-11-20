@@ -69,7 +69,7 @@ from photos of one card of each property color and each wild (`rules/properties.
   rounds 6 on are still on disk. Don't edit `src/` or what
   it imports while a round runs: its workers load those files. `STRONG=200` labels
   it by playouts among learned players (`dataset.ts --strong`), and `node scripts/status.ts`
-  serves the newest round's progress and ETA at localhost:3001, from those two files.
+  serves the newest round's progress and ETA at localhost:3011, from those two files.
   `scripts/field.ts` plays one player against learned players, and
   `scripts/plan.ts` tests looking ahead to the end of the turn.
 - `trees.ts` flattens LightGBM's trees into typed arrays and packs them as base64;
@@ -116,7 +116,7 @@ mistake costs minutes, not the night:
   broken after hours.
 - **Progress in a log file:** a line at least every 10 minutes, with what's been written so far,
   appended to `dataset/rN/log.txt` (`round.sh` does this during the data step), so a stall shows.
-- **A status page:** `node scripts/status.ts` at localhost:3001, with a bar per stage and an ETA
+- **A status page:** `node scripts/status.ts` at localhost:3011, with a bar per stage and an ETA
   from the recent rate. Open it in the browser pane. It reads only what the run wrote for it
   (`run.json`, `events.jsonl`), so a run it can't show is missing those, not misparsed.
 - **Timeouts sized to the run** (`HOURS=` for `round.sh`'s data step), and a timing run on a

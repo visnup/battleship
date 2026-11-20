@@ -27,6 +27,9 @@ games=${GAMES:-10000}
 trees=${TREES:-1000}
 window=${WINDOW:-$prev $next}
 
+. ../../packages/kit/lock.sh
+lock "monopoly-deal round $next"
+
 if [ "${SMOKE:-1}" != 0 ]; then
   s=${next}smoke
   clean() { rm -rf $D/data-r$s $D/features-r$s $D/model-r$s.json $D/r$s ${STRONG:+$D/model-r$prev-10.json}; }

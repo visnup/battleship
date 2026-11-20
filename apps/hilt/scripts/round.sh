@@ -29,6 +29,9 @@ dirs=${DIRS:-$(for r in $(seq 3 "$round"); do echo $D/data-r${r}s; done)}
 data=$D/data-${DATA:-r${round}s}
 fields=$(for r in $(seq $((round - 1)) -1 $((round > 6 ? round - 4 : 3))); do name "$r"; done)
 
+. ../../packages/kit/lock.sh
+lock "hilt round $round"
+
 if [ "${SMOKE:-1}" != 0 ]; then
   s=${round}smoke
   clean() { rm -rf $D/data-r$s $D/model-r$s.json $D/model-r$s-200.json $D/r$s; }

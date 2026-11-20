@@ -5,13 +5,13 @@
       "name": "fives",
       "runtimeExecutable": "env",
       "runtimeArgs": ["CONVEX_AGENT_MODE=anonymous", "fnm", "exec", "--using=26", "pnpm", "dev"],
-      "port": 3004
+      "port": 3030
     },
     {
       "name": "status",
       "runtimeExecutable": "fnm",
       "runtimeArgs": ["exec", "--using=26", "node", "scripts/status.ts"],
-      "port": 3003
+      "port": 3031
     }
   ]
 }

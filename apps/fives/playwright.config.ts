@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: "./src",
   testMatch: "**/*.spec.ts", // *.test.ts are node --test's
   use: {
-    baseURL: "http://localhost:3004",
+    baseURL: "http://localhost:3030",
   },
   projects: [
     {
@@ -13,8 +13,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "next dev -p 3004",
-    url: "http://localhost:3004",
+    command: "next dev -p 3030",
+    url: "http://localhost:3030",
     reuseExistingServer: !process.env.CI,
     timeout: 10_000,
   },

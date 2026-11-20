@@ -46,7 +46,7 @@ last page has the components and a summary.
   this one about 8, for a little less accuracy.
   `scripts/round.sh N` runs round N end to end after a smoke test of itself (`SMOKE=0` skips it),
   writing `log.txt`, `run.json` and `events.jsonl` to `dataset/rN/`, and `node scripts/status.ts`
-  serves the newest round's progress at localhost:3003. Don't edit `src/` while a round runs: its
+  serves the newest round's progress at localhost:3031. Don't edit `src/` while a round runs: its
   workers load those files.
 - `kit/parallel.ts` and `worker.ts` (`../../packages/kit`) split a script's games into seeded chunks across
   cores, so results don't depend on the core count. Scripts guard their main code with
@@ -121,7 +121,7 @@ When to dig in, and when to stop:
 ## Playing online
 
 A Next.js (pages router) and Convex app copied from `../hilt`: `pnpm dev` runs both, Next on port
-3004 so it can run beside hilt's. Locally it runs against an anonymous local Convex backend
+3030 (see the games `CLAUDE.md` for every app's ports). Locally it runs against an anonymous local Convex backend
 (`CONVEX_AGENT_MODE=anonymous`, as `.claude/launch.json` starts it). Not deployed yet. Other
 players' hands aren't hidden from their browsers; it's for friends.
 

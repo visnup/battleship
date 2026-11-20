@@ -5,7 +5,7 @@ const CHUNKS = 256;
 
 /**
  * Runs `n` games' worth of `task` in up to 256 chunks, seeded 1, 2, …, that a worker per core
- * takes in turn, then adds up what they return (numbers, arrays, objects or Maps of them) in chunk
+ * (or `WORKERS` of them) takes in turn, then adds up what they return (numbers, arrays, objects or Maps of them) in chunk
  * order, or combines them with `combine`. `task` is an export of `module` called as
  * `task(...args, seed, n)`; `module` must not do anything at the top level but define things, so
  * scripts guard their main code with `import.meta.main`.
@@ -18,7 +18,7 @@ export async function parallel<T>(module: string, task: string, args: unknown[],
     done = 0;
   const start = performance.now();
   await Promise.all(
-    Array.from({ length: Math.min(availableParallelism(), k) }, () => {
+    Array.from({ length: Math.min(Number(process.env.WORKERS) || availableParallelism(), k) }, () => {
       const worker = new Worker(new URL("./worker.ts", import.meta.url), { workerData: { module, task, args } });
       return new Promise<void>((resolve, reject) => {
         let i = 0;

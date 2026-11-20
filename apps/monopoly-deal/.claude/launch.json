@@ -3,15 +3,15 @@
   "configurations": [
     {
       "name": "monopoly-deal",
-      "runtimeExecutable": "env",
-      "runtimeArgs": ["CONVEX_AGENT_MODE=anonymous", "fnm", "exec", "--using=26", "pnpm", "dev"],
-      "port": 3000
+      "runtimeExecutable": "fnm",
+      "runtimeArgs": ["exec", "--using=26", "pnpm", "dev"],
+      "port": 3010
     },
     {
       "name": "status",
       "runtimeExecutable": "fnm",
       "runtimeArgs": ["exec", "--using=26", "node", "scripts/status.ts"],
-      "port": 3001
+      "port": 3011
     }
   ]
 }
