@@ -40,6 +40,13 @@
       loses 1 to 5 points at 128 deals and at 512.
 - [ ] A smaller model: 1,000 trees are 24 MB; 200 trees lose 3 to 4 points against the default.
 - [ ] A mixed strategy: wait or open at random, at the rate where neither beats the other.
+- [ ] Doves to stop a battle someone else is winning, not only a chip that would win them the
+      game. In one 4-player review (2026-11-19, local table `longgame`), Doves played where the
+      default passed beat it by 23, 18 and 13 points in battles 5–7. One game: check it with
+      `scripts/decisions.ts`, then as a variant against `--field league`.
+- [ ] The default's waiting leaves stopping a rival to the others, and when everyone waits nobody
+      does. In `onyx` (2026-11-19), passing with a chip that would win Bot 1 the game cost 54 and
+      66 points, and passing on a chip that would have set up a win of our own cost 44.
 
 ## Analysis
 

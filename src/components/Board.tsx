@@ -110,11 +110,12 @@ export function Board({ game, me }: Props) {
   };
   const { prompt, result } = state;
   const replaceGone = useMutation(api.games.replaceGone);
-  const waiting = !result && prompt && prompt.seat !== seat && "player" in game.seats[prompt.seat];
-  // while someone else is up, check every so often whether they've left
+  const waiting = !result && prompt && prompt.seat !== seat ? ("bot" in game.seats[prompt.seat] ? "bot" : "person") : undefined;
+  // while someone else is up, check every so often whether they've left; a bot should never be
+  // up for long, since the server plays bots as soon as it's their turn
   useEffect(() => {
     if (!waiting) return;
-    const interval = setInterval(() => replaceGone({ game: game._id }), 10e3);
+    const interval = setInterval(() => replaceGone({ game: game._id }), waiting === "bot" ? 3e3 : 10e3);
     return () => clearInterval(interval);
   }, [waiting, replaceGone, game._id]);
   // when it comes to you, say so in the tab's title and chime, since you might be in another tab

@@ -141,7 +141,7 @@ export class Game {
     return true;
   }
 
-  /** Starts a battle: the Favor holder picks its chip, unless Doves left one, and the player to their left goes first. */
+  /** Starts a battle: the Favor holder picks its chip, unless Doves left one, and the first player to their left with cards goes first. */
   begin() {
     if (!this.color) this.color = this.policies[this.favor].color(this, this.players[this.favor]);
     this.battles++;
@@ -149,7 +149,8 @@ export class Game {
     this.ended = null;
     this.winter = false;
     for (const p of this.players) [p.row, p.passed] = [[], !p.hand.length];
-    this.current = (this.favor + 1) % this.players.length;
+    this.current = this.favor;
+    this.next();
     this.log?.(`battle ${this.battles} over ${this.color}, favor ${this.favor}`);
   }
 

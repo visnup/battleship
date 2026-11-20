@@ -25,6 +25,8 @@ export function* review(setup: Setup, log: Choice[], seat: number, { deals = 400
     if (choice.seat !== seat || mine++ % part[1] !== part[0]) continue;
     const { game } = replay(people, log.slice(0, n));
     const p = game.players[seat];
+    // an old game's pass with no cards, which replay() skips
+    if (choice.kind !== "color" && !p.hand.length) continue;
     const rng = mulberry32(n + 1);
     const seeds = Array.from({ length: deals }, () => Math.floor(rng() * 2 ** 32));
     const odds = (before: (g: Game) => void, move?: Move) =>

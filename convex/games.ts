@@ -48,7 +48,7 @@ export const decide = mutation({
   },
 });
 
-/** Seats a bot for every player who's stopped pinging, and plays on. */
+/** Seats a bot for every player who's stopped pinging, and plays any bots that are up. */
 export const replaceGone = mutation({
   args: { game: v.id("games") },
   handler: async ({ db }, { game: id }) => {
@@ -62,8 +62,8 @@ export const replaceGone = mutation({
         return p && p.lastSeen > now - window ? s : { bot: "default" as const };
       }),
     );
-    if (seats.every((s, i) => s === game.seats[i])) return;
-    await db.patch("games", id, { seats });
+    if (seats.some((s, i) => s !== game.seats[i])) await db.patch("games", id, { seats });
+    // plays any bots that are up, as after the game's rules change under a game in progress
     await play(db, { ...game, seats }, await log(db, id), []);
   },
 });

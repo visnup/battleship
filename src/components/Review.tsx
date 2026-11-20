@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Choice, Setup } from "../replay.ts";
 import { deals, type Reviewed } from "../review.ts";
 
@@ -12,6 +12,96 @@ function words(kind: Choice["kind"], label: string) {
   if (label === "pass") return { did: "passed", other: "passing" };
   const card = /^\d+$/.test(label) ? `the ${label}` : label.startsWith("Bait") ? label : label[0].toUpperCase() + label.slice(1);
   return { did: `played ${card}`, other: card };
+}
+
+type Scored = Reviewed & { best: { label: string; win: number }; mine: { win: number }; lost: number; beat: number };
+
+/**
+ * Your chance of winning after each of your decisions, like a chess engine's evaluation chart: a
+ * red drop where another option had more, a blue dot where you beat the Hint, battles along the
+ * bottom, and a fair share dashed. Clicking a decision shows the board then.
+ */
+function Chances({ rows, order, fair, show }: { rows: Scored[]; order: number[]; fair: number; show: (n: number) => void }) {
+  const box = useRef<HTMLDivElement>(null);
+  // the board's show() is new each render, and redrawing for it would lose the pointer
+  const latest = useRef(show);
+  useEffect(() => {
+    latest.current = show;
+  });
+  useEffect(() => {
+    let gone = false;
+    // Plot only loads for a game's review
+    import("@observablehq/plot").then((Plot) => {
+      const el = box.current;
+      if (gone || !el) return;
+      const data = rows.map((r) => ({ ...r, i: order.indexOf(r.n), win: r.mine.win }));
+      // each battle's first decision, labeled with its number
+      const firsts = new Map(data.filter((d, j) => !j || data[j - 1].battle !== d.battle).map((d) => [d.i, d.battle]));
+      const color = (d: Scored) => (d.lost >= 0.05 ? "#ff8a8a" : d.beat >= 0.05 ? "#7fb3ff" : "white");
+      const plot = Plot.plot({
+        width: el.clientWidth,
+        height: 160,
+        marginLeft: 36,
+        marginTop: 28,
+        style: { background: "transparent", color: "white" },
+        x: { domain: [-0.5, order.length - 0.5], ticks: [...firsts.keys()], tickFormat: (i: number) => String(firsts.get(i)), label: "battle" },
+        y: { domain: [0, 1], ticks: [0, 0.5, 1], tickFormat: "%", grid: true, label: null },
+        marks: [
+          Plot.ruleY([fair], { strokeDasharray: "3 3", strokeOpacity: 0.5 }),
+          Plot.ruleX(
+            data.filter((d) => d.lost >= 0.05),
+            { x: "i", y1: (d) => d.best.win, y2: "win", stroke: "#ff8a8a", strokeWidth: 2 },
+          ),
+          Plot.lineY(data, { x: "i", y: "win", stroke: "#de35a2", strokeWidth: 2 }),
+          Plot.dot(data, { x: "i", y: "win", r: (d) => (d.lost >= 0.05 || d.beat >= 0.05 ? 4 : 2.5), fill: color }),
+          // where your chances started, peaked and ended
+          Plot.text([...new Set([data[0], data.reduce((a, b) => (b.win > a.win ? b : a)), data.at(-1)!])], {
+            x: "i",
+            y: "win",
+            text: (d) => pct(d.win),
+            dy: -10,
+            fontSize: 11,
+            fontWeight: "bold",
+            fill: "white",
+            stroke: "#22091b",
+            strokeWidth: 3,
+          }),
+          // in place of a tip, which would cover the line: a rule at the decision under the
+          // pointer, and what happened there in the top margin
+          Plot.ruleX(data, Plot.pointerX({ x: "i", stroke: "white", strokeOpacity: 0.35 })),
+          Plot.text(
+            data,
+            Plot.pointerX({
+              x: "i",
+              frameAnchor: "top",
+              lineAnchor: "bottom",
+              dy: -12,
+              fontSize: 12,
+              // above the decision, but anchored to whichever side keeps it on the chart
+              render(index, scales, values, dimensions, context, next) {
+                const g = next!(index, scales, values, dimensions, context)!;
+                const x = (values.x as number[] | undefined)?.[index[0]];
+                if (x !== undefined) g.setAttribute("text-anchor", x < dimensions.width / 3 ? "start" : x > (2 * dimensions.width) / 3 ? "end" : "middle");
+                return g;
+              },
+              text: (d) => `Battle ${d.battle}: you ${words(d.kind, d.chose).did}, ${pct(d.win)}${d.lost >= 0.01 ? ` · ${words(d.kind, d.best.label).other} had ${pct(d.best.win)}` : ""}`,
+            }),
+          ),
+        ],
+      });
+      // clicking the decision under the pointer shows the board then
+      plot.addEventListener("click", () => {
+        const d = (plot as unknown as { value?: Scored }).value;
+        if (d) latest.current(d.n);
+      });
+      plot.style.cursor = "pointer";
+      el.replaceChildren(plot);
+    });
+    return () => {
+      gone = true;
+    };
+  }, [rows, order, fair]);
+  return <div ref={box} className="my-[0.6em]" aria-label="Your chance of winning after each of your decisions" />;
 }
 
 /**
@@ -38,15 +128,20 @@ export function Review({ setup, log, seat, show }: { setup: Setup; log: Choice[]
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setup.seed, log.length, seat, k]);
 
-  const scored = rows.map((r) => {
-    const best = r.options.reduce((a, b) => (b.win > a.win ? b : a));
-    const mine = r.options.find((o) => o.label === r.chose) ?? best;
-    const hint = r.options.find((o) => o.label === r.hint) ?? best;
-    return { ...r, best, mine, lost: best.win - mine.win, beat: mine.win - hint.win };
-  });
+  const scored = useMemo(
+    () =>
+      rows.map((r) => {
+        const best = r.options.reduce((a, b) => (b.win > a.win ? b : a));
+        const mine = r.options.find((o) => o.label === r.chose) ?? best;
+        const hint = r.options.find((o) => o.label === r.hint) ?? best;
+        return { ...r, best, mine, lost: best.win - mine.win, beat: mine.win - hint.win };
+      }),
+    [rows],
+  );
+  const order = useMemo(() => log.flatMap((c, n) => (c.seat === seat ? [n] : [])), [log, seat]);
   const costly = scored.filter((r) => r.lost >= 0.05).sort((a, b) => b.lost - a.lost);
   const found = scored.filter((r) => r.chose !== r.hint && r.beat >= 0.05).sort((a, b) => b.beat - a.beat);
-  const peak = scored.reduce<(typeof scored)[number] | undefined>((a, b) => (!a || b.best.win > a.best.win ? b : a), undefined);
+  const peak = scored.reduce<(typeof scored)[number] | undefined>((a, b) => (!a || b.mine.win > a.mine.win ? b : a), undefined);
   const item = "cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10";
 
   return (
@@ -59,9 +154,10 @@ export function Review({ setup, log, seat, show }: { setup: Setup; log: Choice[]
       )}
       {scored.length > 0 && peak && (
         <p className="my-[0.4em]">
-          Your chances: {pct(scored[0].best.win)} at the start, {pct(peak.best.win)} at their best (battle {peak.battle}), {pct(scored.at(-1)!.best.win)} at your last decision.
+          Your chances: {pct(scored[0].mine.win)} after your first decision, {pct(peak.mine.win)} at their best (battle {peak.battle}), {pct(scored.at(-1)!.mine.win)} after your last.
         </p>
       )}
+      {scored.length > 0 && <Chances rows={scored} order={order} fair={1 / setup.players} show={show} />}
       {costly.length > 0 && (
         <>
           <h3 className="mt-[0.8em] mb-[0.2em] font-semibold">What cost you most</h3>
@@ -69,7 +165,7 @@ export function Review({ setup, log, seat, show }: { setup: Setup; log: Choice[]
             {costly.slice(0, 4).map((r) => (
               <li key={r.n} className={item} onClick={() => show(r.n)}>
                 Battle {r.battle}: you {words(r.kind, r.chose).did} ({pct(r.mine.win)}); {words(r.kind, r.best.label).other} had {pct(r.best.win)}. <b>−{points(r.lost)}</b>
-                {r.chose === r.hint && <span className="opacity-60"> The Hint said the same.</span>}
+                {r.chose === r.hint && <span className="opacity-60"> (hinted)</span>}
               </li>
             ))}
           </ul>

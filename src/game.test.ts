@@ -62,6 +62,14 @@ test("the first turn is left of the Favor holder", () => {
   assert.deepEqual(order, [3, 0, 1, 2]);
 });
 
+test("a player with no cards is out of the battle, and never asked to move", () => {
+  const order: number[] = [];
+  const g = new Game({ players: 4, rng: mulberry32(1), first: 2, policies: { ...defaultPolicy, move: (g, p) => (order.push(p.seat), null) } });
+  g.players[3].hand = [];
+  g.battle();
+  assert.deepEqual(order, [0, 1, 2]);
+});
+
 test("Winter makes every force card 1, Fury doubles force cards, and Legend is always 10", () => {
   const g = scripted([[force(10), fate("fury"), fate("legend")], [fate("winter")]], [[play(force(10)), play(fate("fury")), play(fate("legend"))], [play(fate("winter"))]], 1);
   g.players[0].row = [force(10), fate("fury"), fate("legend")];

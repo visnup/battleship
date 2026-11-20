@@ -70,7 +70,11 @@ export function replay(setup: Setup, log: Choice[], bots: Record<string, Policy>
   const lines: string[] = [];
   const bot = (p: Player) => bots[setup.bots[p.seat] || ""] ?? defaultPolicy;
   let next = 0;
+  // Games saved before 2026-11-19 asked a player with no cards left to open a battle, so their
+  // logs pass, and sometimes discard nothing, for them; the game no longer asks.
+  const asked = (c: Choice) => c.kind !== "color" && !game.players[c.seat].hand.length && (c.kind === "dump" || c.card === null);
   const decide = <C extends Choice>(prompt: Prompt, made: () => C): C => {
+    while (log[next] && (log[next].kind !== prompt.kind || log[next].seat !== prompt.seat) && asked(log[next])) next++;
     let choice = log[next] as C | undefined;
     if (choice) {
       if (choice.kind !== prompt.kind || choice.seat !== prompt.seat) throw new Error(`decision ${next} is ${choice.kind} by ${choice.seat}, but the game wants ${prompt.kind} by ${prompt.seat}`);

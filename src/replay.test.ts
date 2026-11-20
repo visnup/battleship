@@ -17,6 +17,32 @@ test("bots replay a game as it plays", () => {
   }
 });
 
+test("a game saved when players with no cards were still asked to move replays the same", () => {
+  // the old rule: the first turn went left of the Favor holder, cards or not
+  const begin = Game.prototype.begin;
+  Game.prototype.begin = function () {
+    begin.call(this);
+    this.current = (this.favor + 1) % this.players.length;
+  };
+  let old;
+  try {
+    for (let seed = 1; seed < 200 && !old; seed++) {
+      const setup: Setup = { players: 4, seed, first: 0, bots: Array(4).fill("default") };
+      const played = replay(setup, []);
+      const people: Setup = { ...setup, bots: setup.bots.map(() => false) };
+      // games where somebody empty-handed was asked
+      const asked = played.decisions.filter((c, n) => c.kind === "move" && c.card === null && !replay(people, played.decisions.slice(0, n)).game.players[c.seat].hand.length);
+      if (asked.length) old = { setup, people, played };
+    }
+  } finally {
+    Game.prototype.begin = begin;
+  }
+  assert.ok(old, "no game asked a player with no cards");
+  const now = replay(old.people, old.played.decisions);
+  assert.equal(now.prompt, undefined);
+  assert.equal(now.result?.winner, old.played.result?.winner);
+});
+
 test("a person's seat waits for them, and a bad choice is refused", () => {
   const setup: Setup = { players: 3, seed: 7, first: 0, bots: [false, "default", "default"] };
   const { prompt } = replay(setup, []);

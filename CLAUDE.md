@@ -119,5 +119,9 @@ Other players' hands aren't hidden from their browsers; it's for friends.
 - "Highest single value card" is the printed value (Legend 10), not Winter's 1.
 - A Favor holder with no cards still has the Favor's 1 strength (`Rules.emptyFavor`).
 - A battle that leaves nobody with cards also ends the round.
+- A player with no cards is out of a battle from its start and never asked to move. Before
+  2026-11-19 the first turn went left of the Favor holder regardless, so bots passed with
+  nothing and people were asked to; default games came out the same, and `replay()` skips those
+  passes in games saved then.
 - The game is checked for a winner as each chip is won. A game with no winner after 500
   battles counts as stalled; none has.
