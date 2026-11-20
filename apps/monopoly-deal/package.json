@@ -2,9 +2,6 @@
   "private": true,
   "type": "module",
   "license": "MIT",
-  "engines": {
-    "node": "26.x"
-  },
   "scripts": {
     "dev": "concurrently \"convex dev\" \"next dev\"",
     "build": "next build",
