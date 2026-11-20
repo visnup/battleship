@@ -4,7 +4,7 @@ import type { Card as CardType, Color } from "../cards.ts";
 export const PAINT: Record<Color, string> = { blue: "#2f5db1", green: "#3db389", silver: "#808080", magenta: "#de35a2" };
 
 /** The corner index: the number, and a dot under it, as printed. */
-const corner = "absolute top-[0.25em] left-[0.35em] flex flex-col items-center font-numbers text-[0.85em] leading-none font-bold";
+const corner = "absolute top-[0.25em] left-[0.2em] flex flex-col items-center font-numbers text-[0.85em] leading-none font-bold tracking-tighter";
 
 /**
  * A card face up, in its color with its number in white; or `down`, the light back with its

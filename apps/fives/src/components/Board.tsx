@@ -84,6 +84,8 @@ const PLACES: Record<number, string[]> = {
   3: ["col-start-2 row-start-3", "col-start-1 row-start-1 row-span-2", "col-start-3 row-start-1 row-span-2"],
   4: ["col-start-2 row-start-3", "col-start-1 row-start-2", "col-start-2 row-start-1", "col-start-3 row-start-2"],
 };
+/** Whether the seat at each place sits at a side, laid out tall. */
+const SIDES: Record<number, boolean[]> = { 3: [false, true, true], 4: [false, true, false, true] };
 /** Where each seat's card goes in the trick, toward its seat. */
 const SLOTS: Record<number, string[]> = {
   3: ["col-start-2 row-start-3", "col-start-1 row-start-1", "col-start-3 row-start-1"],
@@ -198,6 +200,7 @@ export function Board({ game, me }: Props) {
           <Seat
             key={p.seat}
             className={PLACES[n][(p.seat - bottom + n) % n]}
+            tall={SIDES[n][(p.seat - bottom + n) % n]}
             p={p}
             name={`${who(p.seat)}${view.result?.winners.includes(p.seat) ? " 🏆" : ""}`}
             level={(game.seats[p.seat] as { bot?: Level }).bot}
@@ -264,22 +267,16 @@ function HandScores({ scored, who, chips, done }: { scored: Scored; who: (n: num
   );
 }
 
-/** The `k`th of `n` cards' place in a shallow fan: turned out from the middle, and dropping toward the ends. */
-const fan = (k: number, n: number) => {
-  const o = k - (n - 1) / 2;
-  return { rotate: `${o * 1.5}deg`, translate: `0 ${0.04 * o * o}em` };
-};
-
 const ORDER = COLORS;
 const rank = (c: CardType) => ORDER.indexOf(c.color) * 100 + c.value;
 
-/** A hand, sorted by color and overlapped in a shallow fan. `onClick` and the rest take places in the hand as dealt, not as shown. */
+/** A hand, sorted by color and overlapped in a row, 2.4em of each card under the next, up to 3.2em when 13 wouldn't fit, which still shows a two-digit index. `onClick` and the rest take places in the hand as dealt, not as shown. */
 export function Hand({ cards, onClick, selected, hinted, dim }: { cards: CardType[]; onClick?: (i: number) => void; selected?: number; hinted?: number; dim?: (c: CardType) => boolean }) {
   const order = cards.map((_, i) => i).sort((a, b) => rank(cards[a]) - rank(cards[b]));
   return (
-    <div className="flex justify-center pt-[1.4em] pb-[1.5em] *:not-first:-ml-[min(2.4em,calc((100vw-7em)/13-4.5em))] *:hover:z-10">
-      {order.map((i, k) => (
-        <div key={i} className={`relative origin-bottom ${selected === i ? "z-10" : ""}`} style={fan(k, order.length)}>
+    <div className="@container flex justify-center text-[0.85rem] pt-[1.4em] pb-[1.5em] *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)] *:hover:z-10">
+      {order.map((i) => (
+        <div key={i} className={`relative ${selected === i ? "z-10" : ""}`}>
           <Card card={cards[i]} selected={selected === i} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => onClick(i))} />
         </div>
       ))}
@@ -315,25 +312,25 @@ export const LEVELS: Record<Level, { name: string; title: string }> = {
   learned: { name: "Hard", title: "Plays by the learned model" },
 };
 
-/** A player's place at the table: name, chips, this hand's winning cards and total, and cards in hand. */
-function Seat({ p, name, level, current, mine, className }: { p: Player; name: string; level?: Level; current: boolean; mine: boolean; className: string }) {
+/** A player's place at the table: name, chips, this hand's winning cards and total, and cards in hand. `tall` stacks it all, for a seat at the side. */
+function Seat({ p, name, level, current, mine, className, tall }: { p: Player; name: string; level?: Level; current: boolean; mine: boolean; className: string; tall?: boolean }) {
   const t = total(p);
   return (
-    <section className={`panel flex min-w-0 flex-col gap-[0.4em] p-[0.6em] ${current ? "current" : ""} ${className} justify-self-stretch`}>
-      <h2 className="m-0 flex flex-wrap items-center gap-x-[0.5em] text-sm font-bold">
-        <span className="truncate">
-          {name}
+    <section className={`panel flex min-w-0 flex-col gap-[0.4em] p-[0.6em] ${current ? "current" : ""} ${className} ${tall ? "justify-self-center" : "justify-self-stretch"}`}>
+      <h2 className={`m-0 flex flex-wrap gap-x-[0.5em] text-sm font-bold ${tall ? "flex-col items-center gap-y-[0.3em] text-center" : "items-center"}`}>
+        <span className={tall ? "flex max-w-full flex-col" : "truncate"}>
+          <span className="truncate">{name}</span>
           {level && (
-            <small className="ml-[0.4em] font-normal opacity-60" title={LEVELS[level].title}>
+            <small className={`font-normal opacity-60 ${tall ? "" : "ml-[0.4em]"}`} title={LEVELS[level].title}>
               {LEVELS[level].name}
             </small>
           )}
         </span>
-        <span className="ml-auto">
+        <span className={tall ? "" : "ml-auto"}>
           <Chips n={p.chips} />
         </span>
       </h2>
-      <div className="flex items-center gap-[0.5em]">
+      <div className={`flex gap-[0.5em] ${tall ? "flex-col items-center" : "items-center"}`}>
         <span className="flex min-w-[2.6em] flex-col items-center" title="This hand's total: the cards that won tricks">
           <span className={`text-lg leading-none font-extrabold ${t > TARGET ? "text-red-600" : t === TARGET ? "text-magenta" : ""}`}>{t}</span>
           <span className="label text-[0.55rem]">{t > TARGET ? "bust" : "of 25"}</span>
@@ -344,7 +341,7 @@ function Seat({ p, name, level, current, mine, className }: { p: Player; name: s
           ))}
         </div>
         {!mine && (
-          <span className="ml-auto flex items-center gap-[0.3em] text-xs font-bold" title="Cards in hand">
+          <span className={`flex items-center gap-[0.3em] text-xs font-bold ${tall ? "flex-wrap justify-center" : "ml-auto"}`} title="Cards in hand">
             <Backs n={Math.min(p.hand.length, 3)} />
             {p.hand.length}
           </span>

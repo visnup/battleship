@@ -140,6 +140,8 @@ players' hands aren't hidden from their browsers; it's for friends.
   with each card toward its player, and the seats around it, you at the bottom. A hand's scores
   hold the playback until you continue.
 - Prettier is 220 wide, to match the engine, and leaves Markdown alone.
+- Tailwind under Turbopack can miss a class added while `pnpm dev` runs: restart the dev server
+  before deciding a class doesn't work.
 
 ## Rules worth knowing
 
