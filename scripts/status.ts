@@ -102,7 +102,20 @@ function status() {
   const base = { cores: CORES, zone: Intl.DateTimeFormat().resolvedOptions().timeZone };
   if (!run) {
     const what = args.round ? `dataset/r${args.round}/run.json` : "round with a run.json in dataset/";
-    return { ...base, title: "No round", head: `<h1>No ${what}</h1>`, body: "<p>scripts/round.sh writes one when it starts.</p>", usage: [] as Usage[], events: [], ahead: [], tracks: [], forecast: [], start: null, live: undefined, labeled: 0 };
+    return {
+      ...base,
+      title: "No round",
+      head: `<h1>No ${what}</h1>`,
+      body: "<p>scripts/round.sh writes one when it starts.</p>",
+      usage: [] as Usage[],
+      events: [],
+      ahead: [],
+      tracks: [],
+      forecast: [],
+      start: null,
+      live: undefined,
+      labeled: 0,
+    };
   }
   const dir = `dataset/r${run.round}`;
   const now = Date.now();

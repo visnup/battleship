@@ -1,7 +1,7 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game.ts";
-import { board, learned, move, same } from "../src/learned.ts";
+import { board, hint, learned, move, same } from "../src/learned.ts";
 import { parallel } from "../src/parallel.ts";
 import { playout } from "../src/strategies.ts";
 
@@ -26,7 +26,7 @@ export function shard(players: number, deals: number, out: string, play: string,
       move(game, p) {
         const choice = player.move(game, p);
         if (p.seat !== seat) return choice;
-        const pick = defaultPolicy.move(game, p);
+        const pick = hint.move(game, p);
         const options = moves(game, p);
         if (options.length < 2) return choice;
         const seeds = Array.from({ length: deals }, () => Math.floor(rng() * 2 ** 32));

@@ -32,6 +32,9 @@ Its last page has the card list and each fate card's rule.
   `--field playouts` rechecks against quick playouts in every other seat.
 - `learned.ts`: the learned player. `board` and `move` turn a decision into numbers, and the
   LightGBM trees in `src/model.json` (flattened by `trees.ts`, copied from monopoly-deal) rank the moves.
+  One of a move's numbers is whether it's the default's pick, and `hint` is the default the
+  models were trained with (before `hold`); move it to `defaultPolicy` once a round trains on the
+  new default.
   `scripts/dataset.ts` writes every decision of default games with each move's playout value as
   JSONL shards in `dataset/data*/` (not committed); `--play` has a model's learned player play
   the games and `--rollout` play inside the playouts. `uv run scripts/learn.py [trees] [out]

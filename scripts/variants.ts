@@ -63,6 +63,8 @@ const stallAhead =
     return { card: bait, take };
   };
 
+const oneIn = (game: Game, p: Player) => others(game, p).filter((q) => !q.passed).length === 1;
+
 const bump = (chips: number[], i: number) => chips.map((c, j) => c + +(i === j));
 
 /** The default's steps without `drop`. */
@@ -90,8 +92,11 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "neither (previous)": without("one", "stall"),
   "a 1 before Bait back": () => heuristic(...steps.filter((s) => s !== "one").flatMap((s) => (s === "stall" ? ["one" as const, s] : [s]))),
   "give up one on one with an empty row": insert(giveUp(1), "chase"),
-  "ahead with others in, a 1 or Fury instead of passing": insert(ahead(["one", "fury"]), "bait"),
-  "ahead with others in, the strongest card instead of passing": insert(ahead(["top"]), "bait"),
+  "pass when ahead with something played (previous)": without("hold"),
+  "ahead with something played, a 1 or Fury instead of the weakest force card": replace("hold", ahead(["one", "fury"])),
+  "ahead with something played, the strongest card instead of the weakest": replace("hold", ahead(["top"])),
+  "ahead with something played, the weakest force card only with 1 other in": replace("hold", (game, p) => (oneIn(game, p) ? STEPS.hold(game, p) : undefined)),
+  "ahead with something played, Bait back a 1 if still ahead before the weakest force card": insert(stallAhead(true), "hold"),
   "open with a 1 or Fury with nobody else in (previous)": replace("open", openWith(0)),
   "open with a 1 or Fury only with 2+ others in": replace("open", openWith(2)),
   "never Crows": without("crows"),
@@ -130,6 +135,7 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "never discard a hand of no force cards": () => ({ ...defaultPolicy, dump: () => false }),
   "discard by playouts on 32 deals": (seed) => dumpPlayouts(defaultPolicy, 32, seed),
   "Doves only with 1 other in": replace("doves", (game, p) => (others(game, p).filter((q) => !q.passed).length <= 1 ? STEPS.doves(game, p) : undefined)),
+  "don't open with 1 other in at 5+ players": replace("open", (game, p) => (game.players.length >= 5 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
 };
 
 /** Every default so far, each adopted as the best answer to the one before. */
@@ -142,6 +148,7 @@ const LEAGUE: Policy[] = [
   heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "chase", "allIn", "bait"),
   heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "finish", "chase", "allIn", "bait"),
   heuristic("harvest", "stop", "crows", "doves", ahead(["top"], 0), "wait", "open", "finish", "stall", "one", "chase", "allIn", "bait"),
+  without("hold")(),
   defaultPolicy,
 ];
 

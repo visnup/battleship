@@ -72,20 +72,32 @@ in order. Each was found by playing out every legal move at the default's decisi
    that wins them the game.
 3. With nothing played and others still in, play a Fury, or else your strongest card, if you're
    ahead, as the Favor holder is at first.
-4. Don't open a battle while 2 or more others are still in: let them spend their cards. Not
+4. Ahead with something played and others still in, play your weakest force card rather than
+   pass: passing is final, and leaves them to overtake with nobody to answer.
+5. Don't open a battle while 2 or more others are still in: let them spend their cards. Not
    when the chip would win you the game, or anyone else with fewer than 3 others in.
-5. Otherwise open with a 1 or a Fury, the cheapest cards.
-6. With nobody else left in, play your strongest card if your strongest 4 would overtake: nobody
+6. Otherwise open with a 1 or a Fury, the cheapest cards.
+7. With nobody else left in, play your strongest card if your strongest 4 would overtake: nobody
    can answer, and rule 1 takes back what wasn't needed.
-7. Behind with others still in, Bait back a 1: it keeps you in the battle for nothing. Or play
+8. Behind with others still in, Bait back a 1: it keeps you in the battle for nothing. Or play
    a 1.
-8. Behind, take the lead with the cheapest card that does it, while the battle has cost you at
+9. Behind, take the lead with the cheapest card that does it, while the battle has cost you at
    most 3 cards, or without limit when the chip decides the game.
-9. Behind with the chip that wins you the game, play your strongest card even if it doesn't take
-   the lead.
-10. Before giving up a battle, Bait back your biggest force card.
+10. Behind with the chip that wins you the game, play your strongest card even if it doesn't take
+    the lead.
+11. Before giving up a battle, Bait back your biggest force card.
 
-The first default, rules 2, 8 and 10 only, wins 12.4% at 3 players and 4.7% at 6 against a
+Rule 4 came from the learned player (below), the first rule that did. Its moves differ from the
+default's at 74% of its decisions at 3 players and 49% at 6, mostly by playing where the default
+passed, and the largest group of those was ahead with a card down and one other still in, where
+the default had no rule and passed. Playing the weakest force card there wins 50.5%, 34.7%,
+26.4% and 21.8% at 3–6 players against the previous default (40,000 games), and 6, 2, 1.4 and
+0.8 points more than it against the league. The strongest card does about as well against the
+default and a little worse against the league. Only one on one gets most of it, 46.2% at 3
+players; a 1 or a Fury instead gains under a point. The models still take the previous default's pick as one of their inputs, since that's
+what they were trained on.
+
+The first default, rules 2, 9 and 11 only, wins 12.4% at 3 players and 4.7% at 6 against a
 field of later defaults. Each rule after it was the best answer to the default before, and
 they don't settle: once everyone waits, opening pays again, and once everyone opens, waiting
 does. So from the fifth round on, rules were also judged against a league, a default from every

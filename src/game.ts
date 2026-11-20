@@ -359,6 +359,17 @@ export const STEPS = {
     return card ? { card } : undefined;
   },
   /**
+   * Ahead with something played and others still in, the weakest force card rather than a pass,
+   * which would leave them to overtake with nobody to answer. From the learned player, which did
+   * this where the default passed: +17, +10, +6 and +5 points at 3–6 players against the default,
+   * +6, +2, +1.4 and +0.8 against every default so far (40,000 games).
+   */
+  hold(game, p) {
+    if (!p.row.length || game.leader() !== p.seat || others(game, p).every((q) => q.passed)) return undefined;
+    const card = p.hand.filter((c) => c.kind === "force").sort((a, b) => a.value - b.value)[0];
+    return card ? { card } : undefined;
+  },
+  /**
    * Don't open a battle while 2 or more others are still in: let them spend their cards. Against
    * the first default, which chased, this won 58.8% at 3 players and 70–72% at 4–6 (40,000
    * games). Not when the chip would win `p` the game, nor anyone else with fewer than 3 others

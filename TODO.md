@@ -38,6 +38,13 @@
 - [x] Round 10, on twice the games: 0.3 to 0.7 over round 9, within the noise, not adopted
       (2026-11-20). More of the same games no longer helps; the next gain needs something new
       (more deals a label, features, or labels from playouts against a league).
+- [x] Rules from the learned player: where its moves differ from the default's, grouped by
+      the default's rule (2026-11-20). Ahead with a card down and others in, the default passed
+      and the model played: `hold` plays the weakest force card, +17 to +5 points against the
+      previous default and +6 to +0.8 against the league. Adopted. The models still read the
+      previous default's pick (`hint` in `learned.ts`) until a round is trained on the new one.
+- [ ] More from the learned player: at 6 players it passes on 1s the default opens with, and
+      plays 10s where it plays 1s.
 - [x] Use the model to prune playouts to its top moves, and race on more deals, 2026-11-19:
       racing on 512 deals wins 75.7% at 3 players and 56.7% at 6; pruning to the model's top 3
       loses 1 to 5 points at 128 deals and at 512.
