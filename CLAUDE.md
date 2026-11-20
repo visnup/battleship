@@ -19,17 +19,12 @@ Its last page has the card list and each fate card's rule.
   plays. `playouts` plays every legal move out to the end on copies with the cards it can't see
   dealt again, optionally racing moves on shared deals (`z`). `headToHead` seats one player
   against `defaultPolicy` everywhere else.
-- Improving `defaultPolicy`, like monopoly-deal's:
-  1. `scripts/decisions.ts` plays out every legal move at each of the default player's decisions
-     and groups, by situation, where playouts clearly prefer another move.
-  2. Write the pattern as a variant in `scripts/variants.ts`.
-  3. Adopt it in `STEPS` if it beats the default beyond the noise (±0.5 points at 40,000 games)
-     and also wins against `--field league`, a default from every round in each other seat.
-     Rules here cycle: each round's best answer to the default gets answered by the next, so a
-     rule that only wins against today's default isn't adopted. The old behavior stays in
-     `variants.ts` marked "(previous)", and the old default joins `LEAGUE`.
-  4. Rerun the README's tables, since every one is played by or against the default.
-  `--field playouts` rechecks against quick playouts in every other seat.
+- `scripts/decisions.ts` plays out every legal move at each of the default player's decisions and
+  groups, by situation, where playouts clearly prefer another move. `scripts/overrules.ts` groups
+  where the learned model's pick differs from the default's, by the default rule that made its
+  pick, and lists the model's most-used features. `scripts/variants.ts` plays each variant
+  against `--field` (`default`, `league`, `playouts`, `learned` or any variant). "The loop" below
+  says how they fit together.
 - `learned.ts`: the learned player. `board` and `move` turn a decision into numbers, and the
   LightGBM trees in `src/model.json` (flattened by `trees.ts`, copied from monopoly-deal) rank the moves.
   One of a move's numbers is whether it's the default's pick, and `hint` is the default the
@@ -65,6 +60,72 @@ Its last page has the card list and each fate card's rule.
 - `node --test 'src/*.test.ts'` runs the deck, the booklet's rules and `replay.test.ts`.
   `pnpm test` runs those, then Playwright.
 - `TODO.md` is the plan, `README.md` what the simulator has shown so far.
+
+## The loop
+
+The goals, in order:
+
+1. **A faithful engine.** The booklet's rules as tests, and every reading it leaves open as a
+   `Rules` flag or an "Interpretations" entry. Every number below depends on this.
+2. **Know how to play Hilt well, and say so to people.** The README is for someone who wants to
+   play better: its rules list, strategies and prose say what wins and why, in a player's words.
+3. **Strong bots online.** Easy is the first default, Medium the default, Hard the learned model.
+
+The tools, cheapest first:
+
+- **The default** (`defaultPolicy`): rules a person can follow. Costs minutes to improve, and a
+  better default also makes Medium stronger and is what rounds play and label with.
+- **Playouts**: the upper bound, too slow for anything but checking.
+- **The learned model**: rounds of training on stronger and stronger play (`round.sh`), hours
+  each.
+
+The steps:
+
+1. **Find a candidate rule**, from either source:
+   - `scripts/overrules.ts`: where the model's pick differs from the default's, grouped by the
+     default's rule. The biggest group is the first candidate. This found `hold` on
+     2026-11-20: +5 to +17 points, from about 20 minutes' work.
+   - `scripts/decisions.ts`: where playouts clearly prefer another move.
+   - A person's game: a review that shows a costly move (`TODO.md` has some).
+2. **Write it as a variant** in `scripts/variants.ts`, with a few alternatives (cheapest card or
+   strongest, every situation or only one on one). Screen at 2,000 games, then run the best at
+   40,000.
+3. **Adopt it in `STEPS`** if it beats the default beyond the noise (±0.5 points at 40,000 games)
+   and also wins against `--field league`, a default from every round in each other seat. Rules
+   here cycle: each round's best answer to the default gets answered by the next, so a rule that
+   only wins against today's default isn't adopted. Recheck it against `--field playouts` and
+   `--field learned`, which say whether it's a bet on how weak players play. The old behavior
+   stays in `variants.ts` marked "(previous)", and the old default joins `LEAGUE`. The step's
+   comment gives its gains and where it came from.
+4. **Rerun the README's tables**, since every one is played by or against the default:
+   `sim.ts` (seats), `cards.ts`, `rules.ts`, `strategies.ts`, `variants.ts` for the chip,
+   discard and strong-players tables, then `charts.ts`. The playouts tables take hours; when
+   they aren't rerun, say which default they were played against.
+5. **Write it up for people.** Add the rule to the README's numbered list in plain words, say
+   what it changes about how to play and why (passing is final, so...), and update every bit of
+   prose a rerun table contradicts: a card's value, which seat is best, what a strategy is worth.
+   A finding that doesn't become a rule, like "waiting is a bet on how the others play", goes in
+   the prose too. Then `TODO.md`.
+6. **Train a round** when the default or the data changes, and adopt it if it beats the last
+   round beyond the noise without losing ground to older ones (see `learned.ts` above). Then go
+   back to step 1 with the new model.
+
+When to dig in, and when to stop:
+
+- Mine the model (step 1) after every adopted round and every new default: it's minutes, and
+  until `hold` the default had never learned from the model.
+- Stop training rounds once one gains less than twice the noise over the last. Round 9 gained
+  0.5 to 0.9, and round 10, on twice the games, 0.3 to 0.7. Before another round, change one
+  lever and say why: labels from the new default, more deals a label, new features (card memory,
+  as in `../fives`), or bigger trees. First check what caps it, as `../fives`' TODO "Headroom"
+  does: if playouts among the rollout players lose to the model, it's the labels.
+- Dig into a decision when a person's game shows a costly one, or a card's value in `cards.ts`
+  looks wrong for how people play it: a card worth less than nothing is one the default misplays.
+- Don't rerun the analysis tables except after the default changes. They report; they don't
+  improve anything.
+- Long runs (a round, a big table) follow `../monopoly-deal`'s "Long runs": a smoke test first,
+  progress in a log, a status page, sized timeouts, nothing in `src/` changing. Run them at nice
+  10 under `caffeinate -i`, and don't start one that can't finish before it's needed.
 
 ## Playing online
 

@@ -94,7 +94,13 @@ the default had no rule and passed. Playing the weakest force card there wins 50
 26.4% and 21.8% at 3–6 players against the previous default (40,000 games), and 6, 2, 1.4 and
 0.8 points more than it against the league. The strongest card does about as well against the
 default and a little worse against the league. Only one on one gets most of it, 46.2% at 3
-players; a 1 or a Fury instead gains under a point. The models still take the previous default's pick as one of their inputs, since that's
+players; a 1 or a Fury instead gains under a point. It holds up against strong players too: with
+quick playouts in every other seat it wins 39.7% at 3 players and 17.9% at 6, against the
+previous default's 34.7% and 16.0% (6,000 games), and at a table of round 9's learned players
+5.9%, 5.8%, 5.3% and 4.5% at 3–6 players, against 3.5%, 3.6%, 3.3% and 2.9% (10,000 games).
+Round 9 itself wins more against it, 67.0%, 53.1%, 47.4% and 42.7% at 3–6 players, against
+41.1%, 43.3%, 37.1% and 32.0% before, perhaps because default players that fight every lead out
+spend more of their cards on each other (untested). The models still take the previous default's pick as one of their inputs, since that's
 what they were trained on.
 
 The first default, rules 2, 9 and 11 only, wins 12.4% at 3 players and 4.7% at 6 against a
@@ -152,8 +158,10 @@ never anyone else to leave it to.
 
 Most of what the rules say is about cards as a budget. The 1s, Furies and Baits are cheap ways to
 stay in a battle without spending anything that matters, and passing is final, so you play one
-rather than pass. The 10s and Legends decide battles, so you spend them only when nobody can
-answer, and take them back with Bait when you can.
+rather than pass. That holds when you're ahead, too: a pass with others still in leaves them free
+to overtake you, so keep adding your weakest card until they give up. The 10s and Legends decide
+battles, so you spend them only when nobody can answer, and take them back with Bait when you
+can.
 
 ## Going first
 
@@ -164,15 +172,17 @@ The Favor starts in seat 1, which acts last in the first battle. 100,000 default
 
 | players | seat 1 | seat 2 | seat 3 | seat 4 | seat 5 | seat 6 | battles | rounds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 3 | 34.5% | 41.5% | 24.1% | | | | 6.7 | 1.5 |
-| 4 | 29.3% | 32.3% | 20.6% | 17.8% | | | 8.0 | 1.4 |
-| 5 | 25.1% | 27.6% | 17.9% | 15.0% | 14.4% | | 9.1 | 1.3 |
-| 6 | 22.3% | 24.6% | 15.6% | 12.8% | 12.3% | 12.3% | 10.1 | 1.2 |
+| 3 | 40.8% | 37.1% | 22.1% | | | | 7.1 | 2.3 |
+| 4 | 29.9% | 32.5% | 24.7% | 12.9% | | | 8.6 | 2.0 |
+| 5 | 27.6% | 27.8% | 17.9% | 17.3% | 9.4% | | 10.1 | 1.9 |
+| 6 | 23.6% | 27.0% | 14.1% | 12.7% | 15.1% | 7.5% | 11.4 | 1.8 |
 
-Seat 2, which acts first in the first battle, is best, at 1.25 fair shares at 3 players and
-1.5 at 6. The Favor's seat is next. The first default, which fought every battle, gave the
-Favor seat 40.5% at 3 players and 29.3% at 6 and seat 2 the worst share but one: who the first
-battle favors depends on how people play it. Most games end in the first round: a player with
+The Favor's seat and seat 2, which acts first in the first battle, are best: 1.2 fair shares at
+3 players, and 1.4 to 1.6 at 6. The last seat is worst, at about half a fair share. Before the
+default held its lead (rule 4), seat 2 was best at 3 players too, with 41.5% to the Favor seat's
+34.5%. The first default, which fought every battle, gave the Favor seat 40.5% at 3 players and
+29.3% at 6 and seat 2 the worst share but one: who the first battle favors depends on how
+people play it. Most games end in the first round: a player with
 three or four chips is one battle from winning before anyone runs out.
 
 ## What each card is worth
@@ -184,25 +194,26 @@ played both ways (`scripts/cards.ts`, 200,000 deals each):
 
 | card | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |
-| Fury | 5.3 | 3.6 | 3.9 | 3.5 |
-| Crows | 5.2 | 4.5 | 5.3 | 5.7 |
-| Legend | 4.3 | 3.3 | 2.9 | 2.5 |
-| 10 | 3.9 | 3.5 | 2.9 | 2.5 |
-| 1 | 1.0 | 0.3 | 0.2 | 0.3 |
-| 6 | 0.4 | 0.5 | 0.2 | 0.2 |
-| 5 | −0.6 | −0.3 | −0.5 | −0.5 |
-| 4 | −1.6 | −1.0 | −1.2 | −1.1 |
-| Bait | −2.1 | −2.1 | −1.8 | −1.4 |
-| 3 | −2.7 | −1.9 | −1.8 | −1.7 |
-| Winter | −3.8 | −2.5 | −2.4 | −2.3 |
-| 2 | −4.4 | −3.3 | −3.1 | −2.7 |
-| Doves | −7.1 | −6.2 | −5.9 | −5.2 |
+| 10 | 5.5 | 5.5 | 4.8 | 4.5 |
+| Legend | 4.1 | 3.9 | 3.5 | 3.3 |
+| Fury | 2.6 | 1.9 | 1.7 | 1.6 |
+| 6 | 1.7 | 1.8 | 1.5 | 1.4 |
+| Crows | 0.7 | 2.8 | 3.4 | 3.8 |
+| 5 | 0.5 | 1.0 | 0.9 | 0.7 |
+| 4 | −0.3 | 0.1 | −0.0 | 0.1 |
+| 3 | −1.2 | −0.6 | −0.7 | −0.5 |
+| Winter | −1.3 | −1.5 | −1.4 | −1.4 |
+| Bait | −1.4 | −2.0 | −1.8 | −1.8 |
+| 2 | −2.3 | −1.7 | −1.6 | −1.3 |
+| 1 | −2.9 | −3.3 | −2.7 | −2.6 |
+| Doves | −3.2 | −2.9 | −2.9 | −3.0 |
 
 These are against a random card, so a card worth nothing is about average. What a card is worth
 depends on how it's played. Against the first default, which fought every battle and played
 Crows whenever it led, a 10 or a Legend was worth 8 to 12 points and Crows −6.5 to −10. Played
-as the default plays now, Fury and Crows are worth the most, a 1 beats a 6, and a 2 is near the
-bottom: too big to stall with and too small to win.
+as the default plays now, which holds a lead by playing its weakest force card, force cards are
+worth about their value: a 10 and a Legend the most, a 1 near the bottom. Before that rule, a 1
+was worth more than a 6, as a free way to stay in, and Fury and Crows were worth the most.
 
 ## A learned player
 
@@ -335,15 +346,15 @@ Against the default (`variants.ts`, 40,000 games):
 
 | chip | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |
-| the default's | 33.3% | 25.2% | 20.0% | 16.9% |
-| by playouts, 32 deals | 33.7% | 25.6% | 20.2% | 17.0% |
-| helping the closest opponent least, first | 32.8% | 24.2% | 18.7% | 15.6% |
-| our own progress only | 30.4% | 23.1% | 17.7% | 14.9% |
-| at random | 23.4% | 17.0% | 12.9% | 10.3% |
+| the default's | 33.6% | 25.0% | 20.5% | 17.0% |
+| by playouts, 32 deals | 35.4% | 26.4% | 21.6% | 18.1% |
+| helping the closest opponent least, first | 33.4% | 24.4% | 19.8% | 16.3% |
+| our own progress only | 29.3% | 23.1% | 18.8% | 15.4% |
+| at random | 25.9% | 18.2% | 14.5% | 11.8% |
 
-The pick is worth 7 to 10 points, and the default's rule gets nearly all of it: playing each chip
-out gains under half a point. Your own progress comes first, but ignoring everyone else's costs 2
-to 3 points.
+The pick is worth 5 to 8 points, and the default's rule gets most of it: playing each chip out
+gains 1 to 2 points more, up from under half a point before the default held its lead. Your own
+progress comes first, but ignoring everyone else's costs 2 to 4 points.
 
 ## Discarding a hand with no force cards
 
@@ -354,13 +365,13 @@ only one player has cards left, so emptying your hand brings the next deal close
 
 | on passing with no force cards | 3 players | 4 players | 5 players | 6 players |
 | --- | --- | --- | --- | --- |
-| discard (the default) | 33.3% | 25.2% | 20.0% | 16.9% |
-| discard or keep, by playouts on 32 deals | 33.6% | 25.4% | 20.2% | 17.0% |
-| keep the hand | 30.6% | 23.5% | 19.0% | 16.3% |
+| discard (the default) | 33.6% | 25.0% | 20.5% | 17.0% |
+| discard or keep, by playouts on 32 deals | 34.1% | 25.5% | 21.0% | 17.5% |
+| keep the hand | 25.7% | 21.1% | 18.0% | 15.5% |
 
-Always discarding is as good as playing each choice out: the fate cards left in such a hand are
-worth less than getting to the next deal sooner. Keeping them costs 2.7 points at 3 players and
-0.6 at 6.
+Always discarding is within half a point of playing each choice out: the fate cards left in such
+a hand are worth less than getting to the next deal sooner. Keeping them costs 7.9 points at 3
+players and 1.5 at 6.
 
 ## Strategies
 
@@ -377,9 +388,9 @@ games; playouts 4,000):
 | playouts, 128 deals | 73.5% | 61.2% | 56.2% | 54.8% |
 | playouts, 32 deals | 63.9% | 51.8% | 44.2% | 40.5% |
 | playouts, 8 deals | 40.0% | 27.9% | 25.2% | 22.4% |
-| spender: chase every battle | 5.7% | 1.6% | 1.2% | 1.0% |
-| no Bait | 5.5% | 1.5% | 1.2% | 1.0% |
-| random | 2.5% | 1.6% | 1.3% | 1.0% |
+| spender: chase every battle | 6.7% | 2.1% | 1.7% | 1.3% |
+| no Bait | 6.2% | 2.0% | 1.6% | 1.3% |
+| random | 2.2% | 1.6% | 1.2% | 1.0% |
 | passive: never play | 0.0% | 0.0% | 0.0% | 0.0% |
 
 Playouts play out every legal move to the end of the game on deals of the cards they can't see,
@@ -410,6 +421,6 @@ one the model ranks lower, and playouts would have found it.
 ## Rule readings
 
 The booklet leaves one thing open that a flag in `Rules` reads either way: whether a Favor holder
-with no cards left still has the Favor's 1 strength. It comes up in 1.3% of battles at 3 players
-and 4% at 6, and either reading gives the same wins by seat and the same game length within the
-noise (`scripts/rules.ts`, 100,000 default games each). The simulator reads it as yes.
+with no cards left still has the Favor's 1 strength. It comes up in 6% of battles at 3 players
+and 13% at 6, and either reading gives the same wins by seat, within half a point, and the same
+game length within a tenth of a battle (`scripts/rules.ts`, 100,000 default games each). The simulator reads it as yes.
