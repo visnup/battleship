@@ -341,12 +341,31 @@ export const STEPS = {
   busted(game, p, plays) {
     return room(p) < 0 ? most(plays, (x) => x.card.value) : undefined;
   },
+  /**
+   * Leading with 5 or more to go: the highest trump face down, as a magenta 5, or with no trump
+   * the highest card. Gets rid of a high card for at most 5. From where round 9's model overrules
+   * the default. The highest card: +31.8 and +24.7 points against the default at 3 and 4 players
+   * (40,000 games), and 2.6% to 8.8%, 1.2% to 3.9% against the learned player. Trump first: +8.3
+   * and +11.3 more, +5.8 and +6.6 against the league, +1.9 and +0.9 against the learned player.
+   */
+  leadDown(game, p, plays) {
+    if (game.trick.length || room(p) < 5) return undefined;
+    return most(plays, (x) => x.card.value, (x) => x.down && x.card.color === TRUMP) ?? most(plays, (x) => x.card.value, (x) => x.down);
+  },
   /** A sure win that makes exactly 25. */
   exact(game, p, plays) {
     return plays.find((x) => value(x) === room(p) && sure(game, p, x));
   },
-  /** A sure win that doesn't bust. */
-  take: takeWithin(0),
+  /**
+   * A sure win that doesn't bust, except last to play early in a hand at 4 players, more than 12
+   * from 25. From where round 9's model overrules the default; waiting: +3.5 points against the
+   * default (40,000 games), +4.3 against the league, +0.8 against the learned player, and nothing
+   * at 3 players.
+   */
+  take(game, p, plays) {
+    if (game.players.length === 4 && game.trick.length === 3 && p.hand.length > 8 && room(p) > 12) return undefined;
+    return takeWithin(0)(game, p, plays);
+  },
   /** A play that loses the trick for now, dumping the biggest card: face down, if that also loses, gets rid of a high card for a 5. */
   duck(game, p, plays) {
     if (!game.trick.length)

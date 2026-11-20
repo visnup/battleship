@@ -10,6 +10,18 @@
       playouts (95.3%, 82.4%), at about a quarter of the cost.
 - [ ] A better `defaultPolicy`, from playouts (`decisions.ts`, `variants.ts`). The default is
       weak: 16-deal hand playouts win 94.9% and 86.1% against it.
+  - [x] `leadDown`, 2026-11-20, from `scripts/overrules.ts` on round 9: lead the highest card face
+        down with 5+ to go. 65.3% and 49.4% against the previous default (40,000 games), 44.8%
+        and 33.6% against the league.
+  - [x] Trump first in `leadDown`, 2026-11-20: +8.3 and +11.3 points, +5.8 and +6.6 against the
+        league.
+  - [x] `take` waits when last early at 4 players, more than 12 from 25, 2026-11-20: +3.5 at 4
+        players (40,000 games), +4.3 against the league, nothing at 3.
+  - [x] Mine round 9 again against this default, 2026-11-20: its differences are spread under 1%
+        of decisions each; the two screened (duck low when last, take high when second) lost.
+  - [ ] Rerun the playouts rows of the README's players table against the new default (hours).
+  - [ ] Train round 10 with labels from the new default's flag. Round 9 told the new default's
+        pick ties itself told the old one (33.5%, 25.5%, 20,000 games), so Hard didn't lose.
 - [x] Learn a play scorer from playouts, as in hilt (`dataset.ts`, `learn.py`, `learned.ts`),
       then rounds of it on learned players' games (`round.sh`, `status.ts`), 2026-11-20: round 0
       wins 87.0% and 79.6% against the default; rounds 1–4 each beat the one before by 2 to 15
@@ -25,12 +37,9 @@
 - [x] Round 8 didn't gain (+0.2, +0.8 against round 7). Refit to rounds 7–8 with 1,500 trees
       of 127 leaves, it beats round 8 by 1.8 and 0.5, so the model was some of the limit; that
       bigger model is `model-r8.json` now (the first fit is `model-r8small.json`).
-- [ ] Round 9: bigger trees, and labels from playouts two hands deep (`HANDS=2`). Stopped
-      2026-11-20 with `dataset/data-r9/` holding all 12,000 3-player games and a partial start
-      of the 4-player ones. Labeling two hands deep runs about 4.5 times slower than one, so the
-      4-player games need about 2 hours and would overrun the default `HOURS=3`. To resume, rerun
-      the 4-player games (`dataset.ts --players 4`, with round.sh's other flags), then train and
-      compare as round.sh does.
+- [x] Round 9, 2026-11-20: labels from playouts two hands deep (`HANDS=2`), 1,500 trees of 127
+      leaves fit to rounds 7–9. +0.4 and +0.9 over round 8's refit, short of twice the noise, and
+      91.0% and 88.6% against the default. Adopted; the 1,500-tree fit hadn't stopped improving.
 - [ ] If that doesn't gain: full-game playouts (no `chance`), or the full model inside the
       playouts on fewer deals.
 

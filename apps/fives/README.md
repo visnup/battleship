@@ -50,7 +50,10 @@ redraws `charts/`.
 ## The players
 
 - **The default** (`defaultPolicy` in `src/game.ts`) is a few hand-written rules: once busted, dump
-  your biggest card; take a trick you're sure to win if it makes exactly 25 or doesn't bust; else
+  your biggest card; when you lead with 5 or more to go, lead your highest trump face down, or
+  your highest card if you have no trump; take a trick you're sure to win if it makes exactly 25
+  or doesn't bust, except at 4 players when you play last early in a hand, more than 12 from 25;
+  else
   play under the trick, dumping your biggest card that loses; and if every play wins, the biggest
   that doesn't bust. "Sure" means nobody still to play can hold a card that beats it, counting
   what's been seen. It's weak, which is the point of what follows.
@@ -64,27 +67,52 @@ redraws `charts/`.
   of training labels the games of the last round's learned player, with learned players inside
   the playouts.
 
-One player against the default in every other seat (800 games for playouts, 4,000 for the rest):
+One player against the default in every other seat (4,000 games; 20,000 for the learned player):
 
 ![Each player's wins against the default, in fair shares](charts/players.svg)
 
 | player | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
 | --- | --- | --- |
-| hand playouts, 32 deals | 96.6% | 92.1% |
-| hand playouts, 16 deals | 94.9% | 86.1% |
-| full-game playouts, 32 deals | 95.3% | 82.4% |
-| learned, round 0 | 87.0% | 79.6% |
-| random | 29.4% | 18.8% |
-| face up only (never a magenta 5) | 24.2% | 16.2% |
-| greedy: take the lead whenever it doesn't bust | 7.8% | 3.0% |
+| learned, round 9 | 62.2% | 63.2% |
+| face up only (never a magenta 5) | 7.2% | 5.2% |
+| random | 4.2% | 2.3% |
+| greedy: take the lead whenever it doesn't bust | 3.4% | 0.2% |
 
-The default against itself busts in 58% of hands at 4 players and 42% at 3, and hits 25 exactly in
-under 5%. Never playing a card face down costs the default 9 points at either count: the
-magenta 5 is how you get rid of a high card without adding it to your total.
+Playouts were last measured against the default before the rules below, which they beat by
+more: hand playouts on 32 deals won 96.6% and 92.1%, on 16 deals 94.9% and 86.1%, and full-game
+playouts on 32 deals 95.3% and 82.4% (800 games).
+
+The default against itself busts in 38% of hands at 4 players and 25% at 3, and hits 25 exactly in
+6% and 9%. Never playing a card face down costs it 24 points at 3 players and 20 at 4: the magenta
+5 is how you get rid of a high card without adding more than 5 to your total.
+
+### What the learned model taught the default
+
+Three rules, each from where round 9's learned model played differently from the default, and
+each kept only if it also beat a table of every earlier default. Together they take the default
+from a fair share to 69.0% at 3 players and 57.1% at 4 against its old self (40,000 games), and
+the old default in one seat against the new one wins only 10.9% and 5.8%.
+
+- **Lead high, face down.** When you lead and you're 5 or more from 25, play a high card face
+  down. It leads a magenta 5, and the card you give up is the one most likely to bust you later;
+  if the 5 wins the trick, it scores only 5. The default used to lead its lowest card face up.
+  This rule alone took it to 65.3% and 49.4% against its old self. Leading the lowest card face
+  down, or the highest face up, doesn't help, and 5 to go beats 3, 7 or 10 as the cutoff.
+- **Flip your highest trump first.** The card to flip is your highest silver if you have one, else
+  your highest card: +8.3 and +11.3 points more. A high silver wins whatever trick it's played on,
+  so it's the card that most surely adds its full value to your total. Flipping the lowest silver
+  instead does worse than not preferring silver at all.
+- **At 4 players, don't take early when you play last.** If you're last to play to a trick early
+  in a hand and more than 12 from 25, play under even when you could take it safely: +3.5 points
+  at 4 players, and nothing at 3.
+
+Two more of the model's differences didn't make rules: ducking with your lowest losing card
+instead of your highest when last early in a hand, and taking with your highest card of the led
+color when second to play early. Each cost 2 to 4 points at 4,000 games.
 
 ## Rounds
 
-Each round labels 4,000 games a player count (8,000 from round 4, 32 deals in round 6, and 12,000 from round 7, with card-counting features fit only to rounds 7 on; round 8's playouts score a hand's end by a `chance` refit to learned players' games) played by the round before's learned player, each
+Each round labels 4,000 games a player count (8,000 from round 4, 32 deals in round 6, and 12,000 from round 7, with card-counting features fit only to rounds 7 on; round 8's playouts score a hand's end by a `chance` refit to learned players' games, and round 9's play two hands, fit with 1,500 trees of 127 leaves) played by the round before's learned player, each
 play valued by hand playouts on 16 deals among learned players (round 0: default games and
 default players, 32 deals). Each model at a table of the one before it (20,000 games, 10,000 from round 5; round 0's against the default, 4,000):
 
@@ -101,8 +129,9 @@ default players, 32 deals). Each model at a table of the one before it (20,000 g
 | 7 | 33.5% | 26.0% |
 | 8 | 33.5% | 25.8% |
 | 8, refit with 1,500 trees of 127 leaves | 35.1% | 25.5% |
+| 9 | 33.7% | 25.9% |
 
-And against the default:
+And against the default before it led face down (round 9 wins 62.2% and 63.2% against today's):
 
 | round, against the default | 3 players | 4 players |
 | --- | --- | --- |
@@ -115,3 +144,4 @@ And against the default:
 | 6 | 88.9% | 86.8% |
 | 7 | 89.4% | 86.4% |
 | 8 | 89.5% | 87.4% |
+| 9 | 91.0% | 88.6% |

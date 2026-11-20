@@ -138,8 +138,8 @@ const MODEL = () => new URL("./packed/model.ts", import.meta.url).pathname;
 /** Whether two plays are the same. */
 export const same = (a: Play, b: Play) => a.card === b.card && a.down === b.down;
 
-/** The player making the play the model at the path `model`, or a forest already loaded, scores highest. */
-export function learned(model: string | Forest = MODEL()): Policy {
+/** The player making the play the model at the path `model`, or a forest already loaded, scores highest, with `reference`'s pick as its default's. */
+export function learned(model: string | Forest = MODEL(), reference: Policy = defaultPolicy): Policy {
   const forest = typeof model === "string" ? load(model) : model;
   return {
     play(game, p) {
@@ -147,7 +147,7 @@ export function learned(model: string | Forest = MODEL()): Policy {
       if (options.length === 1) return options[0];
       const { board, move } = features(forest.v);
       const b = board(game, p);
-      const pick = defaultPolicy.play(game, p);
+      const pick = reference.play(game, p);
       let x: Float64Array | undefined;
       let best = options[0];
       let top = -Infinity;

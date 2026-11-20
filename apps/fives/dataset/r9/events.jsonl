@@ -1,2 +1,8 @@
-{"t":1795182536000,"stage":"data","state":"start"}
-{"t":1795188355000,"stage":"data","state":"failed"}
+{"t":1795203097000,"stage":"data","state":"start"}
+{"t":1795207732000,"stage":"data","state":"done"}
+{"t":1795207732000,"stage":"train","state":"start"}
+{"t":1795208158000,"stage":"train","state":"done"}
+{"t":1795208158000,"stage":"compare","state":"start"}
+{"t":1795208521000,"stage":"compare","state":"done"}
+{"t":1795208521000,"stage":"train rollout","state":"start"}
+{"t":1795208676000,"stage":"train rollout","state":"done"}

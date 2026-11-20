@@ -9,3 +9,116 @@ Fri Nov 20 05:48:56 PST 2026 round 9: 12000 games, 16 deals, 1500 trees, from r8
   [80 min, 07:08] 487847 decisions so far
 07:15 3 players: 12000 games, 513239 decisions, 86.2 min
   [90 min, 07:19] 527002 decisions so far
+Fri Nov 20 11:31:37 PST 2026 round 9: 12000 games, 16 deals, 1500 trees, from r8
+  [10 min, 11:41] 584088 decisions so far
+shard: 10% after 715s
+shard: 20% after 1078s
+  [20 min, 11:51] 657443 decisions so far
+shard: 30% after 1444s
+  [30 min, 12:01] 731439 decisions so far
+shard: 41% after 2100s
+  [40 min, 12:11] 805451 decisions so far
+shard: 51% after 2484s
+shard: 61% after 2909s
+  [50 min, 12:21] 875116 decisions so far
+shard: 71% after 3344s
+  [60 min, 12:31] 948280 decisions so far
+shard: 81% after 3943s
+  [70 min, 12:41] 1022088 decisions so far
+shard: 91% after 4328s
+shard: 100% after 4634s
+12:48 4 players: 12000 games, 548339 decisions, 77.2 min
+  [77 min, 12:48] data
+held out, points of win chance a decision over the default's pick (model's pick, and the best move's, which is noisy):
+  3 players: +1.93 (best +6.50) on 15743 decisions
+  4 players: +2.23 (best +5.95) on 16785 decisions
+  [84 min, 12:55] train
+20000 games each: one player's wins against "learned r8" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 20% after 12s
+run: 30% after 16s
+run: 41% after 22s
+run: 51% after 26s
+run: 61% after 30s
+run: 71% after 36s
+run: 81% after 40s
+run: 91% after 44s
+run: 100% after 48s
+run: 10% after 12s
+run: 20% after 18s
+run: 30% after 24s
+run: 41% after 34s
+run: 51% after 39s
+run: 61% after 46s
+run: 71% after 54s
+run: 81% after 59s
+run: 91% after 67s
+run: 100% after 73s
+| learned r9 | 33.7% | 25.9% |
+20000 games each: one player's wins against "learned r7" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 20% after 12s
+run: 30% after 16s
+run: 41% after 23s
+run: 51% after 27s
+run: 61% after 31s
+run: 71% after 37s
+run: 81% after 42s
+run: 91% after 47s
+run: 100% after 50s
+run: 10% after 11s
+run: 20% after 16s
+run: 30% after 20s
+run: 41% after 29s
+run: 51% after 34s
+run: 61% after 39s
+run: 71% after 46s
+run: 81% after 51s
+run: 91% after 58s
+run: 100% after 61s
+| learned r9 | 36.1% | 27.0% |
+20000 games each: one player's wins against "learned r6" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 30% after 13s
+run: 41% after 18s
+run: 51% after 21s
+run: 61% after 24s
+run: 71% after 29s
+run: 81% after 32s
+run: 91% after 36s
+run: 100% after 38s
+run: 20% after 14s
+run: 30% after 18s
+run: 41% after 26s
+run: 51% after 31s
+run: 61% after 35s
+run: 71% after 43s
+run: 81% after 48s
+run: 91% after 52s
+run: 100% after 56s
+| learned r9 | 36.5% | 28.3% |
+20000 games each: one player's wins against the default player in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 61% after 11s
+run: 71% after 13s
+run: 81% after 15s
+run: 91% after 16s
+run: 100% after 17s
+run: 51% after 11s
+run: 61% after 13s
+run: 71% after 14s
+run: 81% after 16s
+run: 91% after 18s
+run: 100% after 19s
+| learned r9 | 91.0% | 88.6% |
+  [90 min, 13:02] compare
+  [92 min, 13:04] train rollout
+Fri Nov 20 13:04:36 PST 2026 round 9: done

@@ -6,7 +6,7 @@
 #   2. data: $GAMES games a player count (4000), played by round $1 - 1's learned player, each
 #      play labeled by playouts of $HANDS hands (1) on $DEALS deals (16) among learned players of its rollout
 #      version (50 trees of 31 leaves, about 8 times the default's cost where 200 of 63 were 50). Stops after $HOURS (3), and logs how many decisions it has written every 10
-#      minutes, so a stall shows.
+#      minutes, so a stall shows. PLAYERS=4 plays only the 4-player games, to finish a stopped round.
 #   3. train: $TREES trees (1000) fit to rounds $FROM (1) to $1 ($DIRS for the smoke test).
 #   4. compare: the new model's learned player, $N games (20000), against each of the last three
 #      models and the default.
@@ -54,7 +54,7 @@ trap '[ -z "$stage" ] || ev failed; kill $progress 2>/dev/null || true' EXIT
 begin data
 (while sleep 600; do echo "  [$((($(date +%s) - start) / 60)) min, $(date +%H:%M)] $(cat $data/*.jsonl 2>/dev/null | wc -l | tr -d ' ') decisions so far"; done) &
 progress=$!
-timeout $((${HOURS:-3} * 3600)) node scripts/dataset.ts --games $games --deals ${DEALS:-16} --hands ${HANDS:-1} --play $D/model-$prev.json --rollout $D/model-$prev-rollout.json --out $data
+timeout $((${HOURS:-3} * 3600)) node scripts/dataset.ts --games $games --deals ${DEALS:-16} --hands ${HANDS:-1} --players ${PLAYERS:-3,4} --play $D/model-$prev.json --rollout $D/model-$prev-rollout.json --out $data
 { kill $progress && wait $progress; } 2>/dev/null || true
 end
 
