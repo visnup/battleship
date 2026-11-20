@@ -138,6 +138,12 @@ their browsers; it's for friends.
   the deck as dealt; `decisions` every choice in order, whether a bot made it, and every hand at
   the time. `games.decide` checks a choice by replaying with it, then plays the bots up to the
   next person. Clients replay the log themselves.
+- `review.ts` plays out a player's options at each play they made (the Hard bot's top 5 moves,
+  theirs and the Hint's, on 400 deals, like the `playouts` strategy), for the "How you played"
+  report at a game's end. `Review.tsx` splits it across a web worker per core
+  (`review.worker.ts`), which ranks moves by `src/packed/light.ts`, a 200-tree model
+  (`node scripts/pack.ts dataset/model-r10-200.json src/packed/light.ts`). It's the only model a
+  browser loads; the Hard bot itself plays on Convex.
 - `src/pages/` and `src/components/`: `Game` joins and shows the lobby, `Board` the table and
   the prompt. Playwright specs sit next to components and need `pnpm dev` running.
   `src/streets.ts` gives each property in an online game its street name, and `src/words.ts`

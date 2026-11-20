@@ -8,6 +8,7 @@ import { banked, COLOR_NAMES, count, defaultPolicy, fullSets, type Game, isActio
 import { street } from "../streets.ts";
 import { type Choice, choose, encode, key, type Ref, ref, replay, setup } from "../replay.ts";
 import { Card, colorName, label, money, PAINT, Slot } from "./Card";
+import { Review } from "./Review";
 
 type Props = { game: Doc<"games"> & { log: Choice[]; names: (string | null)[] }; me?: Id<"players"> };
 
@@ -167,6 +168,15 @@ export function Board({ game, me }: Props) {
     const decisions = decisionsTo(game, line);
     setPast(decisions >= game.log.length ? undefined : { decisions, line });
   };
+  /** A move of decision `n`, by its key, in words for the review. */
+  const say = (n: number, k: string) => {
+    const { game: then, prompt } = until(game, n);
+    const p = then.players[seat];
+    const m = prompt?.kind === "move" ? moves(then, p, prompt.left).find((m) => key(encode(then, p, m)) === k) : undefined;
+    if (!m) return "End turn";
+    if (m.type === "bank") return `Bank ${label(m.card)}`;
+    return m.type === "place" && m.card.kind !== "action" ? `Lay down ${label(m.card)}` : describe(then, p, m, who);
+  };
   const [steal, setSteal] = useState<Steal>();
   const pick =
     steal &&
@@ -220,6 +230,7 @@ export function Board({ game, me }: Props) {
           </div>
         </section>
       </div>
+      {result && !stepping && seat >= 0 && <Review key={game._id} setup={setup(game)} log={game.log} seat={seat} say={say} show={(n) => setPast({ decisions: n, line: (until(game, n).game.log?.length ?? 0) - 1 })} />}
       <div className="mb-[9em] grid grid-cols-[repeat(auto-fill,minmax(20em,1fr))] gap-[0.8em]">
         {(seat >= 0 ? [...others, seat] : others).map((n) => (
           <Seat
@@ -238,12 +249,23 @@ export function Board({ game, me }: Props) {
       <section className="panel sticky bottom-0 z-10 text-white">
         <div className="px-[0.8em] pb-[0.8em]">
           {past ? (
-            <p className="m-0 flex items-center justify-between pt-[0.8em]">
-              Viewing the board after an earlier play.{" "}
-              <button className="primary" onClick={() => setPast(undefined)}>
-                Back to now
-              </button>
-            </p>
+            <div className="flex items-end gap-[0.8em]">
+              <div className="min-w-0 flex-1">
+                {seat >= 0 && (
+                  <Row>
+                    {g.players[seat].hand.map((c, i) => (
+                      <Card key={i} card={c} />
+                    ))}
+                  </Row>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.8em]">
+                <span className="label">An earlier play</span>
+                <button className="primary" onClick={() => setPast(undefined)}>
+                  Back to now
+                </button>
+              </div>
+            </div>
           ) : view.result ? (
             <p className="m-0 pt-[0.8em] font-bold">{view.result.winner === null ? "Nobody won." : `${who(view.result.winner)} won!`}</p>
           ) : !stepping && prompt && prompt.seat === seat ? (

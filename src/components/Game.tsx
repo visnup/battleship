@@ -14,14 +14,14 @@ export function Game({ table }: { table: string }) {
   const game = useQuery(api.games.get, { table });
 
   useEffect(() => {
-    if (player) sessionStorage.setItem("player", JSON.stringify(player));
-  }, [player]);
+    if (player) sessionStorage.setItem(`player ${table}`, player.id);
+  }, [player, table]);
 
   useEffect(() => {
     if (!player && !joining.current) {
       joining.current = true;
-      const stored = JSON.parse(sessionStorage.getItem("player") || "null");
-      const id = stored?.table === table ? (stored.id as Id<"players">) : undefined;
+      // kept by table, so visiting another table in this tab doesn't give up a seat at this one
+      const id = (sessionStorage.getItem(`player ${table}`) as Id<"players"> | null) ?? undefined;
       join({ table, id }).then(setPlayer);
     }
   }, [join, table, player]);
