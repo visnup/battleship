@@ -27,6 +27,9 @@ with `fnm exec --using=26 pnpm install`, and run an app's scripts from its own d
 One session per app, all in this checkout, each touching only its own `apps/<name>`. Worktrees
 don't work here: `dataset/` is ignored and holds every model and shard.
 
+- Commits: stage only your own app's paths (`git add apps/<name>`), never `git add -A` or
+  `git commit -a`, which would take the other sessions' unfinished edits. Pull before pushing.
+
 - Ports: app N's Next is on 30N0 and its round status page on 30N1. monopoly-deal is 3010 and
   3011, hilt 3020 and 3021, fives 3030 and 3031. Convex's local backends pick free ports
   themselves.
