@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Choice, Setup } from "../replay.ts";
-import { DEALS, type Reviewed } from "../review.ts";
+import { deals, type Reviewed } from "../review.ts";
 
 const pct = (x: number) => `${Math.round(100 * x)}%`;
 const points = (x: number) => Math.round(100 * x);
@@ -123,6 +123,8 @@ export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Cho
       const worker = new Worker(new URL("./review.worker.ts", import.meta.url), { type: "module" });
       // a hot reload runs the workers again over the rows already here
       worker.onmessage = ({ data }: MessageEvent<Reviewed | null>) => (data ? setRows((r) => [...r.filter((x) => x.n !== data.n), data].sort((a, b) => a.n - b.n)) : setFinished((f) => f + 1));
+      // a worker that throws is done too, so the report ends with what the others found
+      worker.onerror = () => setFinished((f) => f + 1);
       worker.postMessage([setup, log, seat, [i, k]]);
       return worker;
     });
@@ -136,33 +138,29 @@ export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Cho
       rows.map((r): Scored => {
         const best = r.options.reduce((a, b) => (b.win > a.win ? b : a));
         const mine = r.options.find((o) => o.key === r.chose) ?? best;
-        const hard = r.options.find((o) => o.key === r.hard) ?? mine;
-        return { ...r, best, mine, lost: best.win - mine.win, beat: mine.win - hard.win, did: say(r.n, r.chose), better: say(r.n, best.key) };
+        // a play against the Hard bot's pick, the rest against the Hint, which is all there is for them
+        const bar = r.options.find((o) => o.key === (r.hard ?? r.hint)) ?? mine;
+        return { ...r, best, mine, lost: best.win - mine.win, beat: mine.win - bar.win, did: say(r.n, r.chose), better: say(r.n, best.key) };
       }),
     // say() is new each render, and words a play the same way every time
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rows],
   );
   const costly = scored.filter((r) => r.lost >= 0.05).sort((a, b) => b.lost - a.lost);
-  const found = scored.filter((r) => r.beat >= 0.05).sort((a, b) => b.beat - a.beat);
-  const peak = scored.reduce<Scored | undefined>((a, b) => (!a || b.mine.win > a.mine.win ? b : a), undefined);
-  // the Hard bot's model only ranks plays
   const plays = scored.filter((r) => r.hard !== undefined);
-  const agreed = plays.filter((r) => r.chose === r.hard).length;
+  const found = plays.filter((r) => r.beat >= 0.05).sort((a, b) => b.beat - a.beat);
+  const peak = scored.reduce<Scored | undefined>((a, b) => (!a || b.mine.win > a.mine.win ? b : a), undefined);
+  const hard = setup.bots.includes("learned");
   const item = "cursor-pointer rounded-sm px-[0.3em] hover:bg-white/10";
 
   return (
     <section className="panel p-[0.8em] text-sm text-white">
       <h2 className="label m-0">How you played</h2>
-      {!done && (
-        <p className="my-[0.4em] opacity-70">
-          Playing out your decisions… {rows.length} of {total}
-        </p>
-      )}
+      {!done && <p className="my-[0.4em] opacity-70">Playing out your decisions… {rows.length} so far</p>}
       {peak && (
         <p className="my-[0.4em]">
           Your chances: {pct(scored[0].mine.win)} after your first decision, {pct(peak.mine.win)} at their best (turn {peak.turn}), {pct(scored.at(-1)!.mine.win)} after your last. You played the Hard bot&apos;s pick{" "}
-          {agreed} of {plays.length} times.
+          {plays.filter((r) => r.chose === r.hard).length} of {plays.length} times.
         </p>
       )}
       {scored.length > 0 && <Chances rows={scored} fair={1 / setup.players} show={show} />}
@@ -193,8 +191,9 @@ export function Review({ setup, log, seat, say, show }: { setup: Setup; log: Cho
       )}
       {done && costly.length === 0 && <p className="my-[0.4em]">No decision cost you more than 5 points.</p>}
       <p className="mt-[0.8em] mb-0 text-xs opacity-60">
-        At each of your plays, the Hard bot&apos;s top 5 moves (by a lighter version of its model), yours and the Hint&apos;s were each played out on {DEALS} deals of the cards you couldn&apos;t see, everyone playing
-        like the Medium bot for two rounds. Payments, Just Say No and discards the same way, up to 8 ways each on {DEALS / 4} deals. Points are chances of winning the game. Click a decision to see the board then.
+        At each of your plays, every move you could have made was played out on {deals(setup)} deals of the cards you couldn&apos;t see, for two rounds, with each bot playing at its level
+        {hard ? " (Hard by a lighter version of its model)" : ""} and you and any other people like the Medium bot from there. Payments, Just Say No and discards the same way, up to 8 ways each on {deals(setup) / 4}{" "}
+        deals. The Hard bot&apos;s pick is its lighter model&apos;s. Points are chances of winning the game. Click a decision to see the board then.
       </p>
     </section>
   );
