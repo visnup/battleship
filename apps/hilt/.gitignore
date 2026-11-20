@@ -1,0 +1,10 @@
+rules/*.pdf
+node_modules
+.DS_Store
+dataset/
+/.next/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+test-results
+.env*

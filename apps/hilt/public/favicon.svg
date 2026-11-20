@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <pattern id="stripes" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="1.5" height="4" fill="rgb(0 0 0 / 0.25)"/>
+    </pattern>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#3a1430"/>
+  <rect x="4.5" y="4.5" width="15" height="21" rx="2" fill="#de35a2" stroke="#f3b0dc"/>
+  <rect x="4.5" y="4.5" width="15" height="21" rx="2" fill="url(#stripes)"/>
+  <rect x="12.5" y="6.5" width="15" height="21" rx="2" fill="#121212" stroke="#4d4d4d"/>
+  <text x="20" y="22" font-family="Bahnschrift, 'DIN Alternate', 'Franklin Gothic Medium', sans-serif" font-weight="700" font-size="12" fill="#fff" text-anchor="middle">10</text>
+</svg>
