@@ -90,12 +90,6 @@ export function Board({ game, me }: Props) {
   const [shown, setShown] = useState(game.log.length);
   const [step] = useState(() => SPEEDS[stepSpeed()]);
   const stepping = shown < game.log.length;
-  useEffect(() => {
-    if (!stepping) return;
-    const jump = !step || game.log.length - shown > 40;
-    const t = setTimeout(() => setShown((n) => (jump ? game.log.length : n + 1)), jump || game.log[shown].seat === seat ? 0 : step);
-    return () => clearTimeout(t);
-  }, [stepping, step, shown, game.log, seat]);
   // A past board, replayed up to the decision that wrote the log line clicked
   const [past, setPast] = useState<{ decisions: number; line: number }>();
   const view = useMemo(() => (past ? until(game, past.decisions) : stepping ? until(game, shown) : state), [past, stepping, shown, game, state]);
@@ -139,6 +133,17 @@ export function Board({ game, me }: Props) {
   }, [lines]);
   const g = view.game;
   const battle = onBoard(g, view.lines);
+  // A battle that Doves or Crows ended holds the playback, and your next move, until you've seen
+  // it, since it's over in a moment; not the ones before the page opened.
+  const [seen, setSeen] = useState(() => state.game.battles);
+  const ended = !past && !battle.current && view.last?.ended && view.last.battle > seen ? view.last : undefined;
+  const endedBy = ended && battle.lines.map((l) => l.match(/^ {2}(\d) plays (?:doves|crows)/)).find(Boolean);
+  useEffect(() => {
+    if (!stepping || ended) return;
+    const jump = !step || game.log.length - shown > 40;
+    const t = setTimeout(() => setShown((n) => (jump ? game.log.length : n + 1)), jump || game.log[shown].seat === seat ? 0 : step);
+    return () => clearTimeout(t);
+  }, [stepping, step, shown, game.log, seat, ended]);
   const others = Array.from({ length: g.players.length }, (_, i) => (seat < 0 ? i : seat + 1 + i) % g.players.length).filter((n) => n !== seat);
   return (
     <div className="mx-auto flex max-w-[90em] flex-col gap-[0.8em] p-[0.8em]">
@@ -212,6 +217,17 @@ export function Board({ game, me }: Props) {
             </p>
           ) : view.result ? (
             <p className="m-0 pt-[0.8em] font-bold">{view.result.winner === null ? "Nobody won." : `${who(view.result.winner)} won!`}</p>
+          ) : ended ? (
+            <p className="m-0 flex items-center justify-between gap-[0.8em] pt-[0.8em]">
+              <span>
+                {ended.ended === "doves"
+                  ? `🕊️ ${endedBy ? who(+endedBy[1]) : "Someone"} played Doves: nobody wins the ${ended.color} chip, and the Favor stays with ${who(g.favor)}.`
+                  : `🐦 ${endedBy ? who(+endedBy[1]) : "Someone"} played Crows: ${who(ended.winner!)} ${ended.winner === seat ? "win" : "wins"} the ${ended.color} chip with ${ended.strengths[ended.winner!]}.`}
+              </span>
+              <button className="primary shrink-0" onClick={() => setSeen(ended.battle)}>
+                Continue
+              </button>
+            </p>
           ) : !stepping && prompt && prompt.seat === seat ? (
             <Ask key={game.log.length} game={g} p={g.players[seat]} prompt={prompt} send={send} />
           ) : (

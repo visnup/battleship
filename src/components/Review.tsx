@@ -53,7 +53,7 @@ function Chances({ rows, order, fair, show }: { rows: Scored[]; order: number[];
             { x: "i", y1: (d) => d.best.win, y2: "win", stroke: "#ff8a8a", strokeWidth: 2 },
           ),
           Plot.lineY(data, { x: "i", y: "win", stroke: "#de35a2", strokeWidth: 2 }),
-          Plot.dot(data, { x: "i", y: "win", r: (d) => (d.lost >= 0.05 || d.beat >= 0.05 ? 4 : 2.5), fill: color }),
+          Plot.dot(data, { x: "i", y: "win", r: (d) => (d.lost >= 0.05 || d.beat >= 0.05 ? 4 : 2.5), fill: color, stroke: "#22091b", strokeWidth: 1.5 }),
           // where your chances started, peaked and ended
           Plot.text([...new Set([data[0], data.reduce((a, b) => (b.win > a.win ? b : a)), data.at(-1)!])], {
             x: "i",
@@ -89,10 +89,24 @@ function Chances({ rows, order, fair, show }: { rows: Scored[]; order: number[];
           ),
         ],
       });
-      // clicking the decision under the pointer shows the board then
+      // clicking the decision under the pointer, now pinned, shows the board then
       plot.addEventListener("click", () => {
         const d = (plot as unknown as { value?: Scored }).value;
         if (d) latest.current(d.n);
+      });
+      // Plot unpins on a click away from the pinned point, with no option to re-pin instead
+      // (pointerdown in 0.6.19's pointer.js). After its own listener has unpinned, point and press
+      // again where the click was. On the pinned marks Plot stays pinned, for these too.
+      let pinned = false;
+      plot.addEventListener("pointerdown", (event) => {
+        const e = event as PointerEvent;
+        if (e.pointerType !== "mouse" || !e.isTrusted) return;
+        if (!(pinned = !pinned)) {
+          const init = { clientX: e.clientX, clientY: e.clientY, pointerType: "mouse", bubbles: true };
+          e.target!.dispatchEvent(new PointerEvent("pointermove", init));
+          e.target!.dispatchEvent(new PointerEvent("pointerdown", init));
+          pinned = true;
+        }
       });
       plot.style.cursor = "pointer";
       el.replaceChildren(plot);

@@ -21,7 +21,7 @@ export const setup = ({ seats, seed, first }: { seats: ({ bot: string } | object
 });
 
 /** A battle as it ended, before its cards were discarded: its chip, every row and strength, and who won it, or null for Doves. */
-export type Battle = { color: Color; rows: Card[][]; strengths: number[]; winner: number | null };
+export type Battle = { battle: number; color: Color; rows: Card[][]; strengths: number[]; winner: number | null; ended: Game["ended"] };
 
 /**
  * Which battle the board shows: the one under way once someone has played in it, or else the last
@@ -106,7 +106,14 @@ export function replay(setup: Setup, log: Choice[], bots: Record<string, Policy>
   let last: Battle | undefined;
   const settle = game.settle.bind(game);
   game.settle = () => {
-    last = { color: game.color!, rows: game.players.map((p) => [...p.row]), strengths: game.players.map((p) => game.strength(p)), winner: game.ended === "doves" ? null : game.leader() };
+    last = {
+      battle: game.battles,
+      color: game.color!,
+      rows: game.players.map((p) => [...p.row]),
+      strengths: game.players.map((p) => game.strength(p)),
+      winner: game.ended === "doves" ? null : game.leader(),
+      ended: game.ended,
+    };
     return settle();
   };
   let prompt: Prompt | undefined;
