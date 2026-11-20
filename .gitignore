@@ -1,8 +1,7 @@
 rules/*.pdf
 node_modules
 .DS_Store
-dataset/data*
-dataset/model*.json
+dataset/
 /.next/
 .vercel
 *.tsbuildinfo

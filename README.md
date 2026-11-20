@@ -276,6 +276,7 @@ data so far. One player of each model at a table of the model before it, 20,000 
 | 6 | round 5 | 37.1% | 26.7% | 22.1% | 18.7% |
 | 7 | round 6 | 34.6% | 27.1% | 22.3% | 18.6% |
 | 8 | round 7 | 34.4% | 26.7% | 21.3% | 17.7% |
+| 9 | round 8 | 33.4% | 25.9% | 20.5% | 17.3% |
 
 And each against the default:
 
@@ -287,6 +288,7 @@ And each against the default:
 | 6 | 40.7% | 46.5% | 41.6% | 36.2% |
 | 7 | 42.2% | 45.9% | 40.5% | 34.1% |
 | 8 | 38.7% | 44.5% | 37.9% | 33.0% |
+| 9 | 41.1% | 43.3% | 37.1% | 32.0% |
 
 Every round still beats the one before, by less each time: round 7 by 1.3 to 2.3 points over a
 fair share, against round 6's 1.7 to 3.8. Each also beats the older models by more than the one
@@ -297,7 +299,12 @@ they learn to beat learned players instead, and round 7 about holds there.
 Round 8 gains 1.0 to 1.7 points over round 7, less again, and beats every older model by more
 than round 7 did: a table of round 6 wins it 35.4%, 29.0%, 23.4% and 19.6%, round 5 38.7%,
 30.7%, 25.1% and 21.1%, and round 4 45.6%, 33.1%, 27.5% and 24.3%. Against the default it loses
-another 1 to 3.5 points. Round 8 is `src/model.json` now.
+another 1 to 3.5 points.
+
+Round 9 gains 0.5 to 0.9 points over round 8 at 4 to 6 players and ties it at 3 (33.4%). Against
+older models it does about as well as round 8 did, within half a point either way, so the rounds
+are levelling off. Against the default it wins 2.4 points more at 3 players and about a point less
+at 4 to 6. Round 9 is `src/model.json` now.
 
 ## Which chip to fight over
 

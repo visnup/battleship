@@ -33,6 +33,8 @@
       and `charts/rounds.svg` track every round.
 - [x] Round 8: beats round 7's by 1.0 to 1.7 and every older model by more than round 7 did, adopted as `src/model.json` (2026-11-19). `scripts/round.sh 9` runs the
       next round, and `scripts/status.ts --round 9` shows its progress.
+- [x] Round 9: beats round 8's by 0.5 to 0.9 at 4 to 6 players and ties at 3, adopted
+      (2026-11-20). The gains are levelling off.
 - [ ] More strong rounds while they gain, and more games a round now that they cost less than
       expected. Check each against every earlier model, not just the last, since these cycle too.
 - [x] Use the model to prune playouts to its top moves, and race on more deals, 2026-11-19:

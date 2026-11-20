@@ -40,7 +40,7 @@ Its last page has the card list and each fate card's rule.
   committed), an `s` for labels from learned players in the playouts and `-200` for the
   200-tree rollout models; `variants.ts` names them `learned rN` and takes any variant as
   `--field`. From round 4, round N's model is fit to rounds 3 to N's games, and its file is named for them
-  (`model-r345678s` is round 8). `src/model.json` is round 8, 24 MB. `scripts/round.sh N` runs
+  (`model-r345678s` is round 8). `src/model.json` is round 9, 24 MB. `scripts/round.sh N` runs
   round N end to end after a half-minute smoke test of itself (`SMOKE=0` skips it), writing
   `log.txt`, `run.json` and `events.jsonl` to `dataset/rN/`, and `node scripts/status.ts`
   (`status` in `.claude/launch.json`) serves the newest round's progress and ETA at
