@@ -14,3 +14,4 @@ directory.
   drifting: `trees.ts` (fives' packs a features version), `status.ts`, `round.sh`, `learn.py`,
   `Game.tsx`, `Review.tsx` and `convex/`.
 - Each app is its own Vercel project, rooted at `apps/<name>`, with its own Convex deployment.
+  `pnpm exec vercel` from an app's directory acts on its project.
