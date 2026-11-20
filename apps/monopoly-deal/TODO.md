@@ -348,7 +348,14 @@
             `src/packed/model.ts`, 4.7 MB, which only Convex loads). That's where it ends: asked for 4,000,
             the fit stops early near 2,300 trees and ties 2,000 (−0.15, +0.01, +0.24, 0.00,
             ±0.2). Round 12 plays from `model-r11-2000` with a 1,000-tree model inside the
-            playouts instead of 200, to see whether stronger playouts label better.
+            playouts instead of 200, to see whether stronger playouts label better. A little:
+            +0.36, +0.10, +0.75 and +0.26 over `model-r11-2000` against its learned players
+            (±0.35–0.41), −0.21, +0.43, +0.27 and +0.38 against the default, a tie as
+            playouts' filter, for 181 minutes of labeling instead of 76. Round 11's 200-tree
+            playouts gained +0.06, −0.10, +0.21 and +0.14. Over the card-memory model in its
+            field: +1.71, +2.32, +2.94 and +4.46. Adopted as `src/model.json` and
+            `src/packed/model.ts`. `src/packed/light.ts`, the review's, is still round 10's
+            200 trees.
       - [x] Adopted the card-memory model (`model-r6m`, rounds 4b and 6 with `memory()`) as
             `src/model.json` and `src/packed/model.ts`: +0.3, +0.4, +0.5 and +1.0 over round 4
             (±0.3–0.5, 50,000 deals).
