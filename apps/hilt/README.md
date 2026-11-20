@@ -113,34 +113,39 @@ point against the league.
 
 ### Against strong players
 
-Each rule again, with playouts on 8 deals in every other seat, which beat the default
-(`variants.ts --field playouts`, 6,000 games):
+Each rule again, with playouts on 8 deals in every other seat, which play every move out with
+the default playing on (`variants.ts --field playouts`, 6,000 games). Before rule 4 they beat
+the default; now the default wins 39.7% at 3 players against them:
 
 ![Wins against playouts without each rule, over today's default, at 3 and 6 players](charts/strong.svg)
 
 | without the rule | 3 players | 6 players |
 | --- | --- | --- |
-| today's default | 27.3% | 12.2% |
-| deny every winning chip | 27.3% | 27.7% |
-| open battles: don't wait | 30.6% | 19.1% |
-| open with a 1 or Fury before waiting | 28.9% | 14.9% |
-| only overtake with a single card | 28.2% | 12.9% |
-| no 1 once something's played | 28.0% | 12.4% |
-| press with the strongest card, not a Fury | 28.3% | 12.4% |
-| open with a 1 or Fury with nobody else in | 26.9% | 12.3% |
-| no Bait back after winning | 26.9% | 12.0% |
-| pass only at a single card's reach of the lead | 26.6% | 12.0% |
-| no Bait back of a 1 while others are in | 26.6% | 11.8% |
-| Crows whenever ahead | 25.0% | 11.5% |
-| pass when ahead with an empty row | 24.4% | 10.8% |
-| the first default | 23.6% | 14.8% |
+| today's default | 39.7% | 17.9% |
+| deny every winning chip | 39.7% | 40.8% |
+| only overtake with a single card | 42.4% | 18.4% |
+| press with the strongest card, not a Fury | 40.2% | 17.8% |
+| no 1 once something's played | 40.1% | 18.1% |
+| no Bait back of a 1 while others are in | 40.0% | 19.1% |
+| Crows whenever ahead | 39.2% | 17.1% |
+| open with a 1 or Fury with nobody else in | 39.1% | 17.4% |
+| pass when ahead with an empty row | 38.3% | 15.4% |
+| no Bait back after winning | 37.7% | 17.6% |
+| pass only at a single card's reach of the lead | 37.3% | 17.6% |
+| open with a 1 or Fury before waiting | 34.7% | 19.6% |
+| pass when ahead with something played | 34.7% | 16.0% |
+| open battles: don't wait | 33.1% | 23.4% |
+| the first default | 30.1% | 23.1% |
 
 Two rules are bets on how the others play. Leaving a chip that wins someone the game for the
 others to deny is worth 6 to 16 points among default players, which deny it once fewer than 3
 are left. Among playouts, which expect the others to deny it and so don't, nobody does, and
-denying it yourself is worth 15 points at 6 players. Waiting to open is the same bet: it pays
-when the others fight, and against players who wait too, opening wins 3 to 7 points more. The
-rest hold up or are within the noise (±1 point at 3 players, ±0.7 at 6).
+denying it yourself is worth 23 points at 6 players. Waiting to open is the same bet at 6
+players: it pays when the others fight, and against players who wait too, opening wins 5.5
+points more. At 3 players waiting now pays against playouts too, by 6.6 points. Rule 7, playing
+your strongest card when your best 4 would overtake, costs 2.7 points at 3 players here, just
+past the noise (±1.2 points at 3 players, ±1 at 6), and is worth checking. The rest hold up or
+are within the noise.
 
 Who should deny is a free-rider problem, and which answer wins depends on the table. One player
 of each kind against a table of the other (40,000 games):
@@ -385,9 +390,10 @@ games; playouts 4,000):
 | default | 33.3% | 25.2% | 20.0% | 16.7% |
 | learned, rounds 0–1 | 77.0% | 61.9% | 54.8% | 50.6% |
 | learned, round 5 | 49.7% | 51.2% | 46.8% | 42.6% |
+| learned, round 9 | 66.7% | 53.2% | 47.1% | 42.6% |
 | playouts, 128 deals | 73.5% | 61.2% | 56.2% | 54.8% |
-| playouts, 32 deals | 63.9% | 51.8% | 44.2% | 40.5% |
-| playouts, 8 deals | 40.0% | 27.9% | 25.2% | 22.4% |
+| playouts, 32 deals | 60.4% | 47.8% | 39.8% | 35.0% |
+| playouts, 8 deals | 30.0% | 25.0% | 20.1% | 18.3% |
 | spender: chase every battle | 6.7% | 2.1% | 1.7% | 1.3% |
 | no Bait | 6.2% | 2.0% | 1.6% | 1.3% |
 | random | 2.2% | 1.6% | 1.2% | 1.0% |
@@ -395,8 +401,10 @@ games; playouts 4,000):
 
 Playouts play out every legal move to the end of the game on deals of the cards they can't see,
 with the default playing on, and make the one that wins most. Against the first default, 32
-deals won 84% at 3 players and 76% at 6; each round of rules took some of that away. More deals
-still help a lot, so there's plenty more to how Hilt should be played than the default's rules.
+deals won 84% at 3 players and 76% at 6; each round of rules took some of that away, and rule 4
+took 3.5 to 5.5 points more, leaving 8-deal playouts at or below a fair share. More deals still help
+a lot, so there's plenty more to how Hilt should be played than the default's rules. Rounds 0–1
+and 5, 128 deals and the racing table below were played against the default before rule 4.
 Spending to win every battle is ruinous, and so is never taking a card back with Bait. The
 learned players are in "A learned player": rounds 0–1 learned to beat default players, round 5
 to beat learned ones, and at a table of each other round 5 wins. The later rounds are in

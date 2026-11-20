@@ -43,6 +43,9 @@
       and the model played: `hold` plays the weakest force card, +17 to +5 points against the
       previous default and +6 to +0.8 against the league. Adopted. The models still read the
       previous default's pick (`hint` in `learned.ts`) until a round is trained on the new one.
+- [ ] `finish` costs 2.7 points at 3 players against quick playouts since `hold` (6,000 games,
+      ±1.2): check it against the default and the league.
+- [ ] `wait` is now the model's biggest disagreement at 3 players (`overrules.ts`).
 - [ ] More from the learned player: at 6 players it passes on 1s the default opens with, and
       plays 10s where it plays 1s.
 - [x] Use the model to prune playouts to its top moves, and race on more deals, 2026-11-19:
