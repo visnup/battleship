@@ -1,0 +1,9 @@
+7722899 moves to train on, 77598 held out
+Training until validation scores don't improve for 20 rounds
+[50]	valid_0's l2: 0.00345249
+Did not meet early stopping. Best iteration is:
+[50]	valid_0's l2: 0.00345249
+
+held out, points of win chance a decision over the default's pick (model's pick, and the best move's, which is noisy):
+  3 players: +0.76 (best +5.03) on 5079 decisions
+  4 players: +0.75 (best +4.07) on 5474 decisions

@@ -1,0 +1,35 @@
+Fri Nov 20 03:09:57 PST 2026 round 6: 8000 games, 32 deals, 1000 trees, from r5
+  [10 min, 03:19] 131619 decisions so far
+  [20 min, 03:29] 340972 decisions so far
+03:30 3 players: 8000 games, 341825 decisions, 20.2 min
+  [30 min, 03:39] 481194 decisions so far
+  [40 min, 03:49] 625865 decisions so far
+03:56 4 players: 8000 games, 364172 decisions, 26.0 min
+  [46 min, 03:56] data
+held out, points of win chance a decision over the default's pick (model's pick, and the best move's, which is noisy):
+  3 players: +1.46 (best +4.63) on 10613 decisions
+  4 players: +1.57 (best +3.56) on 11259 decisions
+  [50 min, 04:00] train
+10000 games each: one player's wins against "learned r5" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r6 | 34.7% | 24.9% |
+10000 games each: one player's wins against "learned r4" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r6 | 35.9% | 26.2% |
+10000 games each: one player's wins against "learned r3" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r6 | 37.2% | 27.9% |
+10000 games each: one player's wins against the default player in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+| learned r6 | 88.9% | 86.8% |
+  [51 min, 04:01] compare
+  [53 min, 04:03] train rollout
+Fri Nov 20 04:03:31 PST 2026 round 6: done

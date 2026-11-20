@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;
+  --font-numbers: Futura, "Century Gothic", Avenir, Montserrat, sans-serif;
+  --color-ink: var(--ink);
+  --color-magenta: #de35a2;
+  --color-back: #ececec;
+}
+
+@layer base {
+  :root {
+    --page: #fbf7f9;
+    --bar: white;
+    --ink: #2a1022;
+    --shadow: 0 4px 16px rgb(60 0 40 / 0.15);
+    /* the font size of cards on the table, which sets their size and how they overlap */
+    --small: 0.6rem;
+    color-scheme: light;
+  }
+
+  @media (width < 40rem) {
+    :root {
+      --small: 0.45rem;
+    }
+  }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+  }
+
+  p {
+    margin-block: 1em;
+  }
+
+  button {
+    padding: 0.3em 0.8em;
+    border-radius: 0.5em;
+    background: var(--ink);
+    color: white;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+@layer components {
+  /* The bars, the floating panel and the lobby */
+  .panel {
+    border-radius: 0.75rem;
+    background: var(--bar);
+    box-shadow: var(--shadow);
+  }
+
+  /* A card's size, shared by cards and face-down backs */
+  .card {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 4.5em;
+    height: 6.3em;
+    border-radius: 0.45em;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  }
+
+  .card.small {
+    font-size: var(--small);
+  }
+
+  /* The start page's hand, fanned out from one stack along an arc. `--o` is a card's offset from the middle. */
+  .fan {
+    position: relative;
+    height: 7rem;
+  }
+
+  .fan > * {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    translate: -50% 0;
+    transform-origin: 50% 300%;
+    rotate: calc(var(--o) * 10deg);
+    transition:
+      rotate 0.25s ease,
+      translate 0.25s ease;
+    animation: fan 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+
+  .fan:hover > * {
+    translate: calc(-50% + var(--o) * 1.1rem) 0;
+    rotate: calc(var(--o) * 12deg);
+  }
+
+  @keyframes fan {
+    from {
+      rotate: 0deg;
+    }
+  }
+
+  /* Whoever's turn it is */
+  .current {
+    outline: 3px solid var(--color-magenta);
+  }
+
+  /* Small headings */
+  .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  /* The one thing to do next */
+  button.primary {
+    background: var(--color-magenta);
+    color: white;
+    font-weight: 700;
+  }
+
+  /* Secondary actions that shouldn't compete with the cards */
+  button.quiet {
+    background: rgb(42 16 34 / 0.08);
+    color: var(--ink);
+  }
+}
