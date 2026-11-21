@@ -22,7 +22,7 @@ Its last page has the card list and each fate card's rule.
 - `scripts/decisions.ts` plays out every legal move at each of the default player's decisions and
   groups, by situation, where playouts clearly prefer another move. `scripts/overrules.ts` groups
   where the learned model's pick differs from the default's, by the default rule that made its
-  pick, and lists the model's most-used features. `scripts/variants.ts` plays each variant
+  pick, and lists the model's most-used features. `scripts/doves.ts` plays out Doves against the move without it at every chance to play it, grouped by situation. `scripts/variants.ts` plays each variant
   against `--field` (`default`, `league`, `playouts`, `learned` or any variant). "The loop" below
   says how they fit together.
 - `learned.ts`: the learned player. `board` and `move` turn a decision into numbers, and the

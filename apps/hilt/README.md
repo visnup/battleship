@@ -68,8 +68,8 @@ in order. Each was found by playing out every legal move at the default's decisi
 
 1. Once everyone else has passed, Bait back the biggest force card that still leaves you ahead,
    then pass to win.
-2. Crows when ahead with a card of your own played; Doves when someone else leads with the chip
-   that wins them the game.
+2. Crows when ahead with a card of your own played. Doves when you're behind and the chip would
+   win you the game, or would win the leader the game with nobody else still in to stop them.
 3. With nothing played and others still in, play a Fury, or else your strongest card, if you're
    ahead, as the Favor holder is at first.
 4. Ahead with something played and others still in, play your weakest force card rather than
@@ -270,7 +270,7 @@ well: the default against the same player that plays as if the card weren't in i
 | Legend | 7.7 / 4.4 / 4.1 / 3.4 | 7.7 / 4.2 / 3.6 / 2.6 |
 | Crows | 5.4 / 5.2 / 4.3 / 3.7 | 6.1 / 2.4 / 2.5 / 2.0 |
 | Winter | 2.5 / 0.8 / 1.1 / 1.3 | 2.8 / 1.4 / 1.6 / 1.3 |
-| Doves | 0.4 / −0.5 / −0.3 / −0.1 | 0.4 / 0.0 / −0.1 / −0.3 |
+| Doves, before rule 2 changed (below) | 0.4 / −0.5 / −0.3 / −0.1 | 0.4 / 0.0 / −0.1 / −0.3 |
 
 **Fury** is the card to play first. It doubles every force card in your row, including the ones
 played after it: as the Favor holder with nothing down, lead with it before
@@ -300,11 +300,35 @@ more cards down, or a Legend. The default plays it only when it takes the lead o
 it as cheap as a 3. That's worth a point or two, and a Winter in hand is worth a little less than a
 random card.
 
-**Doves** ends the battle with no winner, so the chip and the Favor stay put. The default plays
-it when someone else leads with a chip that wins them the game, and that's worth nothing
-measurable: the same chip is fought over again next battle. It's the worst
-card to be dealt, 3 points below a random one. A review of one game suggests it pays to stop a
-battle someone else is winning more often than that (`TODO.md`), not yet tested.
+**Doves** ends the battle with no winner. Everything played in it is gone, the chip is fought over
+again next battle, and the Favor stays where it is. It's the worst card to be dealt, 3 points
+below a random one, and the default used to play it whenever someone else led with a chip that
+would win them the game, which was worth nothing measurable. So what is it for? At every chance
+to play it on someone else's lead in 16,000 default games, Doves against the move you'd make
+without it, played out on 64 deals each (`scripts/doves.ts`):
+
+| when you could play Doves | how often, a game | Doves gains, points | Doves better |
+| --- | --- | --- | --- |
+| the chip would win you the game | 0.44 | 5.4 | 63% |
+| …and it's one on one | 0.09 | 8.0 to 11.0 | 66 to 70% |
+| you hold the Favor | 0.80 | 4.2 | 60% |
+| the others have more than 4 cards down | 0.47 | 3.4 | 58% |
+| the leader has put down a quarter to half their hand | 0.56 | 3.4 | 56% |
+| the leader has 3 to 5 cards left | 0.69 | 2.7 | 46% |
+| the others have nothing down yet | 1.00 | −0.6 | 19% |
+| the chip would win the leader the game | 0.39 | −0.8 | 24% |
+| nobody else is still in | 0.17 | −8.0 | 37% |
+
+Doves is a second chance at your own winning chip: you're losing the battle for the chip that
+would end the game in your favor, so void it, and the same chip is up again next battle, with
+the Favor's holder unchanged. That's rule 2 now, along with voiding someone else's winning chip
+once nobody else is left to stop it: +2.6 points at 3 players against the default, +0.3 at 4 to
+6, and a little better against the league and the learned player too (40,000 games). It also
+pays to keep the Favor, and to wipe out a battle the others have poured cards into, though not
+once the leader is nearly out of cards. Adding either to the rule gains nothing more, likely
+because a Doves spent there isn't in your hand when your own winning chip comes up (untested).
+Don't play it on someone else's winning chip while others are still in, nor when nobody else is
+in, where you can overtake with nobody to answer.
 
 ## A learned player
 

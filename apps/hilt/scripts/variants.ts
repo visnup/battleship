@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { type Card, COLORS } from "../src/cards.ts";
-import { decisive, defaultPolicy, finishIn, type Game, heuristic, mulberry32, needed, oneWithin, openWith, others, type Player, type Policy, STEPS, type Step, waitWhile } from "../src/game.ts";
+import { decisive, defaultPolicy, doveTheirs, finishIn, type Game, heuristic, mulberry32, needed, oneWithin, openWith, others, type Player, type Policy, STEPS, type Step, waitWhile } from "../src/game.ts";
 import { parallel } from "kit/parallel.ts";
 import { learned } from "../src/learned.ts";
 import { colorPlayouts, crowsAhead, dumpPlayouts, headToHead, playouts, STRATEGIES } from "../src/strategies.ts";
@@ -148,6 +148,9 @@ const deal =
 
 const bump = (chips: number[], i: number) => chips.map((c, j) => c + +(i === j));
 
+/** A default from before today's: the steps without `drop`, and with `swap`'s steps in place of today's. */
+const past = (drop: (keyof typeof STEPS)[], swap: Partial<Record<keyof typeof STEPS, Step>>) => heuristic(...steps.filter((s) => !drop.includes(s)).map((s) => swap[s] ?? s));
+
 /** The default's steps without `drop`. */
 const without =
   (...drop: (keyof typeof STEPS)[]) =>
@@ -245,22 +248,24 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
       }),
     ]),
   ),
+  "Doves whenever the chip wins the leader the game (previous)": replace("doves", doveTheirs),
   "don't open with 1 other in at 5+ players": replace("open", (game, p) => (game.players.length >= 5 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
 };
 
 /** Every default so far, each adopted as the best answer to the one before. */
 export const LEAGUE: Policy[] = [
   STRATEGIES["first default"](0),
-  heuristic("stop", crowsAhead, "doves", waitWhile(2), "chase", "allIn", "bait"),
-  heuristic("stop", crowsAhead, "doves", waitWhile(2, 3), oneWithin(0), "chase", "allIn", "bait"),
-  heuristic("harvest", "stop", crowsAhead, "doves", "press", "open", "wait", "chase", "allIn", "bait"),
-  heuristic("harvest", "stop", crowsAhead, "doves", "press", "wait", "open", "chase", "allIn", "bait"),
-  heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "chase", "allIn", "bait"),
-  heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "finish", "chase", "allIn", "bait"),
-  heuristic("harvest", "stop", "crows", "doves", ahead(["top"], 0), "wait", "open", "finish", "stall", "one", "chase", "allIn", "bait"),
-  without("hold", "deny")(),
-  heuristic(...steps.filter((s) => s !== "deny").map((s) => (s === "finish" ? finishIn(4) : s))),
-  without("deny")(),
+  heuristic("stop", crowsAhead, doveTheirs, waitWhile(2), "chase", "allIn", "bait"),
+  heuristic("stop", crowsAhead, doveTheirs, waitWhile(2, 3), oneWithin(0), "chase", "allIn", "bait"),
+  heuristic("harvest", "stop", crowsAhead, doveTheirs, "press", "open", "wait", "chase", "allIn", "bait"),
+  heuristic("harvest", "stop", crowsAhead, doveTheirs, "press", "wait", "open", "chase", "allIn", "bait"),
+  heuristic("harvest", "stop", "crows", doveTheirs, "press", "wait", "open", "chase", "allIn", "bait"),
+  heuristic("harvest", "stop", "crows", doveTheirs, "press", "wait", "open", finishIn(4), "chase", "allIn", "bait"),
+  heuristic("harvest", "stop", "crows", doveTheirs, ahead(["top"], 0), "wait", "open", finishIn(4), "stall", "one", "chase", "allIn", "bait"),
+  past(["hold", "deny"], { finish: finishIn(4), doves: doveTheirs }),
+  past(["deny"], { finish: finishIn(4), doves: doveTheirs }),
+  past(["deny"], { doves: doveTheirs }),
+  past([], { doves: doveTheirs }),
   defaultPolicy,
 ];
 

@@ -78,10 +78,13 @@
 - [ ] Why an outsider gains at a deal table: it isn't the battles deal players abandon (only
       holding off opening plays the same). Then a deal outsiders can't exploit, or punishment of
       whoever skipped their turn to deny.
-- [ ] Doves to stop a battle someone else is winning, not only a chip that would win them the
-      game. In one 4-player review (2026-11-19, local table `longgame`), Doves played where the
-      default passed beat it by 23, 18 and 13 points in battles 5–7. One game: check it with
-      `scripts/decisions.ts`, then as a variant against `--field league`.
+- [x] What Doves is for (2026-11-21, README "Playing the fate cards", `scripts/doves.ts`): a
+      second chance at your own winning chip (+5.4 a chance), keeping the Favor (+4.2), and
+      wiping out a battle the others have spent on (+2.7 to +3.4). Rule 2 now plays it for your
+      winning chip, or theirs with nobody else in: +2.6 at 3 players. Adding the Favor or spent
+      battles to the rule gained nothing more.
+- [ ] Doves as an option to keep: playouts value a Doves held for a later winning chip? Check
+      whether holding it when it would only gain 2 to 4 now pays later.
 - [ ] The default's waiting leaves stopping a rival to the others, and when everyone waits nobody
       does. In `onyx` (2026-11-19), passing with a chip that would win Bot 1 the game cost 54 and
       66 points, and passing on a chip that would have set up a win of our own cost 44.

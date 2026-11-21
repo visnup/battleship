@@ -1,6 +1,6 @@
 import { COLORS } from "./cards.ts";
 import { learned, ranked } from "./learned.ts";
-import { defaultPolicy, Game, heuristic, type Move, moves, mulberry32, type Player, type Policy, shuffle, type Step } from "./game.ts";
+import { defaultPolicy, doveTheirs, Game, heuristic, type Move, moves, mulberry32, type Player, type Policy, shuffle, type Step } from "./game.ts";
 
 /** Takes the lead with the cheapest card that does it, however much the battle has cost. */
 const chaseAll: Step = (game, p) => {
@@ -27,16 +27,16 @@ export const STRATEGIES: Record<string, (seed: number) => Policy> = {
   default: () => defaultPolicy,
 
   /** The first default: chase every battle up to 3 cards, Crows whenever ahead, then Bait back. The online game's easy bot. */
-  "first default": () => heuristic("stop", crowsAhead, "doves", "chase", "bait"),
+  "first default": () => heuristic("stop", crowsAhead, doveTheirs, "chase", "bait"),
 
   /** Chases every battle with no limit on cards. */
-  spender: () => heuristic("stop", "crows", "doves", chaseAll, "bait"),
+  spender: () => heuristic("stop", "crows", doveTheirs, chaseAll, "bait"),
 
   /** Never plays a card except Crows and Doves: wins only on the Favor's 1 strength. */
-  passive: () => heuristic("stop", "crows", "doves"),
+  passive: () => heuristic("stop", "crows", doveTheirs),
 
   /** The default without Bait. */
-  "no bait": () => heuristic("stop", "crows", "doves", "chase"),
+  "no bait": () => heuristic("stop", "crows", doveTheirs, "chase"),
 
   /** Plays a legal move at random, or passes. */
   random: (seed) => random(seed),

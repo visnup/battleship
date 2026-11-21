@@ -315,6 +315,13 @@ export const oneWithin =
     return card && p.row.length <= row && game.leader() !== p.seat ? { card } : undefined;
   };
 
+/** Doves when someone else leads with the chip that wins them the game: every default's before 2026-11-21, and the first default's (Easy). */
+export const doveTheirs: Step = (game, p) => {
+  const c = p.hand.find((c) => c.kind === "doves");
+  const leader = game.players[game.leader()];
+  return c && leader !== p && decisive(game, leader) ? { card: c } : undefined;
+};
+
 export const STEPS = {
   /** Once everyone else has passed, Bait back the biggest force card that still leaves the lead: +2 to +4 points. */
   harvest(game, p) {
@@ -342,11 +349,18 @@ export const STEPS = {
     const c = p.hand.find((c) => c.kind === "crows");
     return c && p.row.length && game.leader() === p.seat ? { card: c } : undefined;
   },
-  /** Doves when someone else leads with the chip that wins them the game. */
+  /**
+   * Behind, Doves for a chip that would win `p` the game, so it's fought over again, or for one
+   * that would win the leader the game with nobody else still in to stop it. +2.6 points at 3
+   * players against the default, +0.3 at 4–6; +0.7 to +0.1 against the league, +0.4 to +0.6
+   * against the learned player (40,000 games). `doveTheirs`, at every chip that wins the leader the
+   * game, was worth nothing measurable. From `scripts/doves.ts`.
+   */
   doves(game, p) {
     const c = p.hand.find((c) => c.kind === "doves");
     const leader = game.players[game.leader()];
-    return c && leader !== p && decisive(game, leader) ? { card: c } : undefined;
+    if (!c || leader === p) return undefined;
+    return decisive(game, p) || (decisive(game, leader) && others(game, p).every((q) => q === leader || q.passed)) ? { card: c } : undefined;
   },
   /**
    * Ahead with nothing played yet, as the Favor holder is, and others still in: the strongest
