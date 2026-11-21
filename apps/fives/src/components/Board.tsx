@@ -157,7 +157,7 @@ export function Board({ game, me }: Props) {
       <Head>
         <title>{up ? "Your play · Fives" : "Fives"}</title>
       </Head>
-      <section className="panel sticky top-[0.8em] z-10 flex items-start gap-[1em] p-[0.8em]">
+      <section className="panel sticky top-[0.8em] z-10 flex items-start gap-[1em] p-[0.8em] max-sm:top-0 max-sm:-mx-[0.8em] max-sm:-mt-[0.8em] max-sm:rounded-none max-sm:p-[0.4em]">
         <div className="flex w-[7em] shrink-0 flex-col items-center gap-[0.2em] pt-[0.3rem] text-center">
           <span className="label">Hand {g.hand} of 4</span>
           <span className="text-sm">{view.result ? "Game over" : `Trick ${Math.min(n === 3 ? 12 : 13, g.players.reduce((s, p) => s + p.won.length, 0) + 1)}`}</span>
@@ -209,8 +209,8 @@ export function Board({ game, me }: Props) {
           />
         ))}
       </div>
-      <section className="panel sticky bottom-0 z-10 mb-[0.4em]">
-        <div className="px-[0.8em] pb-[0.8em]">
+      <section className="panel sticky bottom-0 z-10 mb-[0.4em] max-sm:-mx-[0.8em] max-sm:-mb-[0.8em] max-sm:rounded-none">
+        <div className="px-[0.8em] pb-[0.8em] max-sm:px-[0.4em] max-sm:pb-[0.4em]">
           {past ? (
             <p className="m-0 flex items-center justify-between pt-[0.8em]">
               Viewing the table after an earlier play.{" "}
