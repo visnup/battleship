@@ -41,7 +41,9 @@ What the simulator has found so far, most important first. Each rule is one the 
 follows, and each gain is in points of win rate (below) against a player without it.
 
 1. **Your face-down 5 is for getting rid of high cards.** A card you flip counts 5 if it wins,
-   whatever it was face up. A player who never flips loses 24 points at 3 players and 20 at 4.
+   whatever it was face up. You can only flip when you lead, when magenta is led, when you can't
+   follow, or when the card is your last of the led color, and only if nobody has flipped yet this
+   trick. A player who never flips loses 24 points at 3 players and 20 at 4.
 2. **When you lead and you're 5 or more from 25, lead face down.** Flip your highest silver, or
    your highest card if you have no silver. Why silver first is a guess, not something the
    simulator shows: a high silver is the card most likely to win a trick you didn't want and add
@@ -58,9 +60,10 @@ follows, and each gain is in points of win rate (below) against a player without
    high cards when you can't flip them.
 6. **Once you've busted, dump your biggest cards.** Nothing more can be lost this hand.
 
-A table that follows all six beats one following only 3, 5 and 6 by a wide margin: one of them
-wins 69.0% at 3 players and 57.1% at 4 among the old players, and one old player wins only 10.9%
-and 5.8% among the new. The learned player still wins 62.2% and 63.2% against them, so there's
+The six rules together are worth a lot. One player who follows all six, with everyone else
+following only 3, 5 and 6, wins 69.0% of games at 3 players and 57.1% at 4. Swap them, one player
+following only 3, 5 and 6 against everyone following all six, and that player wins just 10.9% and
+5.8%. The learned player still wins 62.2% and 63.2% against them, so there's
 more to find.
 
 ## Reading the numbers
