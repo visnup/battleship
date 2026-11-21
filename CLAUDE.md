@@ -45,23 +45,80 @@ don't work here: `dataset/` is ignored and holds every model and shard.
 
 ## Keeping the loop fast
 
-The goal is acceleration: how fast an idea becomes a measured result. Each strategy, feature
-and check costs a little compute in every game simulated, and as ideas pile up the sims slow
-down, rounds get fewer games, and improvement slows with them. So speed is part of the work,
-not an afterthought. Do a speed pass regularly, and before adding to a hot path, and measure
-games per second before and after.
+The overriding goal is acceleration: how fast an idea becomes a measured result. Every rule,
+strategy, feature and check costs a little in every game simulated, and the engine runs inside
+everything else: playouts run it per move, datasets per playout, rounds per dataset. As ideas
+accrete the sims slow down, each experiment gets fewer games or longer waits, and the rate of
+improvement falls with them. A speedup compounds the other way, so it's part of the work, not
+an afterthought.
 
-- **Don't compute what won't matter.** Skip work whose result can't change the decision: score
-  only legal moves, stop a rollout once the outcome is settled, cut a search when no remaining
-  branch can win, and compute features only for the model that reads them.
-- **Cache what repeats.** Memoize pure functions of state that recur within a game or across
-  games (hand values, set completions, deal tables), and hoist anything constant out of the
-  per-move loop.
-- **Write once, read many.** When several jobs need the same data (dataset shards, features,
-  playouts), one step writes it to `dataset/` and the others read it, rather than each
-  regenerating it. A changed upstream step invalidates what it wrote; name the outputs so
-  that's obvious.
-- **Smaller before slower.** Prefer a smoke test, fewer games or a held-out slice to answer a
-  question, and spend a full round only on what survived that.
-- **Delete what lost.** A strategy, feature or variant that didn't help still costs time on
-  every run. Remove it, and leave the result in `README.md` or history.
+### When
+
+- **A speed pass every so often**, like a cleanup pass: profile the hot paths of each app (the
+  engine, `playouts`, the learned player, dataset generation) and take what's cheap.
+- **Before a long run.** A round or a playouts table is where a 2× pays most, and a timing run
+  on a sample is due anyway (see monopoly-deal's "Long runs").
+- **After adding to a hot path.** A new step in `STEPS`, a new feature or a new check runs
+  millions of times. Time a game before and after, and if it got slower, say by how much in
+  the commit.
+
+### How
+
+- **Measure, don't guess.** `node --cpu-prof` on a single-core run (`sim.ts --seed`), then
+  open the profile; time a fixed benchmark of plain and playouts games before and after.
+- **Same games, row for row.** A speedup must not change a result: run the same seeds before
+  and after and compare every game or table row, and say so in the commit ("1.75× without
+  changing a result"). A change that trades accuracy for speed is an experiment instead, and
+  gets measured like one, against the noise.
+- **Record the number.** Put the before and after in the commit message (ms a game, s a
+  chunk, minutes a table), and the current figure in the app's `CLAUDE.md` when the engine's
+  cost matters (fives: "a default game is about 0.5 ms").
+
+### What has worked
+
+- **Don't compute what can't change the decision.** Playouts stop after two rounds and score
+  the board with `chance` instead of playing to the end (2.5× faster, and stronger); they race
+  moves on shared deals and drop one once it's 2 standard errors behind (3.5 s to 1.5 s a
+  game); the dataset can play out only the model's top moves; battleship's density skips
+  placements a miss ruled out. Skip a step whose answer is already known: monopoly-deal skips
+  `arrange` after banking, and Debt Collector doesn't pick a target without the card.
+- **Compute once, use many times.** Memoize on exactly what the answer depends on
+  (monopoly-deal's `arrange`); score each player once rather than once per comparison; work
+  out a per-decision value once (fives' `top()`); fit weights from the full sample once
+  instead of querying again (battleship's shooters).
+- **Don't allocate in the inner loop.** Count, pay and key without building arrays; share
+  immutable objects (fives' plays); copy bitsets only when they change; loops over sorts.
+- **Flat data over objects.** The learned player's trees evaluate from typed arrays (1.7×
+  in rollouts), and battleship keeps a bit per sample fleet.
+- **Count instead of search.** Arranging wilds by counting colors was 3× faster than trying
+  arrangements.
+
+### Data shared between jobs
+
+- **Write once, read many.** When several scripts need the same thing (dataset shards,
+  features, playout values, sample fleets, a fitted model), one step writes it to `dataset/`
+  and the others read it, instead of each regenerating it. Rounds already do this:
+  `data-rN/` feeds `features-rN/`, which several `learn.py` fits read, holding out the same
+  shards.
+- **Rerun only what's stale.** battleship's `make` rebuilds what changed and skips what
+  didn't; reach for the same before rerunning a whole pipeline by hand.
+- **Make staleness visible.** Name outputs after what made them (round, model, knobs), and
+  write the knobs beside them (`run.json`), so a changed upstream step can't be mistaken for
+  the old one. A cache that can silently serve stale data costs more than it saves.
+- **Keep what's expensive to remake.** Old rounds' data goes to Hugging Face rather than being
+  deleted; a playouts table that took hours is worth a file.
+
+### Smaller before slower
+
+- Answer a question with the fewest games that can: a smoke test, a few thousand games, a
+  held-out slice, `WORKERS=n` beside a round. Spend a full round or a 100,000-game table only
+  on what survived that.
+- Prefer the cheap player for exploring: the default costs minutes to improve, the learned
+  model hours, playouts are for checking.
+
+### Delete what lost
+
+A strategy, variant, feature or rule that didn't help still costs time on every run, and its
+features cost every model that reads them. Remove it, keep the result in `README.md` or the
+commit, and keep the old behavior in `variants.ts` only when it's a baseline something is still
+measured against.
