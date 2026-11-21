@@ -92,3 +92,22 @@ save("rounds", {
     ),
   ],
 });
+
+// A chip lead: the chance to win by chips ahead of the next best player, a line for each number of hands left.
+const ahead = "chips ahead of the next best";
+const left = ["3 hands left", "2 hands left", "1 hand left"];
+const chips = table(ahead).flatMap((r) => counts.flatMap((k) => left.map((l) => ({ lead: num(r[ahead]), players: `${k} players`, left: l, win: num(r[`${k} players, ${l}`]) }))).filter((d) => !Number.isNaN(d.win)));
+save("chips", {
+  width: 760,
+  height: 320,
+  x: { label: "Chips ahead of the next best player", tickFormat: signed },
+  y: { label: "Chance to win (%)", grid: true, domain: [0, 100] },
+  fx: { label: null },
+  marginRight: 90,
+  color: { domain: left, range: ["#f0a8d6", "#de35a2", "#8a1462"] },
+  marks: [
+    Plot.ruleY(counts, { fx: (k) => `${k} players`, y: fair, ...dashed }),
+    Plot.line(chips, { fx: "players", x: "lead", y: "win", stroke: "left", strokeWidth: 2, marker: true }),
+    Plot.text(chips, Plot.selectLast({ fx: "players", x: "lead", y: "win", z: "left", text: "left", textAnchor: "start", dx: 8, ...halo })),
+  ],
+});

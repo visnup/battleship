@@ -159,6 +159,35 @@ you'd rather not win a trick with. The strong player flips less than the default
 once it's busted, and more when magenta is led and it's far from 25; none of those has been
 tested as a rule yet.
 
+## How much a chip lead is worth
+
+Your chance to win from where the chips stand after a hand, by how far ahead you are of the next
+best player (round 9's learned players, 10,000 games a player count; blank where under 500 cases):
+
+![Win chance by chip lead and hands left](charts/chips.svg)
+
+| chips ahead of the next best | 3 players, 3 hands left | 3 players, 2 hands left | 3 players, 1 hand left | 4 players, 3 hands left | 4 players, 2 hands left | 4 players, 1 hand left |
+| --- | --- | --- | --- | --- | --- | --- |
+| −4 or more | 13% | 9% | 2% | 10% | 8% | 3% |
+| −3 | 20% | 18% | 16% | 19% | 17% | 20% |
+| −2 | 27% | 25% | 32% | 24% | 22% | 28% |
+| −1 | 31% | 33% | 40% | 25% | 28% | 37% |
+| 0 | 38% | 42% | 42% | 32% | 38% | 39% |
+| +1 | 45% | 50% | 46% | 38% | 46% | 42% |
+| +2 | 56% | 59% | 56% | 45% | 52% | 53% |
+| +3 | 66% | 66% | 78% | 55% | 59% | 65% |
+| +4 |  | 75% | 88% |  | 66% | 82% |
+| +5 |  | 84% | 98% |  | 73% | 89% |
+| +6 or more |  | 90% | 100% |  | 84% | 97% |
+
+Each chip is worth 5 to 10 points of win chance with two or three hands left, and up to 20 in
+the last: 4 ahead with one hand left wins 82–88%, and 4 or more behind 2–3%. Tied for the lead isn't a fair share but better, about
+40%, since only the leaders can win. One chip ahead with a hand to go is worth only 3 or 4 points
+over a tie: a single hand moves the chips by more than that.
+
+The playouts score the end of a hand by `chance` in `src/strategies.ts`, a smoother fit of the
+same thing (`scripts/chance.ts`).
+
 ## Rounds
 
 Each round labels 4,000 games a player count (8,000 from round 4, 32 deals in round 6, and 12,000 from round 7, with card-counting features fit only to rounds 7 on; round 8's playouts score a hand's end by a `chance` refit to learned players' games, and round 9's play two hands, fit with 1,500 trees of 127 leaves) played by the round before's learned player, each
