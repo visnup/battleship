@@ -342,8 +342,9 @@ export function Hand({
       clearTimeout(p.timer);
       const i = under(e.clientX, e.clientY) === p.i ? p.i : undefined;
       press.current = undefined;
-      hovered(undefined);
+      // a played card stays up until it leaves the hand
       if (i !== undefined && !p.flipped) onClick(i);
+      else hovered(undefined);
     },
     onPointerCancel: () => {
       clearTimeout(press.current?.timer);
