@@ -130,6 +130,37 @@ const guessing =
     };
   };
 
+/**
+ * A denial deal: when the battle's chip would win someone else the game, one player still in
+ * denies it and the rest stay out, so nobody waits on anyone. Every player at the table works out
+ * the same denier: the threat is the first player the chip wins the game for, from the Favor
+ * holder clockwise, and `who` picks among the others still in.
+ */
+type Who = "next" | "furthest";
+const denier = (game: Game, who: Who): Player | undefined => {
+  const n = game.players.length;
+  const order = game.players.map((_, i) => game.players[(game.favor + i) % n]);
+  const threat = order.find((q) => decisive(game, q));
+  if (!threat) return undefined;
+  const after = game.players.map((_, i) => game.players[(threat.seat + 1 + i) % n]).filter((q) => q !== threat && !q.passed && q.hand.length);
+  return who === "next" ? after[0] : after.reduce<Player | undefined>((a, q) => (!a || needed(q.chips) > needed(a.chips) ? q : a), undefined);
+};
+/**
+ * In place of `wait`: with a threat and nothing at stake for `p` itself, deny if it's `p`'s turn
+ * under the deal, else pass while behind (with `light`, only with nothing played yet, as `wait`
+ * does); `keep` false agrees to the deal and never denies.
+ */
+const deal =
+  (who: Who, keep = true, light = false): Step =>
+  (game, p) => {
+    if (decisive(game, p)) return STEPS.wait(game, p);
+    const d = denier(game, who);
+    if (!d) return STEPS.wait(game, p);
+    if (game.leader() === p.seat) return undefined;
+    if (keep && d === p) return undefined;
+    return light && p.row.length ? undefined : null;
+  };
+
 const bump = (chips: number[], i: number) => chips.map((c, j) => c + +(i === j));
 
 /** The default's steps without `drop`. */
@@ -212,6 +243,14 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "behind, Bait back the strongest force card before a 1": insert(salvage(false), "one"),
   "behind, Bait back the strongest force card before a 1, only with others in": insert(salvage(true), "one"),
   "don't open with 1 other in at 4+ players": replace("open", (game, p) => (game.players.length >= 4 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
+  ...Object.fromEntries(
+    (["next", "furthest"] as const).flatMap((who) => [
+      [`deal: the ${who} player denies`, replace("wait", deal(who))],
+      [`deal: the ${who} player denies, but this one never does`, replace("wait", deal(who, false))],
+      [`deal light: the ${who} player denies, the rest only hold off opening`, replace("wait", deal(who, true, true))],
+      [`deal light: the ${who} player denies, but this one never does`, replace("wait", deal(who, false, true))],
+    ]),
+  ),
   "don't open with 1 other in at 5+ players": replace("open", (game, p) => (game.players.length >= 5 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
 };
 

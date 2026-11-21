@@ -166,6 +166,31 @@ Among players who deny, leaving it to them wins twice a fair share at 6 players.
 who open every battle without waiting, denying yourself is better. At 3 players there's
 never anyone else to leave it to.
 
+### Deals
+
+The booklet allows deals, and none are binding. The one this problem asks for is "you stop this
+one": when the chip would win someone the game, one named player denies it and everyone else
+stays out. Two ways to name them, the next player still in after the threat, or the one still in
+who's furthest from winning, play the same. Against a table that has made the deal (10,000 games,
+`variants.ts`, "deal:"):
+
+| one player | 3 players | 4 players | 5 players | 6 players |
+| --- | --- | --- | --- | --- |
+| keeps the deal | 33.3% | 25.3% | 20.5% | 16.6% |
+| makes the deal and never denies | 22.2% | 19.5% | 16.3% | 13.6% |
+| never made it (the default) | 37.4% | 27.5% | 21.3% | 16.2% |
+| keeps the deal at a table of defaults | 28.6% | 22.3% | 17.0% | 13.3% |
+
+The deal keeps itself: once the others are staying out, the named player who doesn't deny hands
+the threat the game, and loses 3 to 11 points doing it. So it isn't a prisoner's dilemma, where
+everyone is tempted to break their word; it's a matter of agreeing who goes, which is exactly
+what talk can settle, even in the last battle. But a player who never made the deal does better
+still, 1 to 4 points over a fair share at 3 to 5 players, and making the deal alone, at a table
+that hasn't, costs 3 to 5. Offer the deal when the others will take it, and if they've made it
+without you, stay out of it. Letting the others go on playing a battle they've already put cards
+into, and only holding off opening, plays exactly the same (tried with the next player denying):
+the deal's cost is in who opens.
+
 Most of what the rules say is about cards as a budget. The 1s, Furies and Baits are cheap ways to
 stay in a battle without spending anything that matters, and passing is final, so you play one
 rather than pass. That holds when you're ahead, too: a pass with others still in leaves them free

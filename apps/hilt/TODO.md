@@ -69,6 +69,12 @@
       loses 1 to 5 points at 128 deals and at 512.
 - [ ] A smaller model: 1,000 trees are 24 MB; 200 trees lose 3 to 4 points against the default.
 - [ ] A mixed strategy: wait or open at random, at the rate where neither beats the other.
+- [x] Non-binding deals on who denies (README "Deals", 2026-11-21): the named denier who reneges
+      loses 3 to 11 points, so the deal keeps itself; a player outside it gains 1 to 4 at 3 to 5
+      players, and making it alone costs 3 to 5.
+- [ ] Why an outsider gains at a deal table: it isn't the battles deal players abandon (only
+      holding off opening plays the same). Then a deal outsiders can't exploit, or punishment of
+      whoever skipped their turn to deny.
 - [ ] Doves to stop a battle someone else is winning, not only a chip that would win them the
       game. In one 4-player review (2026-11-19, local table `longgame`), Doves played where the
       default passed beat it by 23, 18 and 13 points in battles 5–7. One game: check it with
