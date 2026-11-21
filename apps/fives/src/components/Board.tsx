@@ -8,7 +8,7 @@ import type { bot } from "../../convex/schema";
 import { type Card as CardType, COLORS } from "../cards.ts";
 import { defaultPolicy, type Game, type Play, type Player, type Scored, TARGET, total, type Trick } from "../game.ts";
 import { type Choice, choose, type Prompt, replay, setup } from "../replay.ts";
-import { Backs, Card, Chips } from "./Card";
+import { Card, Chips } from "./Card";
 import { Review } from "./Review";
 
 type Props = { game: Doc<"games"> & { log: Choice[]; names: (string | null)[] }; me?: Id<"players"> };
@@ -372,7 +372,7 @@ export const LEVELS: Record<Level, { name: string; title: string }> = {
   learned: { name: "Hard", title: "Plays by the learned model" },
 };
 
-/** A player's place at the table: name, chips, this hand's winning cards and total, and cards in hand. `tall` stacks it all, for a seat at the side. */
+/** A player's place at the table: name, chips, this hand's winning cards and total. `tall` stacks it all, for a seat at the side. */
 function Seat({ p, name, level, current, mine, className, tall }: { p: Player; name: string; level?: Level; current: boolean; mine: boolean; className: string; tall?: boolean }) {
   const t = total(p);
   return (
@@ -400,12 +400,6 @@ function Seat({ p, name, level, current, mine, className, tall }: { p: Player; n
             <Card key={i} card={w.down && !mine ? undefined : w.card} down={w.down} small />
           ))}
         </div>
-        {!mine && (
-          <span className={`flex items-center gap-[0.3em] text-xs font-bold ${tall ? "flex-wrap justify-center" : "ml-auto"}`} title="Cards in hand">
-            <Backs n={Math.min(p.hand.length, 3)} />
-            {p.hand.length}
-          </span>
-        )}
       </div>
     </section>
   );

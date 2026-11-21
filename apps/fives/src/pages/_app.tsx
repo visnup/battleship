@@ -4,7 +4,9 @@ import type { AppProps } from "next/app";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import Head from "next/head";
 
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+// the local backend from another device, like a phone on the LAN
+const url = process.env.NEXT_PUBLIC_CONVEX_URL!;
+const convex = new ConvexReactClient(typeof window === "undefined" ? url : url.replace("127.0.0.1", location.hostname));
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

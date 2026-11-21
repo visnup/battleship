@@ -54,19 +54,6 @@ export function Card({
   );
 }
 
-/** `n` cards face down, overlapped in a row. */
-export function Backs({ n }: { n: number }) {
-  return (
-    <span className="flex shrink-0 *:not-first:-ml-[2.9em]" aria-hidden>
-      {Array.from({ length: n }, (_, i) => (
-        <span key={i} className="card small grid place-items-center bg-back font-numbers font-bold text-magenta ring-1 ring-black/15">
-          <span className="text-[1.6em]">5</span>
-        </span>
-      ))}
-    </span>
-  );
-}
-
 /** A point chip, with a count. */
 export function Chips({ n }: { n: number }) {
   return (
