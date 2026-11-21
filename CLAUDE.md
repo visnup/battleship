@@ -42,3 +42,26 @@ don't work here: `dataset/` is ignored and holds every model and shard.
   don't depend on the core count. `WORKERS=n` caps `parallel`'s workers to leave a round room.
 - While any round runs, nobody edits `packages/kit` or runs `pnpm up`: every app's workers load
   those files.
+
+## Keeping the loop fast
+
+The goal is acceleration: how fast an idea becomes a measured result. Each strategy, feature
+and check costs a little compute in every game simulated, and as ideas pile up the sims slow
+down, rounds get fewer games, and improvement slows with them. So speed is part of the work,
+not an afterthought. Do a speed pass regularly, and before adding to a hot path, and measure
+games per second before and after.
+
+- **Don't compute what won't matter.** Skip work whose result can't change the decision: score
+  only legal moves, stop a rollout once the outcome is settled, cut a search when no remaining
+  branch can win, and compute features only for the model that reads them.
+- **Cache what repeats.** Memoize pure functions of state that recur within a game or across
+  games (hand values, set completions, deal tables), and hoist anything constant out of the
+  per-move loop.
+- **Write once, read many.** When several jobs need the same data (dataset shards, features,
+  playouts), one step writes it to `dataset/` and the others read it, rather than each
+  regenerating it. A changed upstream step invalidates what it wrote; name the outputs so
+  that's obvious.
+- **Smaller before slower.** Prefer a smoke test, fewer games or a held-out slice to answer a
+  question, and spend a full round only on what survived that.
+- **Delete what lost.** A strategy, feature or variant that didn't help still costs time on
+  every run. Remove it, and leave the result in `README.md` or history.
