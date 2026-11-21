@@ -303,13 +303,13 @@ export function Hand({
     setHover(i);
     onHover?.(i);
   };
-  // a touch: slide to pick a card, release to play it, hold still to flip it
-  const press = useRef<{ lefts: number[]; top: number; i?: number; timer?: number; flipped?: boolean }>(undefined);
+  // a touch: slide to pick a card, release to play it, hold still to flip it, slide off the hand to cancel
+  const press = useRef<{ lefts: number[]; right: number; area: DOMRect; i?: number; timer?: number; flipped?: boolean }>(undefined);
   const touched = useRef(false);
   const ref = useRef<HTMLDivElement>(null);
   const under = (x: number, y: number) => {
     const p = press.current!;
-    if (y < p.top - 48) return undefined; // slid up off the hand: cancel
+    if (x > p.right || y < p.area.top || y > p.area.bottom) return undefined;
     const k = p.lefts.findLastIndex((l) => l <= x);
     return k < 0 ? undefined : order[k];
   };
@@ -332,7 +332,7 @@ export function Hand({
       if (!touched.current) return;
       // the cards' places before the fisheye moves them
       const cards = [...ref.current!.children].map((c) => c.getBoundingClientRect());
-      press.current = { lefts: cards.map((r) => r.left), top: cards[0]?.top ?? 0 };
+      press.current = { lefts: cards.map((r) => r.left), right: cards.at(-1)?.right ?? 0, area: ref.current!.getBoundingClientRect() };
       pick(under(e.clientX, e.clientY));
     },
     onPointerMove: (e: React.PointerEvent) => press.current && pick(under(e.clientX, e.clientY)),
