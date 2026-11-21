@@ -23,7 +23,9 @@
         what playouts prefer is leading face up where `leadDown` flips, which games already
         refute. Leading the lowest card face down with under 5 to go, the one new rule, lost:
         4.0% and 14.1% (2,000 games).
-  - [ ] Rerun the playouts rows of the README's players table against the new default (hours).
+  - [x] Rerun the playouts rows of the README's players table against the new default,
+        2026-11-21 (800 games, 15 minutes): 32-deal hand playouts win 63.1% and 62.3%, level with
+        round 9.
   - [x] Round 10, 2026-11-20, labeled with the new default's flag (`FROM=10`, `HANDS=2`, 1,500
         trees of 127 leaves): lost to round 9 (29.8%, 23.7%). Refit to rounds 7–10
         (`model-r10refit.json`) it ties round 9 (32.8%, 24.8%). Not adopted; rounds have stopped
@@ -59,8 +61,8 @@
 - [x] Who wins by seat, and how often hands bust or hit 25, 2026-11-21: seats within half a point
       of fair; busts and 25s unchanged by the new default.
 - [x] When to play a card as a magenta 5 (`scripts/flips.ts`), 2026-11-21: in the README.
-- [ ] Variants from where round 9 flips and the default doesn't, or the reverse: lead face up
-      sometimes 6+ from 25, don't always flip once busted, flip when magenta is led far from 25.
+- [x] Variants from where round 9 flips and the default doesn't, or the reverse, 2026-11-21:
+      none adopted (README, "When to play a magenta 5").
 - [x] Rule readings: `tiesLow` both ways (`scripts/rules.ts`), 2026-11-21: decides 10–14% of
       hands' chips, no player's wins move beyond the noise.
 - [x] Leading versus holding the magenta 0 (`scripts/leads.ts`), 2026-11-21: at 4 players both

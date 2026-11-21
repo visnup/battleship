@@ -96,20 +96,26 @@ redraws `charts/`.
   of training labels the games of the last round's learned player, with learned players inside
   the playouts.
 
-One player against the default in every other seat (4,000 games; 20,000 for the learned player):
+One player against the default in every other seat (4,000 games; 20,000 for the learned player,
+800 for playouts):
 
 ![Each player's wins against the default, in fair shares](charts/players.svg)
 
 | player | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
 | --- | --- | --- |
+| hand playouts, 32 deals | 63.1% | 62.3% |
 | learned, round 9 | 62.2% | 63.2% |
+| full-game playouts, 32 deals | 57.9% | 44.5% |
+| hand playouts, 16 deals | 54.8% | 52.7% |
 | face up only (never a magenta 5) | 7.2% | 5.2% |
 | random | 4.2% | 2.3% |
 | greedy: take the lead whenever it doesn't bust | 3.4% | 0.2% |
 
-Playouts were last measured against the default before the rules below, which they beat by
-more: hand playouts on 32 deals won 96.6% and 92.1%, on 16 deals 94.9% and 86.1%, and full-game
-playouts on 32 deals 95.3% and 82.4% (800 games).
+The learned player now plays about as well as hand playouts on 32 deals, at a tiny fraction of the
+cost (the noise at 800 games is about ±3.5 points). Against the default before the rules below,
+playouts won far more: hand playouts on 32 deals 96.6% and 92.1%, on 16 deals 94.9% and 86.1%,
+and full-game playouts 95.3% and 82.4%. The new rules closed most of the gap between the default
+and a player that searches.
 
 The default against itself busts in 38% of hands at 4 players and 25% at 3, and hits 25 exactly in
 6% and 9% (100,000 games). Seats don't matter: each wins within half a point of a fair share,
@@ -161,8 +167,11 @@ every time in most of these rows.
 Leading accounts for two thirds of these chances. Close to 25, flip your biggest card when you
 can't follow: it counts 5 if it wins, so it's the safest way to shed it. Far from 25, flip a silver
 you'd rather not win a trick with. The strong player flips less than the default when leading and
-once it's busted, and more when magenta is led and it's far from 25; none of those has been
-tested as a rule yet.
+once it's busted, and more when magenta is led and it's far from 25. As rules for the default,
+none of those is worth adopting. Leading face down only a card over 5 loses 8 points at 3
+players. Dumping face up once busted changes nothing beyond the noise. Flipping your highest card
+when magenta is led, 6 or more from 25, gains 0.7 and 0.1 points against the default and 1.3 and
+1.5 against a table of earlier defaults, but nothing against the learned player (40,000 games).
 
 ## How much a chip lead is worth
 

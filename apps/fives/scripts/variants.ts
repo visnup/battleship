@@ -72,22 +72,6 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
       }, "duck"),
     ]),
   ),
-  ...Object.fromEntries(
-    [6, 8].map((k) => [
-      `lead face down only a card over ${k - 1}`,
-      replace("leadDown", (game, p, plays) => {
-        const x = STEPS.leadDown(game, p, plays);
-        return x && x.card.value >= k ? x : undefined;
-      }),
-    ]),
-  ),
-  "once busted, dump the biggest card face up": replace("busted", (game, p, plays) => (TARGET - total(p) < 0 ? plays.filter((x) => !x.down).sort((a, b) => b.card.value - a.card.value)[0] : undefined)),
-  ...Object.fromEntries(
-    [6, 13].map((k) => [
-      `magenta led, ${k}+ from 25: flip the highest card`,
-      insert((game, p, plays) => (game.led() === "magenta" && TARGET - total(p) >= k ? plays.filter((x) => x.down).sort((a, b) => b.card.value - a.card.value)[0] : undefined), "exact"),
-    ]),
-  ),
   "the learned player": () => learned(),
   "the learned player, told the previous default's pick": () => learned(undefined, previous),
   "hand playouts among learned players": (seed) => playouts(16, seed, learned("dataset/model-r6-rollout.json"), 0, 1),

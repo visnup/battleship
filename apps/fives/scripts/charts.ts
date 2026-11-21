@@ -52,6 +52,13 @@ const fairCell = (r: Row, k: number) => num(r[`${k} players`] ?? r[`${k} players
 // Player counts are ordered, so they're one hue, light to dark.
 const playerColor = { domain: counts.map((k) => `${k} players`), range: ["#e576be", "#8a1462"] };
 
+/** `ds` with `y`, their `key` pushed apart to at least `gap`, top down, so labels don't overlap. */
+function apart<T extends Record<K, number>, K extends string>(ds: T[], key: K, gap: number) {
+  const out = [...ds].sort((a, b) => b[key] - a[key]).map((d) => ({ ...d, y: d[key] }));
+  for (let i = 1; i < out.length; i++) out[i].y = Math.min(out[i].y, out[i - 1].y - gap);
+  return out;
+}
+
 // The players: each one's wins against the default, as a multiple of a fair share.
 const playerRows = table("player");
 const kind = (s: string) => (s.includes("playouts") ? art.blue : s.startsWith("learned") ? art.magenta : art.gray);
@@ -65,7 +72,7 @@ save("players", {
   marks: [
     Plot.ruleY([1], dashed),
     Plot.line(players, { x: "players", y: "shares", z: "player", stroke: (d) => kind(d.player), strokeWidth: 2, marker: true }),
-    Plot.text(players, Plot.selectLast({ x: "players", y: "shares", z: "player", text: (d) => `${d.player} ${d.shares.toFixed(2)}`, fill: (d) => kind(d.player), textAnchor: "start", dx: 8, stroke: art.paper })),
+    Plot.text(apart(players.filter((d) => d.players === counts.at(-1)), "shares", 0.09), { x: "players", y: "y", text: (d) => `${d.player} ${d.shares.toFixed(2)}`, fill: (d) => kind(d.player), textAnchor: "start", dx: 8, stroke: art.paper }),
   ],
 });
 
