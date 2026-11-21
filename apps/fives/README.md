@@ -30,7 +30,9 @@ players the 10s to 13s come out, and everyone gets 12 cards; at 4, everyone gets
   the one you flip.
 - Your total is the cards you won tricks with, a face-down one counting 5. Closest to 25 without
   going over takes 3 chips at 4 players (2 at 3), second 2 (1), third 1, and exactly 25 one more.
-  Tied players all take the lower place. A bust gives one of their chips to the closest player.
+  Tied players all take the lower place, as the booklet says; that decides 10% of hands' chips at
+  3 players and 14% at 4, but taking the higher place instead moves no player's wins beyond the
+  noise (`scripts/rules.ts`, 20,000 games). A bust gives one of their chips to the closest player.
 - Everyone starts with 5 chips. After 4 hands, the most chips wins.
 
 ## How to play better
@@ -107,7 +109,12 @@ more: hand playouts on 32 deals won 96.6% and 92.1%, on 16 deals 94.9% and 86.1%
 playouts on 32 deals 95.3% and 82.4% (800 games).
 
 The default against itself busts in 38% of hands at 4 players and 25% at 3, and hits 25 exactly in
-6% and 9%. Never playing a card face down costs it 24 points at 3 players and 20 at 4: the magenta
+6% and 9% (100,000 games). Seats don't matter: each wins within half a point of a fair share,
+since whoever holds the magenta 0 leads each hand. Leading a hand does matter at 4 players: the
+first leader busts 22% of hands to everyone's 38% and gains 1.8 chips a hand to 1.4, and a player
+who leads two of the four hands wins 28.0% to the 22.3% of one who leads none (40,000 games). At 3
+players it's worth nothing. That's holding the magenta 0 as much as leading, and the two aren't
+separated here. Never playing a card face down costs it 24 points at 3 players and 20 at 4: the magenta
 5 is how you get rid of a high card without adding more than 5 to your total.
 
 ### Where rules 2 and 4 came from
@@ -127,6 +134,27 @@ or 10 as the cutoff. Flipping the lowest silver does worse than not preferring s
 Two more of the learned player's habits didn't make rules: ducking with your lowest losing card
 when last early in a hand, and taking with your highest card of the led color when second to play
 early. Each cost 2 to 4 points.
+
+## When to play a magenta 5
+
+How often round 9's learned player, the strongest player here, plays face down when it may and
+has a choice, at a table of learned players (8,000 games, `scripts/flips.ts`). The default flips
+every time in most of these rows.
+
+| when | flips, 3 players | flips, 4 players | what it flips |
+| --- | --- | --- | --- |
+| leading, 6 or more from 25 | 55–59% | 67–68% | a high card, silver about half the time |
+| leading, within 5 | 37% | 38% | |
+| can't follow or flipping your last card of the color, within 5 | 65–79% | 76–81% | its highest card, 5 times in 6 when it can't follow |
+| the same, 13 or more from 25 | 68–71% | 63–65% | often a silver, rarely its highest |
+| magenta led, 6 or more from 25 | 69–75% | 78–83% | |
+| busted | 46–62% | 38–62% | |
+
+Leading accounts for two thirds of these chances. Close to 25, flip your biggest card when you
+can't follow: it counts 5 if it wins, so it's the safest way to shed it. Far from 25, flip a silver
+you'd rather not win a trick with. The strong player flips less than the default when leading and
+once it's busted, and more when magenta is led and it's far from 25; none of those has been
+tested as a rule yet.
 
 ## Rounds
 

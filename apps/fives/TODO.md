@@ -52,9 +52,14 @@
 
 ## Analysis
 
-- [ ] Who wins by seat, and how often hands bust or hit 25.
-- [ ] When to play a card as a magenta 5.
-- [ ] Rule readings: `tiesLow` both ways (`scripts/rules.ts`).
+- [x] Who wins by seat, and how often hands bust or hit 25, 2026-11-21: seats within half a point
+      of fair; busts and 25s unchanged by the new default.
+- [x] When to play a card as a magenta 5 (`scripts/flips.ts`), 2026-11-21: in the README.
+- [ ] Variants from where round 9 flips and the default doesn't, or the reverse: lead face up
+      sometimes 6+ from 25, don't always flip once busted, flip when magenta is led far from 25.
+- [x] Rule readings: `tiesLow` both ways (`scripts/rules.ts`), 2026-11-21: decides 10–14% of
+      hands' chips, no player's wins move beyond the noise.
+- [ ] Leading versus holding the magenta 0: why the first leader busts far less at 4 players.
 
 ## Online
 
