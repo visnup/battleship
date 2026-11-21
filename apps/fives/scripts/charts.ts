@@ -72,7 +72,14 @@ save("players", {
   marks: [
     Plot.ruleY([1], dashed),
     Plot.line(players, { x: "players", y: "shares", z: "player", stroke: (d) => kind(d.player), strokeWidth: 2, marker: true }),
-    Plot.text(apart(players.filter((d) => d.players === counts.at(-1)), "shares", 0.09), { x: "players", y: "y", text: (d) => `${d.player} ${d.shares.toFixed(2)}`, fill: (d) => kind(d.player), textAnchor: "start", dx: 8, stroke: art.paper }),
+    Plot.text(
+      apart(
+        players.filter((d) => d.players === counts.at(-1)),
+        "shares",
+        0.09,
+      ),
+      { x: "players", y: "y", text: (d) => `${d.player} ${d.shares.toFixed(2)}`, fill: (d) => kind(d.player), textAnchor: "start", dx: 8, stroke: art.paper },
+    ),
   ],
 });
 
