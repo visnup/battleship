@@ -149,6 +149,18 @@ Two more of the learned player's habits didn't make rules: ducking with your low
 when last early in a hand, and taking with your highest card of the led color when second to play
 early. Each cost 2 to 4 points.
 
+Against today's default, the learned player still picks another card in 59% of its decisions
+(`scripts/distill.ts` and `distill.py`, 2,000 of its games a player count). In about half of
+those it does the same thing, takes or ducks, face up or down, just with another card: it ducks
+with a lower card than the default's biggest 87% of the time, and takes with a lower one almost
+always. It keeps its high cards. Shallow trees on what a person can see at the table found where
+it takes or flips differently, too: face up on a hand's first lead, ducking a silver lead taken
+over 6, ducking face down rather than taking when it can flip. None of the six made a rule. Ducking
+with your lowest losing card costs 17 and 15 points; ducking with your biggest but keeping your
+highest, 2 and 4; the rest are within the noise, against the default and against learned players
+(2,000 games). Which card the strong player keeps depends on more than a rule of thumb can see,
+likely the card counting it does.
+
 ## When to play a magenta 5
 
 How often round 9's learned player, the strongest player here, plays face down when it may and

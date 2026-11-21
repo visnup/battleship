@@ -23,6 +23,11 @@
         what playouts prefer is leading face up where `leadDown` flips, which games already
         refute. Leading the lowest card face down with under 5 to go, the one new rule, lost:
         4.0% and 14.1% (2,000 games).
+  - [x] Shallow trees on round 9's picks (`scripts/distill.ts`, `distill.py`), 2026-11-21: it
+        mostly keeps high cards, ducking and taking with lower ones; six rules from that and
+        from the trees all lost or tied, against the default and learned players. Search on top
+        of Hard isn't worth it either: 64-deal playouts among its rollout players win 27.1% at
+        4 players against it (2026-11-20).
   - [x] Rerun the playouts rows of the README's players table against the new default,
         2026-11-21 (800 games, 15 minutes): 32-deal hand playouts win 63.1% and 62.3%, level with
         round 9.
