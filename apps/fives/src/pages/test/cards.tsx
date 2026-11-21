@@ -1,5 +1,5 @@
 import { DECK } from "../../cards.ts";
-import { Backs, Card, Chips } from "../../components/Card";
+import { Card, Chips } from "../../components/Card";
 
 /** Every card, large and small, face down, and a seat's pieces: for `Cards.spec.ts`'s screenshot. */
 export default function Cards() {
@@ -14,10 +14,7 @@ export default function Cards() {
           <Card card={DECK[20]} down small={small} />
         </div>
       ))}
-      <div className="flex items-center gap-4">
-        <Backs n={3} />
-        <Chips n={7} />
-      </div>
+      <Chips n={7} />
     </main>
   );
 }

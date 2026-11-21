@@ -303,39 +303,70 @@ export function Hand({
     setHover(i);
     onHover?.(i);
   };
-  const press = useRef<{ timer: number; fired: boolean }>(undefined);
-  const release = () => clearTimeout(press.current?.timer);
-  const touch = (i: number) =>
-    onFlip && {
-      onPointerDown: (e: React.PointerEvent) => {
-        if (e.pointerType !== "touch") return;
-        release();
-        const p = { fired: false, timer: 0 };
-        p.timer = window.setTimeout(() => {
-          p.fired = true;
-          onFlip(i);
-        }, 450);
-        press.current = p;
-      },
-      onPointerUp: release,
-      onPointerCancel: release,
-      onPointerLeave: release,
-      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-    };
-  const click = (i: number) => {
-    // the click that ends a long press
-    if (press.current?.fired) return void (press.current = undefined);
-    onClick?.(i);
+  // a touch: slide to pick a card, release to play it, hold still to flip it
+  const press = useRef<{ lefts: number[]; top: number; i?: number; timer?: number; flipped?: boolean }>(undefined);
+  const touched = useRef(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const under = (x: number, y: number) => {
+    const p = press.current!;
+    if (y < p.top - 48) return undefined; // slid up off the hand: cancel
+    const k = p.lefts.findLastIndex((l) => l <= x);
+    return k < 0 ? undefined : order[k];
   };
+  const pick = (i: number | undefined) => {
+    const p = press.current!;
+    if (i === p.i) return;
+    clearTimeout(p.timer);
+    p.i = i;
+    p.flipped = false;
+    hovered(i);
+    if (i !== undefined && onFlip)
+      p.timer = window.setTimeout(() => {
+        p.flipped = true;
+        onFlip(i);
+      }, 450);
+  };
+  const touch = onClick && {
+    onPointerDown: (e: React.PointerEvent) => {
+      touched.current = e.pointerType === "touch";
+      if (!touched.current) return;
+      // the cards' places before the fisheye moves them
+      const cards = [...ref.current!.children].map((c) => c.getBoundingClientRect());
+      press.current = { lefts: cards.map((r) => r.left), top: cards[0]?.top ?? 0 };
+      pick(under(e.clientX, e.clientY));
+    },
+    onPointerMove: (e: React.PointerEvent) => press.current && pick(under(e.clientX, e.clientY)),
+    onPointerUp: (e: React.PointerEvent) => {
+      const p = press.current;
+      if (!p) return;
+      clearTimeout(p.timer);
+      const i = under(e.clientX, e.clientY) === p.i ? p.i : undefined;
+      press.current = undefined;
+      hovered(undefined);
+      if (i !== undefined && !p.flipped) onClick(i);
+    },
+    onPointerCancel: () => {
+      clearTimeout(press.current?.timer);
+      press.current = undefined;
+      hovered(undefined);
+    },
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  };
+  // a touch plays on release, not on the click after it
+  const click = (i: number) => touched.current || onClick?.(i);
   return (
-    <div className="@container flex justify-center pt-[1.4em] pb-[1.5em] text-[0.85rem] max-sm:h-[4.6em] max-sm:overflow-y-clip max-sm:pb-0 *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)]" onMouseLeave={() => hovered(undefined)}>
+    <div
+      ref={ref}
+      className="@container flex touch-none justify-center pt-[1.4em] pb-[1.5em] text-[0.85rem] max-sm:h-[4.6em] max-sm:overflow-y-clip max-sm:pb-0 *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)]"
+      onMouseLeave={() => press.current || hovered(undefined)}
+      {...touch}
+    >
       {order.map((i, k) => (
         <div
           key={i}
           className={`relative transition-transform duration-150 select-none [-webkit-touch-callout:none] ${hover === i ? "z-10" : ""}`}
           style={onClick && at >= 0 ? { translate: `${aside(k - at)}em ${hover === i ? "-0.8em" : "0"}` } : undefined}
-          onMouseEnter={onClick && (() => hovered(i))}
-          {...touch(i)}
+          onMouseEnter={onClick && (() => touched.current || hovered(i))}
         >
           <Card card={cards[i]} down={down?.(i)} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => click(i))} />
         </div>
@@ -464,6 +495,7 @@ function Ask({ game, p, send, prompt }: { game: Game; p: Player; send: (c: Choic
           >
             Hint
           </button>
+          <span className="label hidden text-[0.55rem] pointer-coarse:block">Hold to flip</span>
         </div>
       </div>
       {note && <div className="panel absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[0.8em] p-[0.6em] text-center">{note}</div>}
