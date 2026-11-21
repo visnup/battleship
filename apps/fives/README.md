@@ -2,7 +2,7 @@
 
 Fives is a trick-taking card game from CMYK's Magenta line, designed by Taiki Shinzawa, for 3 or 4
 players. You follow the led color if you can, silver is trump, and the winner of each trick keeps
-the card they won it with. The twist is the target: at the end of the hand you want those cards to
+the card they won it with. The twist is the target: at the end of the hand you want those _winning_ cards to
 add up to 25, or as close as you can get without going over. And every card's back is a magenta
 5, so any card can be played face down as one.
 
