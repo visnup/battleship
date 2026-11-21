@@ -50,7 +50,10 @@
       points against the default and 1.5 against the league. Baiting back the strongest force card
       when behind (the model's Bait over the default's 1) wins against the league and loses to
       today's default: a bet (2026-11-20).
-- [ ] Rerun the README's tables for the default with `hold` and the new `finish`.
+- [x] Mined the mixed-table Hard model (2026-11-21): at 3 players it denies a winning chip with
+      a 10 where the default waits or opens with a 1; adopted as `deny`, +6.4 against the
+      default, +3.5 against the league. Holding Doves and Bait back a 1 while ahead are noise.
+- [ ] Rerun the README's tables for the default with `hold`, `deny` and the new `finish`.
 - [x] How much knowing the table is worth (README "Knowing the table", 2026-11-20): at a league
       table, 32-deal playouts that know each seat's default win 24 to 31 points more than ones
       that assume today's default; knowing only the league's makeup gets about half.

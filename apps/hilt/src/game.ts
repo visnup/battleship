@@ -370,6 +370,17 @@ export const STEPS = {
     return card ? { card } : undefined;
   },
   /**
+   * At 3 players, behind with nothing played and the chip winning someone else the game, deny it
+   * with the strongest card rather than the cheapest: +6.4 points against the default, +3.5
+   * against every default so far, and a tie with the learned player (40,000 games). From the
+   * learned player, which plays 10s there. At 4 to 6 players it loses up to 3.5 against the league.
+   */
+  deny(game, p) {
+    if (game.players.length !== 3 || p.row.length || game.leader() === p.seat || !others(game, p).some((q) => decisive(game, q))) return undefined;
+    const card = p.hand.filter((c) => c.kind === "force" || c.kind === "legend").sort((a, b) => b.value - a.value)[0];
+    return card ? { card } : undefined;
+  },
+  /**
    * Don't open a battle while 2 or more others are still in: let them spend their cards. Against
    * the first default, which chased, this won 58.8% at 3 players and 70–72% at 4–6 (40,000
    * games). Not when the chip would win `p` the game, nor anyone else with fewer than 3 others

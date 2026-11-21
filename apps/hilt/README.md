@@ -75,7 +75,9 @@ in order. Each was found by playing out every legal move at the default's decisi
 4. Ahead with something played and others still in, play your weakest force card rather than
    pass: passing is final, and leaves them to overtake with nobody to answer.
 5. Don't open a battle while 2 or more others are still in: let them spend their cards. Not
-   when the chip would win you the game, or anyone else with fewer than 3 others in.
+   when the chip would win you the game, or anyone else with fewer than 3 others in. At 3
+   players, deny a chip that would win the other player the game with your strongest card, not
+   your cheapest.
 6. Otherwise open with a 1 or a Fury, the cheapest cards.
 7. With nobody else left in, play your strongest card if your hand would overtake: nobody can
    answer, and rule 1 takes back what wasn't needed.
@@ -86,6 +88,11 @@ in order. Each was found by playing out every legal move at the default's decisi
 10. Behind with the chip that wins you the game, play your strongest card even if it doesn't take
     the lead.
 11. Before giving up a battle, Bait back your biggest force card.
+
+Rule 5's strongest card at 3 players came from the learned player too, which plays 10s where the
+default waited or opened with a 1: +6.4 points against the default and +3.5 against the league
+(40,000 games), and a tie with the learned player. At 4 to 6 players it loses up to 3.5 against
+the league.
 
 Rule 4 came from the learned player (below), the first rule that did. Its moves differ from the
 default's at 74% of its decisions at 3 players and 49% at 6, mostly by playing where the default

@@ -63,16 +63,6 @@ const stallAhead =
     return { card: bait, take };
   };
 
-/** Behind, Bait back the strongest force card in the row; with `contested`, only while others are still in. */
-const salvage =
-  (contested: boolean): Step =>
-  (game, p) => {
-    const bait = p.hand.find((c) => c.kind === "bait");
-    const take = p.row.filter((c) => c.kind === "force").sort((a, b) => b.value - a.value)[0];
-    if (!bait || !take || game.leader() === p.seat || (contested && others(game, p).every((q) => q.passed))) return undefined;
-    return { card: bait, take };
-  };
-
 const oneIn = (game: Game, p: Player) => others(game, p).filter((q) => !q.passed).length === 1;
 
 /**
@@ -145,20 +135,15 @@ const denier = (game: Game, who: Who): Player | undefined => {
   const after = game.players.map((_, i) => game.players[(threat.seat + 1 + i) % n]).filter((q) => q !== threat && !q.passed && q.hand.length);
   return who === "next" ? after[0] : after.reduce<Player | undefined>((a, q) => (!a || needed(q.chips) > needed(a.chips) ? q : a), undefined);
 };
-/**
- * In place of `wait`: with a threat and nothing at stake for `p` itself, deny if it's `p`'s turn
- * under the deal, else pass while behind (with `light`, only with nothing played yet, as `wait`
- * does); `keep` false agrees to the deal and never denies.
- */
+/** In place of `wait`: with a threat and nothing at stake for `p` itself, deny if it's `p`'s turn under the deal, else pass while behind; `keep` false agrees to the deal and never denies. */
 const deal =
-  (who: Who, keep = true, light = false): Step =>
+  (who: Who, keep = true): Step =>
   (game, p) => {
     if (decisive(game, p)) return STEPS.wait(game, p);
     const d = denier(game, who);
     if (!d) return STEPS.wait(game, p);
     if (game.leader() === p.seat) return undefined;
-    if (keep && d === p) return undefined;
-    return light && p.row.length ? undefined : null;
+    return keep && d === p ? undefined : null;
   };
 
 const bump = (chips: number[], i: number) => chips.map((c, j) => c + +(i === j));
@@ -200,7 +185,6 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "Crows only for a chip that wins the game": replace("crows", (game, p) => (decisive(game, p) ? STEPS.crows(game, p) : undefined)),
   "never Doves": without("doves"),
   "with nobody else in, only overtake with a single card (previous)": without("finish"),
-  ...Object.fromEntries([2, 6].map((k) => [`with nobody else in, overtake in up to ${k} cards, strongest first`, replace("finish", finishIn(k))])),
   "with nobody else in, overtake in up to 4 cards, strongest first (previous)": replace("finish", finishIn(4)),
   "Bait back a 1 ahead too, before Crows": insert(stallAhead(false), "crows"),
   "Bait back a 1 ahead too, before Crows, if still ahead after": insert(stallAhead(true), "crows"),
@@ -239,18 +223,13 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "never discard a hand of no force cards": () => ({ ...defaultPolicy, dump: () => false }),
   "discard by playouts on 32 deals": (seed) => dumpPlayouts(defaultPolicy, 32, seed),
   "Doves only with 1 other in": replace("doves", (game, p) => (others(game, p).filter((q) => !q.passed).length <= 1 ? STEPS.doves(game, p) : undefined)),
-  "don't wait at 3 players": replace("wait", (game, p) => (game.players.length === 3 ? undefined : STEPS.wait(game, p))),
-  "behind, Bait back the strongest force card before a 1": insert(salvage(false), "one"),
-  "behind, Bait back the strongest force card before a 1, only with others in": insert(salvage(true), "one"),
-  "don't open with 1 other in at 4+ players": replace("open", (game, p) => (game.players.length >= 4 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
   ...Object.fromEntries(
     (["next", "furthest"] as const).flatMap((who) => [
       [`deal: the ${who} player denies`, replace("wait", deal(who))],
       [`deal: the ${who} player denies, but this one never does`, replace("wait", deal(who, false))],
-      [`deal light: the ${who} player denies, the rest only hold off opening`, replace("wait", deal(who, true, true))],
-      [`deal light: the ${who} player denies, but this one never does`, replace("wait", deal(who, false, true))],
     ]),
   ),
+  "at 3 players, deny a winning chip with the cheapest card (previous)": without("deny"),
   "don't open with 1 other in at 5+ players": replace("open", (game, p) => (game.players.length >= 5 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
 };
 
@@ -264,8 +243,9 @@ export const LEAGUE: Policy[] = [
   heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "chase", "allIn", "bait"),
   heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "finish", "chase", "allIn", "bait"),
   heuristic("harvest", "stop", "crows", "doves", ahead(["top"], 0), "wait", "open", "finish", "stall", "one", "chase", "allIn", "bait"),
-  without("hold")(),
-  replace("finish", finishIn(4))(),
+  without("hold", "deny")(),
+  heuristic(...steps.filter((s) => s !== "deny").map((s) => (s === "finish" ? finishIn(4) : s))),
+  without("deny")(),
   defaultPolicy,
 ];
 
