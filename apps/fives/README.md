@@ -148,6 +148,13 @@ default players, 32 deals). Each model at a table of the one before it (20,000 g
 | 8 | 33.5% | 25.8% |
 | 8, refit with 1,500 trees of 127 leaves | 35.1% | 25.5% |
 | 9 | 33.7% | 25.9% |
+| 10, on its own games | 29.8% | 23.7% |
+| 10, refit on rounds 7–10 | 32.8% | 24.8% |
+
+Round 10 is the first labeled with today's default as the "is the default's pick" input. Fit only
+to its own games it lost to round 9; refit to rounds 7–10 it ties it, and wins 62.8% and 63.0%
+against today's default to round 9's 62.2% and 63.2%. So round 9 stays the Hard bot, and rounds
+have stopped gaining.
 
 And against the default before it led face down (round 9 wins 62.2% and 63.2% against today's):
 

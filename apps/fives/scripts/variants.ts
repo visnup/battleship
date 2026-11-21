@@ -73,6 +73,10 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "the learned player": () => learned(),
   "the learned player, told the previous default's pick": () => learned(undefined, previous),
   "hand playouts among learned players": (seed) => playouts(16, seed, learned("dataset/model-r6-rollout.json"), 0, 1),
+  "hand playouts among round 9's rollout players": (seed) => playouts(16, seed, learned("dataset/model-r9-rollout.json"), 0, 1),
+  ...Object.fromEntries([2, 4].map((k) => [`hand playouts on ${k} deals among round 9's full players`, (seed: number) => playouts(k, seed, learned("dataset/model-r9.json"), 0, 1)])),
+  "hand playouts on 64 deals among round 9's rollout players": (seed) => playouts(64, seed, learned("dataset/model-r9-rollout.json"), 0, 1),
+  "full-game playouts among round 9's rollout players": (seed) => playouts(16, seed, learned("dataset/model-r9-rollout.json")),
   // every model in dataset/, oldest first, as `learned r3` for dataset/model-r3.json
   ...Object.fromEntries(
     (existsSync("dataset") ? readdirSync("dataset") : [])

@@ -20,8 +20,10 @@
   - [x] Mine round 9 again against this default, 2026-11-20: its differences are spread under 1%
         of decisions each; the two screened (duck low when last, take high when second) lost.
   - [ ] Rerun the playouts rows of the README's players table against the new default (hours).
-  - [ ] Train round 10 with labels from the new default's flag. Round 9 told the new default's
-        pick ties itself told the old one (33.5%, 25.5%, 20,000 games), so Hard didn't lose.
+  - [x] Round 10, 2026-11-20, labeled with the new default's flag (`FROM=10`, `HANDS=2`, 1,500
+        trees of 127 leaves): lost to round 9 (29.8%, 23.7%). Refit to rounds 7–10
+        (`model-r10refit.json`) it ties round 9 (32.8%, 24.8%). Not adopted; rounds have stopped
+        gaining.
 - [x] Learn a play scorer from playouts, as in hilt (`dataset.ts`, `learn.py`, `learned.ts`),
       then rounds of it on learned players' games (`round.sh`, `status.ts`), 2026-11-20: round 0
       wins 87.0% and 79.6% against the default; rounds 1–4 each beat the one before by 2 to 15
@@ -40,8 +42,12 @@
 - [x] Round 9, 2026-11-20: labels from playouts two hands deep (`HANDS=2`), 1,500 trees of 127
       leaves fit to rounds 7–9. +0.4 and +0.9 over round 8's refit, short of twice the noise, and
       91.0% and 88.6% against the default. Adopted; the 1,500-tree fit hadn't stopped improving.
-- [ ] If that doesn't gain: full-game playouts (no `chance`), or the full model inside the
-      playouts on fewer deals.
+- [x] What playouts beat round 9, 2026-11-20 (400 games at 4 players, against round 9 in every
+      other seat, fair 25%): hand playouts among its rollout players on 16 deals win 16.4%, on 64
+      deals 27.1%; full-game playouts on 16, 6.5%; hand playouts among its full model on 2 deals,
+      3.0% (100 games), at 13 times a rollout game's cost. So more deals, not deeper or stronger
+      playouts.
+- [ ] Round 11: labels on 64 deals, one hand deep, fit to rounds 10–11.
 
 ## Analysis
 
