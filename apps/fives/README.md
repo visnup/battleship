@@ -116,8 +116,13 @@ The default against itself busts in 38% of hands at 4 players and 25% at 3, and 
 since whoever holds the magenta 0 leads each hand. Leading a hand does matter at 4 players: the
 first leader busts 22% of hands to everyone's 38% and gains 1.8 chips a hand to 1.4, and a player
 who leads two of the four hands wins 28.0% to the 22.3% of one who leads none (40,000 games). At 3
-players it's worth nothing. That's holding the magenta 0 as much as leading, and the two aren't
-separated here. Never playing a card face down costs it 24 points at 3 players and 20 at 4: the magenta
+players it's worth nothing. The first leader is also the one holding the magenta 0, so to tell
+the two apart, `scripts/leads.ts` hands the first lead to a random other seat instead. At 4
+players both help, and about add up: leading alone cuts busts from 43% to 29% and holding the 0
+alone to 35%, for 1.61 and 1.50 chips a hand to 1.21 (40,000 games). Leading counts for more: the
+leader picks the color, and can flip a high card for 5 before anyone else has taken a trick. The
+0 is a card that never adds to your total, one fewer high card to get rid of. At 3 players
+either one lowers busts by 2 or 3 points and gains no chips. Never playing a card face down costs it 24 points at 3 players and 20 at 4: the magenta
 5 is how you get rid of a high card without adding more than 5 to your total.
 
 ### Where rules 2 and 4 came from

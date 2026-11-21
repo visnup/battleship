@@ -19,6 +19,10 @@
         players (40,000 games), +4.3 against the league, nothing at 3.
   - [x] Mine round 9 again against this default, 2026-11-20: its differences are spread under 1%
         of decisions each; the two screened (duck low when last, take high when second) lost.
+  - [x] `decisions.ts` against this default, 2026-11-21 (400 games a player count): most of
+        what playouts prefer is leading face up where `leadDown` flips, which games already
+        refute. Leading the lowest card face down with under 5 to go, the one new rule, lost:
+        4.0% and 14.1% (2,000 games).
   - [ ] Rerun the playouts rows of the README's players table against the new default (hours).
   - [x] Round 10, 2026-11-20, labeled with the new default's flag (`FROM=10`, `HANDS=2`, 1,500
         trees of 127 leaves): lost to round 9 (29.8%, 23.7%). Refit to rounds 7–10
@@ -59,7 +63,8 @@
       sometimes 6+ from 25, don't always flip once busted, flip when magenta is led far from 25.
 - [x] Rule readings: `tiesLow` both ways (`scripts/rules.ts`), 2026-11-21: decides 10–14% of
       hands' chips, no player's wins move beyond the noise.
-- [ ] Leading versus holding the magenta 0: why the first leader busts far less at 4 players.
+- [x] Leading versus holding the magenta 0 (`scripts/leads.ts`), 2026-11-21: at 4 players both
+      help and about add up, leading more; at 3 neither gains chips.
 
 ## Online
 
