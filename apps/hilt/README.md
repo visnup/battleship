@@ -77,8 +77,8 @@ in order. Each was found by playing out every legal move at the default's decisi
 5. Don't open a battle while 2 or more others are still in: let them spend their cards. Not
    when the chip would win you the game, or anyone else with fewer than 3 others in.
 6. Otherwise open with a 1 or a Fury, the cheapest cards.
-7. With nobody else left in, play your strongest card if your strongest 4 would overtake: nobody
-   can answer, and rule 1 takes back what wasn't needed.
+7. With nobody else left in, play your strongest card if your hand would overtake: nobody can
+   answer, and rule 1 takes back what wasn't needed.
 8. Behind with others still in, Bait back a 1: it keeps you in the battle for nothing. Or play
    a 1.
 9. Behind, take the lead with the cheapest card that does it, while the battle has cost you at
@@ -142,10 +142,15 @@ others to deny is worth 6 to 16 points among default players, which deny it once
 are left. Among playouts, which expect the others to deny it and so don't, nobody does, and
 denying it yourself is worth 23 points at 6 players. Waiting to open is the same bet at 6
 players: it pays when the others fight, and against players who wait too, opening wins 5.5
-points more. At 3 players waiting now pays against playouts too, by 6.6 points. Rule 7, playing
-your strongest card when your best 4 would overtake, costs 2.7 points at 3 players here, just
-past the noise (±1.2 points at 3 players, ±1 at 6), and is worth checking. The rest hold up or
-are within the noise.
+points more. At 3 players waiting now pays against playouts too, by 6.6 points. Rule 7, when it
+counted only your best 4, cost 2.7 points at 3 players here, just past the noise (±1.2 points
+at 3 players, ±1 at 6), yet dropping it loses 1.4 to 4.8 points among default players and 3.9
+to 7.5 against older defaults; counting the whole hand gains 1.1 at 3 players. The rest hold up
+or are within the noise.
+
+Baiting back your strongest force card when you're losing a battle, which the learned player
+does where the default plays a 1, is another bet: it wins 0.9 to 1.7 points against older
+defaults and loses 1.7 at 3 players and 0.7 at 4 to today's.
 
 Who should deny is a free-rider problem, and which answer wins depends on the table. One player
 of each kind against a table of the other (40,000 games):
@@ -425,6 +430,68 @@ deals. That spends the deals on the moves still in contention. They can also pla
 Racing on 128 deals costs 0.6 times as much as 128 full deals and wins about a point less.
 Pruning to the model's top 3 loses 1 to 5 points (±1.5 is noise here): the best move is often
 one the model ranks lower, and playouts would have found it.
+
+### Knowing the table
+
+Playouts guess how the others will play on, and so far they've guessed the default. How much is
+a better guess worth? At a table of past defaults (each other seat one from every round so far,
+at random), playouts guessing three ways (`variants.ts --field league`, 4,000 games):
+
+| playouts, guessing the others play | 3 players | 4 players | 5 players | 6 players |
+| --- | --- | --- | --- | --- |
+| 32 deals, like today's default | 52.9% | 36.0% | 27.9% | 22.4% |
+| 32 deals, like a past default at random | 63.5% | 49.0% | 40.9% | 36.3% |
+| 32 deals, like the past default actually in each seat | 76.7% | 64.2% | 58.6% | 53.0% |
+| 8 deals, like today's default | 29.5% | 19.8% | 15.8% | 13.7% |
+| 8 deals, like a past default at random | 40.4% | 26.1% | 22.4% | 18.4% |
+| 8 deals, like the past default actually in each seat | 52.8% | 41.8% | 36.0% | 32.8% |
+| today's default, for comparison | 51.8% | 36.1% | 29.3% | 24.1% |
+
+Knowing how each player plays is worth 24 to 31 points at 32 deals, as much as quadrupling the
+deals and more. About half of it is knowing what kinds of players are at the table (11 to 14
+points), and the other half knowing who's who (13 to 18). The last row is an upper bound: a real
+player has to work out who's who from a few battles' play, and the defaults differ most in
+exactly what you can see (who waits, who opens with a 1, who chases every battle). For people:
+watch who passes early and who spends, and answer them, not an imagined opponent who plays like
+you. Every learned player so far was trained at tables of itself, so this is room none of them
+uses.
+
+So one round (`o1`) trained at mixed tables instead: round 9's player in one seat, and each other
+seat a past default or, a third of the time, round 9's player again, with every move's playouts
+playing each seat on as it really plays (`round.sh` with `MIXED=1`, 4,000 games a player count).
+The model also saw what each other player had shown so far this game: how often they waited,
+opened and with what, held a lead, chased past 3 cards, and gave up (since removed).
+Then the same data fit without those (20,000 games each):
+
+| model | against the league | against the default | at a table of round 9 |
+| --- | --- | --- | --- |
+| round 9 | 46.0 / 44.6 / 38.1 / 32.3 | 41.1 / 43.3 / 37.1 / 32.0 | a fair share |
+| `o1`, mixed tables | 75.3 / 66.5 / 58.6 / 51.3 | 61.9 / 50.9 / 40.9 / 33.4 | 19.8 / 11.3 / 8.6 / 7.0 |
+| `o1` without what the others have shown | 74.0 / 66.5 / 59.8 / 52.8 | 61.1 / 50.4 / 40.8 / 33.9 | |
+
+At 3 / 4 / 5 / 6 players. Training at the league's tables gains 19 to 29 points against the
+league, as much as playouts that know who sits where, and 1 to 21 against the default. Seeing
+what each player has shown adds nothing: the trees split on it for 10% of their gain, spread thin,
+and play the same without it. Without it the model already wins about as much as the playouts
+that know who sits where, so the half that knowing who's who seemed to add above was the guessing
+playouts' weakness, not room to read players: learning what the table is made of is enough. And
+the gain is all against the kinds it trained on: at a table of round 9's players, which
+it saw only a third of the time, it wins 7 to 20%, where round 9 wins a fair share. What a model
+learns is how to beat the players it practiced against, and nothing about players it didn't.
+
+A second mixed round (`o2`) put round 9's player in half the other seats instead of a third, and
+fit `o1` and `o2` together. It barely moved: 23.5 / 13.3 / 9.8 / 8.4 at a table of round 9's
+players, 72.0 / 65.7 / 59.4 / 53.0 against the league. What was missing was data, not the mix:
+`o1` and `o2` are about 600,000 decisions, and rounds 3 to 9 at learned tables about 12 million
+moves. Fit to all of it together:
+
+| model | at a table of round 9 | against the league | against the default |
+| --- | --- | --- | --- |
+| round 9 | a fair share | 46.0 / 44.6 / 38.1 / 32.3 | 41.1 / 43.3 / 37.1 / 32.0 |
+| rounds 3–9, `o1` and `o2` | 32.9 / 22.2 / 18.0 / 15.8 | 69.5 / 56.2 / 50.3 / 44.8 | 74.5 / 55.7 / 49.9 / 44.9 |
+
+It gives up 0.4 to 2.8 points at a table of round 9's players, and gains 12 to 24 against the
+league and 12 to 33 against the default. Against a table it doesn't know, it's the safer player.
 
 ## Rule readings
 

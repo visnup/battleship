@@ -43,9 +43,25 @@
       and the model played: `hold` plays the weakest force card, +17 to +5 points against the
       previous default and +6 to +0.8 against the league. Adopted. The models still read the
       previous default's pick (`hint` in `learned.ts`) until a round is trained on the new one.
-- [ ] `finish` costs 2.7 points at 3 players against quick playouts since `hold` (6,000 games,
-      ±1.2): check it against the default and the league.
-- [ ] `wait` is now the model's biggest disagreement at 3 players (`overrules.ts`).
+- [x] `finish` costs 2.7 points at 3 players against quick playouts since `hold`, but dropping it
+      loses 1.4 to 4.8 against the default and 3.9 to 7.5 against the league. Counting the whole
+      hand instead of the best 4: +1.1 at 3 players, adopted (2026-11-20).
+- [x] `wait` is the model's biggest disagreement at 3 players, but never waiting there loses 5.3
+      points against the default and 1.5 against the league. Baiting back the strongest force card
+      when behind (the model's Bait over the default's 1) wins against the league and loses to
+      today's default: a bet (2026-11-20).
+- [ ] Rerun the README's tables for the default with `hold` and the new `finish`.
+- [x] How much knowing the table is worth (README "Knowing the table", 2026-11-20): at a league
+      table, 32-deal playouts that know each seat's default win 24 to 31 points more than ones
+      that assume today's default; knowing only the league's makeup gets about half.
+- [x] Opponent modeling, learned (`o1`, 2026-11-20, README "Knowing the table"): mixed tables
+      with true rollouts gain 19 to 29 points against the league, as much as playouts that know
+      every seat; the features for what each player has shown add nothing (same data without
+      them ties). It loses badly to round 9's tables (7 to 20%).
+- [ ] A Hard bot for people: `o2` (round 9's player in half the seats) still loses badly to
+      round 9's tables; fit with rounds 3–9's data too (`model-r3456789o12`), it gives up 0.4 to
+      2.8 points there and gains 12 to 33 against the league and the default (2026-11-21).
+      Decide whether to adopt it; if so, pack it and its 200-tree version.
 - [ ] More from the learned player: at 6 players it passes on 1s the default opens with, and
       plays 10s where it plays 1s.
 - [x] Use the model to prune playouts to its top moves, and race on more deals, 2026-11-19:

@@ -32,13 +32,15 @@ Its last page has the card list and each fate card's rule.
   new default.
   `scripts/dataset.ts` writes every decision of default games with each move's playout value as
   JSONL shards in `dataset/data*/` (not committed); `--play` has a model's learned player play
-  the games and `--rollout` play inside the playouts. `uv run scripts/learn.py [trees] [out]
+  the games and `--rollout` play inside the playouts; `--mixed` seats the rollout player or a
+  default from `LEAGUE` beside it, evenly, each played on as it really plays, and `round.sh`
+  takes it as `MIXED=1`, naming the round with `NAME` (`o1`, `o2`). `uv run scripts/learn.py [trees] [out]
   [directories…]` fits the trees, holding out the last directory's last 8 shards a player count.
   Each round's data and model live in `dataset/data-rN/` and `dataset/model-rN.json` (not
   committed), an `s` for labels from learned players in the playouts and `-200` for the
   200-tree rollout models; `variants.ts` names them `learned rN` and takes any variant as
   `--field`. From round 4, round N's model is fit to rounds 3 to N's games, and its file is named for them
-  (`model-r345678s` is round 8). `src/packed/model.ts` is round 9, 2.3 MB packed; its JSON is `dataset/model-r3456789s.json`. `scripts/round.sh N` runs
+  (`model-r345678s` is round 8). `src/packed/model.ts` is rounds 3–9 with `o1` and `o2` fit together (see the README's "Knowing the table"), 2.3 MB packed; its JSON is `dataset/model-r3456789o12.json`, and `src/packed/rollout.ts` its 200-tree version. `scripts/round.sh N` runs
   round N end to end after a half-minute smoke test of itself (`SMOKE=0` skips it), writing
   `log.txt`, `run.json` and `events.jsonl` to `dataset/rN/`, and `node scripts/status.ts`
   (`status` in `.claude/launch.json`) serves the newest round's progress and ETA at

@@ -33,7 +33,7 @@ const read = (round: string): Run | undefined => {
 /** The round started last. */
 const newest = () =>
   readdirSync("dataset")
-    .flatMap((d) => (/^r\d/.test(d) ? (read(d.slice(1)) ?? []) : []))
+    .flatMap((d) => (/^r\w/.test(d) ? (read(d.slice(1)) ?? []) : []))
     .sort((a, b) => a.start - b.start)
     .at(-1);
 

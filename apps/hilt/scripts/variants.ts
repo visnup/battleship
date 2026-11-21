@@ -63,7 +63,72 @@ const stallAhead =
     return { card: bait, take };
   };
 
+/** Behind, Bait back the strongest force card in the row; with `contested`, only while others are still in. */
+const salvage =
+  (contested: boolean): Step =>
+  (game, p) => {
+    const bait = p.hand.find((c) => c.kind === "bait");
+    const take = p.row.filter((c) => c.kind === "force").sort((a, b) => b.value - a.value)[0];
+    if (!bait || !take || game.leader() === p.seat || (contested && others(game, p).every((q) => q.passed))) return undefined;
+    return { card: bait, take };
+  };
+
 const oneIn = (game: Game, p: Player) => others(game, p).filter((q) => !q.passed).length === 1;
+
+/**
+ * Playouts on `n` deals with each other seat played on by the default `--field league` actually
+ * seated there (`headToHead` seeds seat j's field player with the hero's seed + j): an opponent
+ * model that's always right, for how much knowing the table could be worth.
+ */
+const knowing =
+  (n: number) =>
+  (seed: number): Policy => {
+    let inner: Policy | undefined;
+    return {
+      ...defaultPolicy,
+      move(game, p) {
+        inner ??= playouts(
+          n,
+          seed,
+          game.players.map((_, j) => (j === p.seat ? defaultPolicy : league(seed + j))),
+        );
+        return inner.move(game, p);
+      },
+    };
+  };
+
+/** Playouts on `n` deals with each other seat a default from `LEAGUE` at random, drawn again each deal: the table's makeup without who sits where. */
+const guessing =
+  (n: number) =>
+  (seed: number): Policy => {
+    const rng = mulberry32(seed);
+    const tables = new WeakMap<Game, Policy[]>();
+    const draw = (game: Game) =>
+      tables.get(game) ??
+      tables
+        .set(
+          game,
+          game.players.map(() => LEAGUE[Math.floor(rng() * LEAGUE.length)]),
+        )
+        .get(game)!;
+    const seat = (j: number): Policy => ({
+      color: (game, p) => draw(game)[j].color(game, p),
+      move: (game, p) => draw(game)[j].move(game, p),
+      dump: (game, p) => draw(game)[j].dump(game, p),
+    });
+    let inner: Policy | undefined;
+    return {
+      ...defaultPolicy,
+      move(game, p) {
+        inner ??= playouts(
+          n,
+          seed,
+          game.players.map((_, j) => (j === p.seat ? defaultPolicy : seat(j))),
+        );
+        return inner.move(game, p);
+      },
+    };
+  };
 
 const bump = (chips: number[], i: number) => chips.map((c, j) => c + +(i === j));
 
@@ -104,13 +169,21 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "Crows only for a chip that wins the game": replace("crows", (game, p) => (decisive(game, p) ? STEPS.crows(game, p) : undefined)),
   "never Doves": without("doves"),
   "with nobody else in, only overtake with a single card (previous)": without("finish"),
-  ...Object.fromEntries([2].map((k) => [`with nobody else in, overtake in up to ${k} cards, strongest first`, replace("finish", finishIn(k))])),
+  ...Object.fromEntries([2, 6].map((k) => [`with nobody else in, overtake in up to ${k} cards, strongest first`, replace("finish", finishIn(k))])),
+  "with nobody else in, overtake in up to 4 cards, strongest first (previous)": replace("finish", finishIn(4)),
   "Bait back a 1 ahead too, before Crows": insert(stallAhead(false), "crows"),
   "Bait back a 1 ahead too, before Crows, if still ahead after": insert(stallAhead(true), "crows"),
   "Bait back a 1 ahead too, after Crows": insert(stallAhead(false), "doves"),
   "press with the strongest card, not a Fury (previous)": replace("press", ahead(["top"], 0)),
   "press with a 1 first": insert(ahead(["one"], 0), "press"),
   "press only with 2+ others in": replace("press", (game, p) => (others(game, p).filter((q) => !q.passed).length >= 2 ? STEPS.press(game, p) : undefined)),
+  ...Object.fromEntries(
+    [8, 32].flatMap((n) => [
+      [`playouts on ${n} deals`, (seed: number) => playouts(n, seed)] as const,
+      [`playouts on ${n} deals, knowing each league seat's default`, knowing(n)] as const,
+      [`playouts on ${n} deals, each other seat a league default at random`, guessing(n)] as const,
+    ]),
+  ),
   "the learned player": () => learned(),
   // every model in dataset/, oldest first, as `learned r34s` for dataset/model-r34s.json
   ...Object.fromEntries(
@@ -135,11 +208,15 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
   "never discard a hand of no force cards": () => ({ ...defaultPolicy, dump: () => false }),
   "discard by playouts on 32 deals": (seed) => dumpPlayouts(defaultPolicy, 32, seed),
   "Doves only with 1 other in": replace("doves", (game, p) => (others(game, p).filter((q) => !q.passed).length <= 1 ? STEPS.doves(game, p) : undefined)),
+  "don't wait at 3 players": replace("wait", (game, p) => (game.players.length === 3 ? undefined : STEPS.wait(game, p))),
+  "behind, Bait back the strongest force card before a 1": insert(salvage(false), "one"),
+  "behind, Bait back the strongest force card before a 1, only with others in": insert(salvage(true), "one"),
+  "don't open with 1 other in at 4+ players": replace("open", (game, p) => (game.players.length >= 4 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
   "don't open with 1 other in at 5+ players": replace("open", (game, p) => (game.players.length >= 5 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
 };
 
 /** Every default so far, each adopted as the best answer to the one before. */
-const LEAGUE: Policy[] = [
+export const LEAGUE: Policy[] = [
   STRATEGIES["first default"](0),
   heuristic("stop", crowsAhead, "doves", waitWhile(2), "chase", "allIn", "bait"),
   heuristic("stop", crowsAhead, "doves", waitWhile(2, 3), oneWithin(0), "chase", "allIn", "bait"),
@@ -149,6 +226,7 @@ const LEAGUE: Policy[] = [
   heuristic("harvest", "stop", "crows", "doves", "press", "wait", "open", "finish", "chase", "allIn", "bait"),
   heuristic("harvest", "stop", "crows", "doves", ahead(["top"], 0), "wait", "open", "finish", "stall", "one", "chase", "allIn", "bait"),
   without("hold")(),
+  replace("finish", finishIn(4))(),
   defaultPolicy,
 ];
 

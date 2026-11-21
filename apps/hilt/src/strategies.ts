@@ -89,7 +89,7 @@ export function random(seed = 1): Policy {
  * of the paired difference behind the leader, until `n` deals a move. With `top`, only the moves
  * `src/packed/model.ts` ranks highest are played out.
  */
-export function playouts(n: number, seed = 1, rollout = defaultPolicy, z = 0, top = Infinity): Policy {
+export function playouts(n: number, seed = 1, rollout: Policy | Policy[] = defaultPolicy, z = 0, top = Infinity): Policy {
   const rng = mulberry32(seed);
   const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
   const rank = top < Infinity ? ranked() : undefined;
@@ -162,7 +162,7 @@ export function dumpPlayouts(policy: Policy, n: number, seed = 1, rollout = defa
 }
 
 /** How many of the games from `seeds` `p` wins making `move` now, then playing like `rollout`. */
-export function playout(game: Game, p: Player, move: Move, seeds: number[], rollout = defaultPolicy) {
+export function playout(game: Game, p: Player, move: Move, seeds: number[], rollout: Policy | Policy[] = defaultPolicy) {
   let wins = 0;
   for (const s of seeds) {
     const g = sample(game, p, mulberry32(s), rollout);

@@ -386,11 +386,12 @@ export const STEPS = {
    */
   open: openWith(1),
   /**
-   * Behind with nobody else in, nobody can answer: play the strongest card if the strongest 4 in
-   * hand would overtake, and `harvest` takes back what isn't needed. +1.4 to +6 points over
-   * only taking the lead with a single card.
+   * Behind with nobody else in, nobody can answer: play the strongest card if the hand would
+   * overtake, and `harvest` takes back what isn't needed. +1.4 to +6 points over only taking the
+   * lead with a single card; counting the whole hand rather than the strongest 4 adds +1.1, +0.4,
+   * +0.1 and +0.1 at 3–6 players against the default, and +0.3 to 0 against the league (40,000 games).
    */
-  finish: finishIn(4),
+  finish: finishIn(10),
   /**
    * Behind with others still in, Bait back a 1: it stays in the battle without spending
    * anything. +4.5 to +7 points against the default, +3.5 to +6 against every default so far.

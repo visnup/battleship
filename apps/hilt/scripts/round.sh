@@ -6,7 +6,9 @@
 #   2. data: $GAMES games a player count (3000), played by the learned player of rounds 3 to
 #      $1 - 1's model, each move labeled by playouts on $DEALS deals (16) among learned players of
 #      its 200-tree version. Stops after $HOURS (3), and logs how many decisions it has written
-#      every 10 minutes, so a stall shows.
+#      every 10 minutes, so a stall shows. With $MIXED, each other seat is the 200-tree player or
+#      a default from the league, evenly, played on as it really plays (`dataset.ts --mixed`),
+#      and step 4 also plays against the league.
 #   3. train: $TREES trees (1000) fit to rounds 3 to $1 ($DIRS for the smoke test).
 #   4. compare: the new model's learned player, $N games (20000), against each of the last four
 #      models and the default.
@@ -45,7 +47,7 @@ exec > >(tee -a $L/log.txt) 2>&1
 start=$(date +%s)
 rm -f $L/usage.jsonl
 : >$L/events.jsonl
-echo "{ \"round\": \"$id\", \"prev\": \"$((round - 1))\", \"start\": ${start}000, \"games\": $games, \"trees\": $trees, \"data\": \"$data\", \"compares\": $(($(echo $fields | wc -w) + 1)), \"stages\": [\"data\", \"train\", \"compare\", \"train 200\"] }" >$L/run.json
+echo "{ \"round\": \"$id\", \"prev\": \"$((round - 1))\", \"start\": ${start}000, \"games\": $games, \"trees\": $trees, \"data\": \"$data\", \"compares\": $(($(echo $fields | wc -w) + 1 + ${MIXED:+1}0 / 10)), \"stages\": [\"data\", \"train\", \"compare\", \"train 200\"] }" >$L/run.json
 echo "$(date) round $id: $games games, ${DEALS:-16} deals, $trees trees, from $prev"
 
 ev() { echo "{\"t\":$(date +%s)000,\"stage\":\"$stage\",\"state\":\"$1\"}" >>$L/events.jsonl; }
@@ -56,7 +58,7 @@ trap '[ -z "$stage" ] || ev failed; kill $progress 2>/dev/null || true' EXIT
 begin data
 (while sleep 600; do echo "  [$((($(date +%s) - start) / 60)) min, $(date +%H:%M)] $(cat $data/*.jsonl 2>/dev/null | wc -l | tr -d ' ') decisions so far"; done) &
 progress=$!
-timeout $((${HOURS:-3} * 3600)) node scripts/dataset.ts --games $games --deals ${DEALS:-16} --play $D/model-$prev.json --rollout $D/model-$prev-200.json --out $data
+timeout $((${HOURS:-3} * 3600)) node scripts/dataset.ts --games $games --deals ${DEALS:-16} --play $D/model-$prev.json --rollout $D/model-$prev-200.json ${MIXED:+--mixed} --out $data
 { kill $progress && wait $progress; } 2>/dev/null || true
 end
 
@@ -70,6 +72,7 @@ for f in $fields; do
   timeout 3600 node scripts/variants.ts --n ${N:-20000} --only "learned $next" --field "learned $f" | tee -a $L/compare.txt
 done
 timeout 3600 node scripts/variants.ts --n ${N:-20000} --only "learned $next" | tee -a $L/compare.txt
+[ -z "$MIXED" ] || timeout 3600 node scripts/variants.ts --n ${N:-20000} --only "learned $next" --field league | tee -a $L/compare.txt
 end
 
 # after comparing, since --only "learned $next" would match it too

@@ -2,6 +2,7 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { defaultPolicy, Game, moves, mulberry32, type Policy } from "../src/game.ts";
 import { board, hint, learned, move, same } from "../src/learned.ts";
+import { LEAGUE } from "./variants.ts";
 import { parallel } from "kit/parallel.ts";
 import { playout } from "../src/strategies.ts";
 
@@ -9,9 +10,11 @@ import { playout } from "../src/strategies.ts";
  * Plays `n` default games of `players` and writes every move decision of seat `i % players` with a
  * choice to `out/<players>p-<seed>.jsonl`: the board as numbers, each legal move's numbers and its
  * playout value on `deals` shared deals, centered on the decision's mean. With `play`, the learned
- * player of that model plays the games, and with `rollout`, everyone in the playouts.
+ * player of that model plays the games, and with `rollout`, everyone in the playouts. With `mixed`,
+ * each other seat is the `rollout` player or a default from `LEAGUE`, evenly, and the playouts play
+ * each seat on as it really plays.
  */
-export function shard(players: number, deals: number, out: string, play: string, roll: string, seed: number, n: number) {
+export function shard(players: number, deals: number, out: string, play: string, roll: string, mixed: boolean, seed: number, n: number) {
   const rng = mulberry32(seed);
   const player = play ? learned(play) : defaultPolicy;
   const rollout = roll ? learned(roll) : defaultPolicy;
@@ -21,16 +24,18 @@ export function shard(players: number, deals: number, out: string, play: string,
   for (let i = 0; i < n; i++) {
     const seat = i % players;
     const rows: string[] = [];
+    const seats = Array.from({ length: players }, (_, j) => (j === seat || !mixed ? undefined : rng() < 1 / 2 ? rollout : LEAGUE[Math.floor(rng() * LEAGUE.length)]));
+    const rollouts = seats.map((s) => s ?? rollout);
     const watcher: Policy = {
       ...defaultPolicy,
       move(game, p) {
-        const choice = player.move(game, p);
+        const choice = (seats[p.seat] ?? player).move(game, p);
         if (p.seat !== seat) return choice;
         const pick = hint.move(game, p);
         const options = moves(game, p);
         if (options.length < 2) return choice;
         const seeds = Array.from({ length: deals }, () => Math.floor(rng() * 2 ** 32));
-        const values = options.map((m) => playout(game, p, m, seeds, rollout) / deals);
+        const values = options.map((m) => playout(game, p, m, seeds, rollouts) / deals);
         const mean = values.reduce((a, b) => a + b, 0) / values.length;
         const b = board(game, p);
         rows.push(JSON.stringify({ game: i, board: b, moves: options.map((m) => move(game, p, m, same(m, pick))), values: values.map((v) => v - mean) }));
@@ -53,12 +58,13 @@ if (import.meta.main) {
       out: { type: "string", default: "dataset/data" },
       play: { type: "string", default: "" },
       rollout: { type: "string", default: "" },
+      mixed: { type: "boolean", default: false },
     },
   });
   mkdirSync(args.out, { recursive: true });
   for (const players of args.players.split(",").map(Number)) {
     const t = performance.now();
-    const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.out, args.play, args.rollout], Number(args.games));
+    const decisions = await parallel<number>(import.meta.url, "shard", [players, Number(args.deals), args.out, args.play, args.rollout, args.mixed], Number(args.games));
     console.log(`${new Date().toTimeString().slice(0, 5)} ${players} players: ${args.games} games, ${decisions} decisions, ${((performance.now() - t) / 60000).toFixed(1)} min`);
   }
 }
