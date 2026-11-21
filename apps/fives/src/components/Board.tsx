@@ -169,7 +169,7 @@ export function Board({ game, me }: Props) {
               {heading && (
                 <h3
                   onClick={() => visit(first)}
-                  className="sticky top-0 m-0 flex cursor-pointer items-center gap-[0.5em] bg-white px-[0.3em] pt-[0.3em] text-sm font-semibold before:flex-1 before:border-t before:border-ink/20 before:content-[''] after:flex-1 after:border-t after:border-ink/20 after:content-['']"
+                  className="sticky top-0 m-0 flex cursor-pointer items-center gap-[0.5em] bg-bar px-[0.3em] pt-[0.3em] text-sm font-semibold before:flex-1 before:border-t before:border-ink/20 before:content-[''] after:flex-1 after:border-t after:border-ink/20 after:content-['']"
                 >
                   {heading}
                 </h3>
@@ -191,7 +191,7 @@ export function Board({ game, me }: Props) {
           {trick.plays.map(({ seat: s, play }) => (
             <div key={s} className={`${SLOTS[n][(s - bottom + n) % n]} relative`}>
               <Card card={play.down && s !== seat ? undefined : play.card} down={play.down} small />
-              {trick.winner === s && <span className="absolute -top-[0.6em] -right-[0.6em] rounded-full bg-ink px-[0.4em] text-[0.65rem] font-bold text-white">wins</span>}
+              {trick.winner === s && <span className="absolute -top-[0.6em] -right-[0.6em] rounded-full bg-ink px-[0.4em] text-[0.65rem] font-bold text-bar">wins</span>}
             </div>
           ))}
           {!trick.plays.length && <span className="col-start-2 row-start-2 text-center text-xs opacity-50">{view.result ? "" : `${who(g.current)} ${g.current === seat ? "lead" : "leads"}`}</span>}

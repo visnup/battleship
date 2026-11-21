@@ -6,6 +6,7 @@
   --color-ink: var(--ink);
   --color-magenta: #de35a2;
   --color-back: #ececec;
+  --color-bar: var(--bar);
 }
 
 @layer base {
@@ -16,7 +17,16 @@
     --shadow: 0 4px 16px rgb(60 0 40 / 0.15);
     /* the font size of cards on the table, which sets their size and how they overlap */
     --small: 0.6rem;
-    color-scheme: light;
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #170c14;
+      --bar: #2a1a25;
+      --ink: #f4e9f0;
+      --shadow: 0 4px 16px rgb(0 0 0 / 0.5);
+    }
   }
 
   @media (width < 40rem) {
@@ -38,7 +48,7 @@
     padding: 0.3em 0.8em;
     border-radius: 0.5em;
     background: var(--ink);
-    color: white;
+    color: var(--bar);
     cursor: pointer;
   }
 
@@ -124,7 +134,7 @@
 
   /* Secondary actions that shouldn't compete with the cards */
   button.quiet {
-    background: rgb(42 16 34 / 0.08);
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
     color: var(--ink);
   }
 }

@@ -99,7 +99,7 @@ function Lobby({ table, me, alone }: { table: string; me: Id<"players">; alone: 
               <li key={p._id} className={row}>
                 <input
                   aria-label="Your name"
-                  className="min-w-0 flex-1 rounded-lg bg-white px-2 py-1 text-ink ring-1 ring-ink/20"
+                  className="min-w-0 flex-1 rounded-lg bg-bar px-2 py-1 text-ink ring-1 ring-ink/20"
                   value={name}
                   placeholder={`Player ${p.seat + 1}`}
                   maxLength={24}

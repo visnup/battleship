@@ -36,13 +36,16 @@ function Chances({ rows, order, fair, show }: { rows: Scored[]; order: number[];
       const data = rows.map((r) => ({ ...r, i: order.indexOf(r.n), win: r.mine.win }));
       // each hand's first decision, labeled with its number
       const firsts = new Map(data.filter((d, j) => !j || data[j - 1].hand !== d.hand).map((d) => [d.i, d.hand]));
-      const color = (d: Scored) => (d.lost >= 0.05 ? "#d64545" : d.beat >= 0.05 ? "#2f5db1" : "#2a1022");
+      // SVG attributes can't take var(), so the theme's colors as they are now
+      const css = getComputedStyle(el);
+      const [ink, paper] = [css.getPropertyValue("--ink").trim(), css.getPropertyValue("--bar").trim()];
+      const color = (d: Scored) => (d.lost >= 0.05 ? "#d64545" : d.beat >= 0.05 ? "#2f5db1" : ink);
       const plot = Plot.plot({
         width: el.clientWidth,
         height: 160,
         marginLeft: 36,
         marginTop: 28,
-        style: { background: "transparent", color: "#2a1022" },
+        style: { background: "transparent", color: ink },
         x: { domain: [-0.5, order.length - 0.5], ticks: [...firsts.keys()], tickFormat: (i: number) => String(firsts.get(i)), label: "hand" },
         y: { domain: [0, 1], ticks: [0, 0.5, 1], tickFormat: "%", grid: true, label: null },
         marks: [
@@ -52,7 +55,7 @@ function Chances({ rows, order, fair, show }: { rows: Scored[]; order: number[];
             { x: "i", y1: (d) => d.best.win, y2: "win", stroke: "#d64545", strokeWidth: 2 },
           ),
           Plot.lineY(data, { x: "i", y: "win", stroke: "#de35a2", strokeWidth: 2 }),
-          Plot.dot(data, { x: "i", y: "win", r: (d) => (d.lost >= 0.05 || d.beat >= 0.05 ? 4 : 2.5), fill: color, stroke: "white", strokeWidth: 1.5 }),
+          Plot.dot(data, { x: "i", y: "win", r: (d) => (d.lost >= 0.05 || d.beat >= 0.05 ? 4 : 2.5), fill: color, stroke: paper, strokeWidth: 1.5 }),
           // where your chances started, peaked and ended
           Plot.text([...new Set([data[0], data.reduce((a, b) => (b.win > a.win ? b : a)), data.at(-1)!])], {
             x: "i",
@@ -61,13 +64,13 @@ function Chances({ rows, order, fair, show }: { rows: Scored[]; order: number[];
             dy: -10,
             fontSize: 11,
             fontWeight: "bold",
-            fill: "#2a1022",
-            stroke: "white",
+            fill: ink,
+            stroke: paper,
             strokeWidth: 3,
           }),
           // in place of a tip, which would cover the line: a rule at the decision under the
           // pointer, and what happened there in the top margin
-          Plot.ruleX(data, Plot.pointerX({ x: "i", stroke: "#2a1022", strokeOpacity: 0.3 })),
+          Plot.ruleX(data, Plot.pointerX({ x: "i", stroke: ink, strokeOpacity: 0.3 })),
           Plot.text(
             data,
             Plot.pointerX({
