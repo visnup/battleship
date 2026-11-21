@@ -428,11 +428,23 @@ function Seat({ p, name, level, current, mine, className, tall }: { p: Player; n
           <span className={`text-lg leading-none font-extrabold ${t > TARGET ? "text-red-600" : t === TARGET ? "text-magenta" : ""}`}>{t}</span>
           <span className="label text-[0.55rem]">{t > TARGET ? "bust" : "of 25"}</span>
         </span>
-        <div className="flex min-h-[calc(6.3*var(--small))] min-w-0 flex-wrap *:not-first:-ml-[calc(var(--small)*2.2)]">
-          {p.won.map((w, i) => (
-            <Card key={i} card={w.down && !mine ? undefined : w.card} down={w.down} small />
-          ))}
-        </div>
+        {tall ? (
+          <div className="flex flex-col *:not-first:-mt-[calc(var(--small)*2.2)]">
+            {p.won.map((w, i) => (
+              <div key={i} className="grid h-[calc(4.5*var(--small))] w-[calc(6.3*var(--small))] place-items-center">
+                <div className="rotate-90">
+                  <Card card={w.down && !mine ? undefined : w.card} down={w.down} small />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex min-h-[calc(6.3*var(--small))] min-w-0 flex-wrap *:not-first:-ml-[calc(var(--small)*2.2)]">
+            {p.won.map((w, i) => (
+              <Card key={i} card={w.down && !mine ? undefined : w.card} down={w.down} small />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
