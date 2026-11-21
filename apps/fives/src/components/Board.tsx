@@ -409,7 +409,7 @@ export const LEVELS: Record<Level, { name: string; title: string }> = {
 function Seat({ p, name, level, current, mine, className, tall }: { p: Player; name: string; level?: Level; current: boolean; mine: boolean; className: string; tall?: boolean }) {
   const t = total(p);
   return (
-    <section className={`panel flex min-w-0 flex-col gap-[0.4em] p-[0.6em] ${current ? "current" : ""} ${className} ${tall ? "justify-self-center" : "justify-self-stretch"}`}>
+    <section className={`panel flex min-w-0 flex-col gap-[0.4em] p-[0.6em] ${current ? "current" : ""} ${className} ${tall ? "justify-self-center pb-[1.2em]" : "justify-self-stretch"}`}>
       <h2 className={`m-0 flex flex-wrap gap-x-[0.5em] text-sm font-bold ${tall ? "flex-col items-center gap-y-[0.3em] text-center" : "items-center"}`}>
         <span className={tall ? "flex max-w-full flex-col" : "truncate"}>
           <span className="truncate">{name}</span>
