@@ -306,6 +306,8 @@ export function Hand({
   // a touch: slide to pick a card, release to play it, hold still to flip it, slide off the hand to cancel
   const press = useRef<{ lefts: number[]; right: number; area: DOMRect; i?: number; timer?: number; flipped?: boolean }>(undefined);
   const touched = useRef(false);
+  // under a finger, lift more
+  const [lift, setLift] = useState(0.8);
   const ref = useRef<HTMLDivElement>(null);
   const under = (x: number, y: number) => {
     const p = press.current!;
@@ -329,6 +331,7 @@ export function Hand({
   const touch = onClick && {
     onPointerDown: (e: React.PointerEvent) => {
       touched.current = e.pointerType === "touch";
+      setLift(touched.current ? 3 : 0.8);
       if (!touched.current) return;
       // the cards' places before the fisheye moves them
       const cards = [...ref.current!.children].map((c) => c.getBoundingClientRect());
@@ -355,8 +358,6 @@ export function Hand({
   };
   // a touch plays on release, not on the click after it
   const click = (i: number) => touched.current || onClick?.(i);
-  // under a finger, lift more
-  const lift = touched.current ? 3 : 0.8;
   return (
     <div
       ref={ref}
