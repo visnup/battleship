@@ -18,8 +18,12 @@ last page has the components and a summary.
   shown they're out of, and `hidden` the cards they played face down, which only they know.
 - The engine is the cost of everything else, so it's kept fast: plays are shared objects
   (`up()`, `down()`), `top()` is the highest unseen card of each color, worked out once a
-  decision, and the steps are loops, not sorts. A default game is about 0.5 ms; profile
-  (`node --cpu-prof`) before and after a change there.
+  decision, and the steps are loops, not sorts. A default game is about 0.5 ms, a game among
+  round 9's learned players 26 ms (90% of it scoring trees, which `scoreAll` does for all of a
+  decision's plays at once), among its rollout players 3.4 ms, and a 16-deal hand-playouts game
+  about 2.4 s. `node scripts/bench.ts [games] [learned|rollout|playouts]` times them and prints a
+  checksum of the winners to compare before and after; profile (`node --cpu-prof`) a change
+  there.
 - `strategies.ts`: whole-game strategies in `STRATEGIES`. `playouts` plays every legal play out on
   copies with the cards it can't see dealt again (`sample`, which respects `voids`), optionally
   racing plays (`z`), and with `hand` only to the end of the hand, scored by `chance`: the win

@@ -1,4 +1,4 @@
-import { type Forest, flatten, score, unpack } from "./trees.ts";
+import { type Forest, flatten, scoreAll, unpack } from "./trees.ts";
 import { BACK, type Card, COLORS as HUES } from "./cards.ts";
 import { beats, defaultPolicy, face, type Game, HANDS, others, type Play, type Player, type Policy, sure, TARGET, top, total, TRUMP, unseen, winning } from "./game.ts";
 
@@ -114,7 +114,9 @@ const FEATURES = {
     move: (game: Game, p: Player, play: Play, isDefault: boolean) => {
       // whether it's the default's pick stays last, where `learn.py` looks for it
       const m = move(game, p, play, isDefault);
-      return [...m.slice(0, -1), ...move2(game, p, play), m.at(-1)!];
+      const last = m.pop()!;
+      m.push(...move2(game, p, play), last);
+      return m;
     },
   },
 };
@@ -148,17 +150,17 @@ export function learned(model: string | Forest = MODEL(), reference: Policy = de
       const { board, move } = features(forest.v);
       const b = board(game, p);
       const pick = reference.play(game, p);
-      let x: Float64Array | undefined;
-      let best = options[0];
-      let top = -Infinity;
-      for (const m of options) {
+      const xs = options.map((m) => {
         const y = move(game, p, m, same(m, pick));
-        if (!x) (x = new Float64Array(b.length + y.length)).set(b);
+        const x = new Float64Array(b.length + y.length);
+        x.set(b);
         x.set(y, b.length);
-        const s = score(forest, x);
-        if (s > top) [best, top] = [m, s];
-      }
-      return best;
+        return x;
+      });
+      const s = scoreAll(forest, xs, b.length);
+      let best = 0;
+      for (let k = 1; k < s.length; k++) if (s[k] > s[best]) best = k;
+      return options[best];
     },
   };
 }

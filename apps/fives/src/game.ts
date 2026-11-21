@@ -250,8 +250,17 @@ export const others = (game: Game, p: Player) => game.players.map((_, i) => game
 export function unseen(game: Game, p: Player): Card[] {
   if (outGame === game && outPlayed === game.played && outSeat === p.seat) return out;
   [outGame, outPlayed, outSeat] = [game, game.played, p.seat];
-  const known = new Set([...p.hand, ...game.seen, ...p.hidden]);
-  return (out = deck(game.players.length).filter((c) => !known.has(c)));
+  seenBy(game, p);
+  out = [];
+  for (const c of deck(game.players.length)) if (!known[c.id]) out.push(c);
+  return out;
+}
+/** Marks in `known` the cards `p` has seen. */
+function seenBy(game: Game, p: Player) {
+  known.fill(0);
+  for (const c of p.hand) known[c.id] = 1;
+  for (const c of game.seen) known[c.id] = 1;
+  for (const c of p.hidden) known[c.id] = 1;
 }
 // the last answer, since a decision asks for it once a play
 let out: Card[] = [];
@@ -268,10 +277,7 @@ let topSeat = -1;
 export function top(game: Game, p: Player): Int8Array {
   if (topGame === game && topPlayed === game.played && topSeat === p.seat) return top4;
   [topGame, topPlayed, topSeat] = [game, game.played, p.seat];
-  known.fill(0);
-  for (const c of p.hand) known[c.id] = 1;
-  for (const c of game.seen) known[c.id] = 1;
-  for (const c of p.hidden) known[c.id] = 1;
+  seenBy(game, p);
   top4.fill(-1);
   for (const c of deck(game.players.length)) {
     const i = COLORS.indexOf(c.color);
@@ -350,7 +356,18 @@ export const STEPS = {
    */
   leadDown(game, p, plays) {
     if (game.trick.length || room(p) < 5) return undefined;
-    return most(plays, (x) => x.card.value, (x) => x.down && x.card.color === TRUMP) ?? most(plays, (x) => x.card.value, (x) => x.down);
+    return (
+      most(
+        plays,
+        (x) => x.card.value,
+        (x) => x.down && x.card.color === TRUMP,
+      ) ??
+      most(
+        plays,
+        (x) => x.card.value,
+        (x) => x.down,
+      )
+    );
   },
   /** A sure win that makes exactly 25. */
   exact(game, p, plays) {

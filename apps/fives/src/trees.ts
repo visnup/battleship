@@ -38,6 +38,29 @@ export function score({ roots, feature, threshold, right }: Forest, x: ArrayLike
   return s;
 }
 
+/**
+ * `score` of each of `xs`, which agree on their first `shared` features: each tree walks those
+ * once for all of them, and its nodes stay in cache while it scores the rest.
+ */
+export function scoreAll({ roots, feature, threshold, right }: Forest, xs: Float64Array[], shared: number, out = new Float64Array(xs.length)) {
+  out.fill(0);
+  const x0 = xs[0];
+  for (let r of roots) {
+    for (let f = feature[r]; f >= 0 && f < shared; f = feature[r]) r = x0[f] <= threshold[r] ? r + 1 : right[r];
+    if (feature[r] < 0) {
+      for (let k = 0; k < xs.length; k++) out[k] += threshold[r];
+      continue;
+    }
+    for (let k = 0; k < xs.length; k++) {
+      const x = xs[k];
+      let i = r;
+      for (let f = feature[i]; f >= 0; f = feature[i]) i = x[f] <= threshold[i] ? i + 1 : right[i];
+      out[k] += threshold[i];
+    }
+  }
+  return out;
+}
+
 /** `forest` as base64: node and tree counts and the features' version, then thresholds, roots, right children and features. */
 export function pack({ roots, feature, threshold, right, v }: Forest) {
   const bytes = new Uint8Array(16 + threshold.byteLength + roots.byteLength + right.byteLength + feature.byteLength);
