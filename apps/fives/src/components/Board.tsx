@@ -354,8 +354,8 @@ export function Hand({
   };
   // a touch plays on release, not on the click after it
   const click = (i: number) => touched.current || onClick?.(i);
-  // under a finger, lift and spread more
-  const [spread, lift] = touched.current ? [2.4, 3] : [1, 0.8];
+  // under a finger, lift more
+  const lift = touched.current ? 3 : 0.8;
   return (
     <div
       ref={ref}
@@ -367,7 +367,7 @@ export function Hand({
         <div
           key={i}
           className={`relative transition-transform duration-150 select-none [-webkit-touch-callout:none] ${hover === i ? "z-10" : ""}`}
-          style={onClick && at >= 0 ? { translate: `${spread * aside(k - at)}em ${hover === i ? -lift : 0}em` } : undefined}
+          style={onClick && at >= 0 ? { translate: `${aside(k - at)}em ${hover === i ? -lift : 0}em` } : undefined}
           onMouseEnter={onClick && (() => touched.current || hovered(i))}
         >
           <Card card={cards[i]} down={down?.(i)} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => click(i))} />
