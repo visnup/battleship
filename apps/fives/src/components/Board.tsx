@@ -290,7 +290,7 @@ export function Hand({
   cards: CardType[];
   onClick?: (i: number) => void;
   onHover?: (i: number | undefined) => void;
-  /** A long press on a touch screen. */
+  /** A held touch on a touch screen. */
   onFlip?: (i: number) => void;
   hinted?: number;
   dim?: (c: CardType) => boolean;
@@ -324,7 +324,7 @@ export function Hand({
       p.timer = window.setTimeout(() => {
         p.flipped = true;
         onFlip(i);
-      }, 450);
+      }, 800);
   };
   const touch = onClick && {
     onPointerDown: (e: React.PointerEvent) => {
@@ -354,10 +354,12 @@ export function Hand({
   };
   // a touch plays on release, not on the click after it
   const click = (i: number) => touched.current || onClick?.(i);
+  // under a finger, lift and spread more
+  const [spread, lift] = touched.current ? [2.4, 3] : [1, 0.8];
   return (
     <div
       ref={ref}
-      className="@container flex touch-none justify-center pt-[1.4em] pb-[1.5em] text-[0.85rem] max-sm:h-[4.6em] max-sm:overflow-y-clip max-sm:pb-0 *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)]"
+      className="@container flex touch-none justify-center pt-[1.4em] pb-[1.5em] text-[0.85rem] max-sm:h-[4.6em] max-sm:pb-0 max-sm:[clip-path:inset(-100vh_-100vw_0)] *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)]"
       onMouseLeave={() => press.current || hovered(undefined)}
       {...touch}
     >
@@ -365,7 +367,7 @@ export function Hand({
         <div
           key={i}
           className={`relative transition-transform duration-150 select-none [-webkit-touch-callout:none] ${hover === i ? "z-10" : ""}`}
-          style={onClick && at >= 0 ? { translate: `${aside(k - at)}em ${hover === i ? "-0.8em" : "0"}` } : undefined}
+          style={onClick && at >= 0 ? { translate: `${spread * aside(k - at)}em ${hover === i ? -lift : 0}em` } : undefined}
           onMouseEnter={onClick && (() => touched.current || hovered(i))}
         >
           <Card card={cards[i]} down={down?.(i)} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => click(i))} />
