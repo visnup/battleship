@@ -122,7 +122,10 @@ When to dig in, and when to stop:
 
 A Next.js (pages router) and Convex app copied from `../hilt`: `pnpm dev` runs both, Next on port
 3030 (see the games `CLAUDE.md` for every app's ports). Locally it runs against an anonymous local Convex backend
-(`CONVEX_AGENT_MODE=anonymous`, as `.claude/launch.json` starts it). Not deployed yet. Other
+(`CONVEX_AGENT_MODE=anonymous`, as `.claude/launch.json` starts it). `vercel.json` deploys Convex
+to production as part of Vercel's build: fives.visnup.com, from `main`, with `CONVEX_DEPLOY_KEY`
+set in Vercel's production environment (Convex project `fives`, team visnup). A CLI deploy from
+this directory fails, since the Vercel project is rooted at `apps/fives` of the repo. Other
 players' hands aren't hidden from their browsers; it's for friends.
 
 - `replay.ts`: a game is its seed and every play made in it (a card by its place in hand, and

@@ -270,14 +270,74 @@ function HandScores({ scored, who, chips, done }: { scored: Scored; who: (n: num
 const ORDER = COLORS;
 const rank = (c: CardType) => ORDER.indexOf(c.color) * 100 + c.value;
 
-/** A hand, sorted by color and overlapped in a row, 2.4em of each card under the next, up to 3.2em when 13 wouldn't fit, which still shows a two-digit index. `onClick` and the rest take places in the hand as dealt, not as shown. */
-export function Hand({ cards, onClick, selected, hinted, dim }: { cards: CardType[]; onClick?: (i: number) => void; selected?: number; hinted?: number; dim?: (c: CardType) => boolean }) {
+/** How far the card `d` places from the hovered one moves aside, in em: most for its neighbors, none from 4 away. */
+const aside = (d: number) => (d === 0 ? 0 : Math.sign(d) * 1.2 * Math.max(0, 1 - (Math.abs(d) - 1) / 3));
+
+/**
+ * A hand, sorted by color and overlapped in a row, 2.4em of each card under the next, up to 3.2em when 13 wouldn't fit, which
+ * still shows a two-digit index. With `onClick`, a hovered card rises and the others move aside. `onClick` and the rest take
+ * places in the hand as dealt, not as shown.
+ */
+export function Hand({
+  cards,
+  onClick,
+  onHover,
+  onFlip,
+  hinted,
+  dim,
+  down,
+}: {
+  cards: CardType[];
+  onClick?: (i: number) => void;
+  onHover?: (i: number | undefined) => void;
+  /** A long press on a touch screen. */
+  onFlip?: (i: number) => void;
+  hinted?: number;
+  dim?: (c: CardType) => boolean;
+  down?: (i: number) => boolean;
+}) {
   const order = cards.map((_, i) => i).sort((a, b) => rank(cards[a]) - rank(cards[b]));
+  const [hover, setHover] = useState<number>();
+  const at = hover === undefined ? -1 : order.indexOf(hover);
+  const hovered = (i: number | undefined) => {
+    setHover(i);
+    onHover?.(i);
+  };
+  const press = useRef<{ timer: number; fired: boolean }>(undefined);
+  const release = () => clearTimeout(press.current?.timer);
+  const touch = (i: number) =>
+    onFlip && {
+      onPointerDown: (e: React.PointerEvent) => {
+        if (e.pointerType !== "touch") return;
+        release();
+        const p = { fired: false, timer: 0 };
+        p.timer = window.setTimeout(() => {
+          p.fired = true;
+          onFlip(i);
+        }, 450);
+        press.current = p;
+      },
+      onPointerUp: release,
+      onPointerCancel: release,
+      onPointerLeave: release,
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    };
+  const click = (i: number) => {
+    // the click that ends a long press
+    if (press.current?.fired) return void (press.current = undefined);
+    onClick?.(i);
+  };
   return (
-    <div className="@container flex justify-center text-[0.85rem] pt-[1.4em] pb-[1.5em] *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)] *:hover:z-10">
-      {order.map((i) => (
-        <div key={i} className={`relative ${selected === i ? "z-10" : ""}`}>
-          <Card card={cards[i]} selected={selected === i} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => onClick(i))} />
+    <div className="@container flex justify-center pt-[1.4em] pb-[1.5em] text-[0.85rem] *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)]" onMouseLeave={() => hovered(undefined)}>
+      {order.map((i, k) => (
+        <div
+          key={i}
+          className={`relative transition-transform duration-150 select-none [-webkit-touch-callout:none] ${hover === i ? "z-10" : ""}`}
+          style={onClick && at >= 0 ? { translate: `${aside(k - at)}em ${hover === i ? "-0.8em" : "0"}` } : undefined}
+          onMouseEnter={onClick && (() => hovered(i))}
+          {...touch(i)}
+        >
+          <Card card={cards[i]} down={down?.(i)} hinted={hinted === i} dim={dim?.(cards[i])} onClick={onClick && (() => click(i))} />
         </div>
       ))}
     </div>
@@ -353,17 +413,49 @@ function Seat({ p, name, level, current, mine, className, tall }: { p: Player; n
 
 function Ask({ game, p, send, prompt }: { game: Game; p: Player; send: (c: Choice) => void; prompt: Prompt }) {
   const legal = game.legal(p);
-  const [picked, setPicked] = useState<number>();
   const [hint, setHint] = useState<Play>();
-  const card = picked === undefined ? undefined : p.hand[picked];
-  const can = (down: boolean) => !!card && legal.some((l) => l.card === card && l.down === down);
-  const play = (down: boolean) => send({ kind: prompt.kind, seat: p.seat, ...choose(p, { card: card!, down }) });
-  const outline = (down: boolean) => (hint && hint.card === card && hint.down === down ? "outline-3 outline-ink/50" : "");
+  const [hover, setHover] = useState<number>();
+  // cards flipped face down, by place in hand
+  const [flipped, setFlipped] = useState<number[]>([]);
+  const [note, setNote] = useState<string>();
+  const flip = (i: number) => setFlipped((f) => (f.includes(i) ? f.filter((x) => x !== i) : [...f, i]));
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "f" && hover !== undefined && !e.metaKey && !e.ctrlKey && !(e.target instanceof HTMLInputElement)) flip(hover);
+    };
+    addEventListener("keydown", key);
+    return () => removeEventListener("keydown", key);
+  }, [hover]);
+  const play = (i: number) => {
+    const card = p.hand[i];
+    const down = flipped.includes(i);
+    if (legal.some((l) => l.card === card && l.down === down)) return send({ kind: prompt.kind, seat: p.seat, ...choose(p, { card, down }) });
+    setNote(
+      down
+        ? "You can't play a magenta 5 now."
+        : game.led() && legal.some((l) => l.card === card)
+          ? "Only face down, as a magenta 5: press F, or long-press it."
+          : game.led()
+            ? `You have to follow ${game.led()}.`
+            : "You can't play that now.",
+    );
+  };
   return (
     <div className="relative">
       <div className="flex items-end gap-[0.8em]">
         <div className="min-w-0 flex-1">
-          <Hand cards={p.hand} selected={picked} hinted={hint ? p.hand.indexOf(hint.card) : undefined} dim={(c) => !legal.some((l) => l.card === c)} onClick={(i) => setPicked(i === picked ? undefined : i)} />
+          <Hand
+            cards={p.hand}
+            down={(i) => flipped.includes(i)}
+            hinted={hint ? p.hand.indexOf(hint.card) : undefined}
+            dim={(c) => !legal.some((l) => l.card === c)}
+            onClick={play}
+            onFlip={flip}
+            onHover={(i) => {
+              setHover(i);
+              setNote(undefined);
+            }}
+          />
         </div>
         <div className="flex shrink-0 flex-col items-center justify-center gap-[0.4em] self-stretch pt-[0.8em]">
           <span className="label">{game.trick.length ? "Your play" : "Your lead"}</span>
@@ -371,34 +463,16 @@ function Ask({ game, p, send, prompt }: { game: Game; p: Player; send: (c: Choic
             className="quiet"
             onClick={() => {
               const m = defaultPolicy.play(game, p);
+              const i = p.hand.indexOf(m.card);
               setHint(m);
-              setPicked(p.hand.indexOf(m.card));
+              setFlipped((f) => (m.down ? [...f.filter((x) => x !== i), i] : f.filter((x) => x !== i)));
             }}
           >
             Hint
           </button>
         </div>
       </div>
-      {card && (
-        <div className="panel absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[0.8em] flex flex-wrap items-center justify-center gap-[0.6em] p-[0.6em]">
-          {!can(false) && !can(true) ? (
-            <span>{game.led() ? `You have to follow ${game.led()}.` : "You can't play that now."}</span>
-          ) : (
-            <>
-              {can(false) && (
-                <button className={`primary ${outline(false)}`} onClick={() => play(false)}>
-                  Play the {card.color} {card.value}
-                </button>
-              )}
-              {can(true) && (
-                <button className={outline(true)} onClick={() => play(true)} title="Face down, it counts as the magenta 5 on its back. Only one a trick.">
-                  Play it as a magenta 5
-                </button>
-              )}
-            </>
-          )}
-        </div>
-      )}
+      {note && <div className="panel absolute -right-[0.8em] bottom-full -left-[0.8em] mb-[0.8em] p-[0.6em] text-center">{note}</div>}
     </div>
   );
 }

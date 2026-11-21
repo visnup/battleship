@@ -13,6 +13,8 @@ high cards, and when to flip a card to its magenta 5.
 The answers come from the model, not from real tables. It follows the How to Play booklet, and
 `CLAUDE.md` lists the readings the booklet leaves open. It hasn't been checked against real games.
 
+You can play it against its bots, or with friends, at [fives.visnup.com](https://fives.visnup.com).
+
 The simulator and this analysis were written with Claude Opus 5.5, working in Claude Code.
 
 ## A quick refresher
@@ -30,6 +32,34 @@ players the 10s to 13s come out, and everyone gets 12 cards; at 4, everyone gets
   going over takes 3 chips at 4 players (2 at 3), second 2 (1), third 1, and exactly 25 one more.
   Tied players all take the lower place. A bust gives one of their chips to the closest player.
 - Everyone starts with 5 chips. After 4 hands, the most chips wins.
+
+## How to play better
+
+What the simulator has found so far, most important first. Each rule is one the default player
+follows, and each gain is in points of win rate (below) against a player without it.
+
+1. **Your face-down 5 is for getting rid of high cards.** A card you flip counts 5 if it wins,
+   whatever it was face up. A player who never flips loses 24 points at 3 players and 20 at 4.
+2. **When you lead and you're 5 or more from 25, lead face down.** Flip your highest silver, or
+   your highest card if you have no silver. Why silver first is a guess, not something the
+   simulator shows: a high silver is the card most likely to win a trick you didn't want and add
+   its whole value to your total, and led face down it's a magenta 5 at most.
+   Leading your lowest card face up, the obvious play, is far worse: this rule alone wins about
+   two games in three at 3 players against a table that doesn't follow it.
+3. **Take a trick you're sure to win if it doesn't bust you,** first of all one that makes exactly
+   25.
+   "Sure" means nobody still to play can beat it, counting the cards you've seen and the colors
+   others have shown they're out of.
+4. **At 4 players, early in a hand, don't take a trick as the last to play** unless you're within
+   12 of 25. Play under it instead: +3.5 points at 4 players, nothing at 3.
+5. **Otherwise play under the trick, with your biggest card that loses.** Ducking is how you shed
+   high cards when you can't flip them.
+6. **Once you've busted, dump your biggest cards.** Nothing more can be lost this hand.
+
+A table that follows all six beats one following only 3, 5 and 6 by a wide margin: one of them
+wins 69.0% at 3 players and 57.1% at 4 among the old players, and one old player wins only 10.9%
+and 5.8% among the new. The learned player still wins 62.2% and 63.2% against them, so there's
+more to find.
 
 ## Reading the numbers
 
@@ -49,14 +79,8 @@ redraws `charts/`.
 
 ## The players
 
-- **The default** (`defaultPolicy` in `src/game.ts`) is a few hand-written rules: once busted, dump
-  your biggest card; when you lead with 5 or more to go, lead your highest trump face down, or
-  your highest card if you have no trump; take a trick you're sure to win if it makes exactly 25
-  or doesn't bust, except at 4 players when you play last early in a hand, more than 12 from 25;
-  else
-  play under the trick, dumping your biggest card that loses; and if every play wins, the biggest
-  that doesn't bust. "Sure" means nobody still to play can hold a card that beats it, counting
-  what's been seen. It's weak, which is the point of what follows.
+- **The default** (`defaultPolicy` in `src/game.ts`) plays the rules in "How to play better", and
+  if every play wins, the biggest that doesn't bust. It's the Medium bot online.
 - **Playouts** try every legal play: copy the game, deal the cards you can't see again at random
   (respecting colors someone has shown they're out of), play on with the default everywhere, and
   make the play that wins most. Playing only to the end of the hand and scoring it by the chance
@@ -86,29 +110,23 @@ The default against itself busts in 38% of hands at 4 players and 25% at 3, and 
 6% and 9%. Never playing a card face down costs it 24 points at 3 players and 20 at 4: the magenta
 5 is how you get rid of a high card without adding more than 5 to your total.
 
-### What the learned model taught the default
+### Where rules 2 and 4 came from
 
-Three rules, each from where round 9's learned model played differently from the default, and
-each kept only if it also beat a table of every earlier default. Together they take the default
-from a fair share to 69.0% at 3 players and 57.1% at 4 against its old self (40,000 games), and
-the old default in one seat against the new one wins only 10.9% and 5.8%.
+Both came from where round 9's learned player chose differently from the default
+(`scripts/overrules.ts`), and each was kept only if it also beat a table of every earlier default
+(40,000 games against the default, 10,000 to 20,000 against the rest):
 
-- **Lead high, face down.** When you lead and you're 5 or more from 25, play a high card face
-  down. It leads a magenta 5, and the card you give up is the one most likely to bust you later;
-  if the 5 wins the trick, it scores only 5. The default used to lead its lowest card face up.
-  This rule alone took it to 65.3% and 49.4% against its old self. Leading the lowest card face
-  down, or the highest face up, doesn't help, and 5 to go beats 3, 7 or 10 as the cutoff.
-- **Flip your highest trump first.** The card to flip is your highest silver if you have one, else
-  your highest card: +8.3 and +11.3 points more. A high silver wins whatever trick it's played on,
-  so it's the card that most surely adds its full value to your total. Flipping the lowest silver
-  instead does worse than not preferring silver at all.
-- **At 4 players, don't take early when you play last.** If you're last to play to a trick early
-  in a hand and more than 12 from 25, play under even when you could take it safely: +3.5 points
-  at 4 players, and nothing at 3.
+| rule | against the default | against earlier defaults | against the learned player |
+| --- | --- | --- | --- |
+| lead your highest card face down, 5+ from 25 (the default used to lead its lowest face up) | +31.8, +24.7 | | +6.2, +2.7 |
+| flip your highest silver first | +8.3, +11.3 | +5.8, +6.6 | +1.9, +0.9 |
+| at 4 players, last to play early, take only within 12 of 25 | +3.5 at 4 players | +4.3 | +0.8 |
 
-Two more of the model's differences didn't make rules: ducking with your lowest losing card
-instead of your highest when last early in a hand, and taking with your highest card of the led
-color when second to play early. Each cost 2 to 4 points at 4,000 games.
+Leading the lowest card face down, or the highest face up, doesn't help, and 5 to go beats 3, 7
+or 10 as the cutoff. Flipping the lowest silver does worse than not preferring silver at all.
+Two more of the learned player's habits didn't make rules: ducking with your lowest losing card
+when last early in a hand, and taking with your highest card of the led color when second to play
+early. Each cost 2 to 4 points.
 
 ## Rounds
 

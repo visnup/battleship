@@ -54,4 +54,4 @@
 - [x] Play online with bots, as in hilt (`replay.ts`, `convex/`, `src/components/`), at a round
       table.
 - [ ] The Hard bot on the learned model once one beats playouts, and in the review.
-- [ ] Deploy.
+- [x] Deploy, 2026-11-20: fives.visnup.com, from `main`.
