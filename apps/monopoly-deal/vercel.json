@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "pnpm convex deploy --cmd 'pnpm build'"
+  "buildCommand": "pnpm convex deploy --cmd 'pnpm build'",
+  "ignoreCommand": "git diff ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD --quiet -- . ':/packages' ':/package.json' ':/pnpm-*'"
 }
