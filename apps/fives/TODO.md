@@ -47,7 +47,8 @@
       deals 27.1%; full-game playouts on 16, 6.5%; hand playouts among its full model on 2 deals,
       3.0% (100 games), at 13 times a rollout game's cost. So more deals, not deeper or stronger
       playouts.
-- [ ] Round 11: labels on 64 deals, one hand deep, fit to rounds 10–11.
+- [x] Round 11, 2026-11-20: labels on 64 deals, one hand deep, fit to rounds 10–11. Beats round
+      10 (36.2%, 26.3%) and loses to round 9 (31.7%, 24.6%). Not adopted.
 
 ## Analysis
 

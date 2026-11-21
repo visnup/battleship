@@ -1,0 +1,38 @@
+15159176 moves to train on, 237966 held out
+Training until validation scores don't improve for 20 rounds
+[50]	valid_0's l2: 0.00246227
+[100]	valid_0's l2: 0.0023611
+[150]	valid_0's l2: 0.00230857
+[200]	valid_0's l2: 0.00226863
+[250]	valid_0's l2: 0.00223986
+[300]	valid_0's l2: 0.00221844
+[350]	valid_0's l2: 0.00220124
+[400]	valid_0's l2: 0.00218261
+[450]	valid_0's l2: 0.00216641
+[500]	valid_0's l2: 0.00215353
+[550]	valid_0's l2: 0.00214325
+[600]	valid_0's l2: 0.00213366
+[650]	valid_0's l2: 0.00212424
+[700]	valid_0's l2: 0.00211627
+[750]	valid_0's l2: 0.00210733
+[800]	valid_0's l2: 0.00210172
+[850]	valid_0's l2: 0.00209618
+[900]	valid_0's l2: 0.00209192
+[950]	valid_0's l2: 0.002086
+[1000]	valid_0's l2: 0.00208011
+[1050]	valid_0's l2: 0.00207621
+[1100]	valid_0's l2: 0.00207172
+[1150]	valid_0's l2: 0.00206814
+[1200]	valid_0's l2: 0.00206379
+[1250]	valid_0's l2: 0.00205914
+[1300]	valid_0's l2: 0.00205569
+[1350]	valid_0's l2: 0.00205133
+[1400]	valid_0's l2: 0.00204835
+[1450]	valid_0's l2: 0.00204594
+[1500]	valid_0's l2: 0.00204274
+Did not meet early stopping. Best iteration is:
+[1500]	valid_0's l2: 0.00204274
+
+held out, points of win chance a decision over the default's pick (model's pick, and the best move's, which is noisy):
+  3 players: +1.16 (best +3.73) on 15660 decisions
+  4 players: +1.22 (best +3.06) on 16850 decisions

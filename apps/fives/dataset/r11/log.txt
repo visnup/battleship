@@ -1,0 +1,138 @@
+Fri Nov 20 19:48:12 PST 2026 round 11: 12000 games, 64 deals, 1500 trees, from r10
+  [10 min, 19:58] 47746 decisions so far
+shard: 10% after 975s
+  [20 min, 20:08] 97632 decisions so far
+shard: 20% after 1485s
+  [30 min, 20:18] 153331 decisions so far
+shard: 30% after 1911s
+  [40 min, 20:28] 221815 decisions so far
+shard: 41% after 2582s
+shard: 51% after 2945s
+  [50 min, 20:38] 290080 decisions so far
+shard: 61% after 3338s
+  [60 min, 20:48] 359241 decisions so far
+shard: 71% after 3727s
+  [70 min, 20:58] 427859 decisions so far
+shard: 81% after 4350s
+shard: 91% after 4730s
+  [80 min, 21:08] 495882 decisions so far
+shard: 100% after 5040s
+21:12 3 players: 12000 games, 512098 decisions, 84.0 min
+  [90 min, 21:18] 538227 decisions so far
+  [100 min, 21:28] 582640 decisions so far
+shard: 10% after 1158s
+  [110 min, 21:38] 627024 decisions so far
+shard: 20% after 1756s
+  [120 min, 21:48] 671451 decisions so far
+shard: 30% after 2362s
+  [130 min, 21:58] 716204 decisions so far
+  [140 min, 22:08] 761446 decisions so far
+shard: 41% after 3457s
+  [150 min, 22:18] 805806 decisions so far
+shard: 51% after 4047s
+  [160 min, 22:28] 851155 decisions so far
+shard: 61% after 4681s
+  [170 min, 22:38] 896130 decisions so far
+shard: 71% after 5728s
+  [180 min, 22:48] 941097 decisions so far
+shard: 81% after 6355s
+  [190 min, 22:58] 985667 decisions so far
+shard: 91% after 6975s
+  [200 min, 23:08] 1029786 decisions so far
+shard: 100% after 7507s
+23:17 4 players: 12000 games, 549415 decisions, 125.1 min
+  [209 min, 23:17] data
+held out, points of win chance a decision over the default's pick (model's pick, and the best move's, which is noisy):
+  3 players: +1.16 (best +3.73) on 15660 decisions
+  4 players: +1.22 (best +3.06) on 16850 decisions
+  [214 min, 23:22] train
+20000 games each: one player's wins against "learned r10" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 20% after 11s
+run: 30% after 15s
+run: 41% after 21s
+run: 51% after 25s
+run: 61% after 29s
+run: 71% after 35s
+run: 81% after 38s
+run: 91% after 42s
+run: 100% after 45s
+run: 10% after 12s
+run: 20% after 17s
+run: 30% after 23s
+run: 41% after 32s
+run: 51% after 38s
+run: 61% after 43s
+run: 71% after 53s
+run: 81% after 58s
+run: 91% after 64s
+run: 100% after 69s
+| learned r11 | 36.2% | 26.3% |
+20000 games each: one player's wins against "learned r9" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 20% after 11s
+run: 30% after 16s
+run: 41% after 22s
+run: 51% after 25s
+run: 61% after 29s
+run: 71% after 35s
+run: 81% after 38s
+run: 91% after 42s
+run: 100% after 45s
+run: 10% after 11s
+run: 20% after 17s
+run: 30% after 22s
+run: 41% after 32s
+run: 51% after 38s
+run: 61% after 43s
+run: 71% after 53s
+run: 81% after 58s
+run: 91% after 64s
+run: 100% after 68s
+| learned r11 | 31.7% | 24.6% |
+20000 games each: one player's wins against "learned r8" in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 20% after 11s
+run: 30% after 15s
+run: 41% after 21s
+run: 51% after 24s
+run: 61% after 28s
+run: 71% after 34s
+run: 81% after 37s
+run: 91% after 41s
+run: 100% after 43s
+run: 10% after 11s
+run: 20% after 17s
+run: 30% after 22s
+run: 41% after 32s
+run: 51% after 37s
+run: 61% after 43s
+run: 71% after 52s
+run: 81% after 58s
+run: 91% after 63s
+run: 100% after 68s
+| learned r11 | 32.5% | 25.4% |
+20000 games each: one player's wins against the default player in every other seat.
+
+| variant | 3 players (fair 33.3%) | 4 players (fair 25.0%) |
+| --- | --- | --- |
+run: 71% after 11s
+run: 81% after 12s
+run: 91% after 13s
+run: 100% after 14s
+run: 51% after 10s
+run: 61% after 12s
+run: 71% after 13s
+run: 81% after 15s
+run: 91% after 17s
+run: 100% after 18s
+| learned r11 | 64.2% | 62.1% |
+  [220 min, 23:28] compare
+  [222 min, 23:30] train rollout
+Fri Nov 20 23:30:23 PST 2026 round 11: done
