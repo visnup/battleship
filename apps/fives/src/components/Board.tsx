@@ -186,7 +186,7 @@ export function Board({ game, me }: Props) {
         </div>
       </section>
       {result && seat >= 0 && <Review key={game._id} setup={setup(game)} log={game.log} seat={seat} show={(n) => setPast({ decisions: n, line: until(game, n).lines.length - 1 })} />}
-      <div className="mb-[9em] grid grid-cols-[1fr_auto_1fr] grid-rows-[auto_auto_auto] items-center gap-[0.6em] max-sm:gap-[0.3em]">
+      <div className="mb-[9em] max-sm:mb-[6em] grid grid-cols-[1fr_auto_1fr] grid-rows-[auto_auto_auto] items-center gap-[0.6em] max-sm:gap-[0.3em]">
         <div className="col-start-2 row-start-2 grid aspect-square w-[min(17em,46vw,34dvh)] grid-cols-3 grid-rows-3 place-items-center">
           {trick.plays.map(({ seat: s, play }) => (
             <div key={s} className={`${SLOTS[n][(s - bottom + n) % n]} relative`}>
@@ -275,8 +275,8 @@ const aside = (d: number) => (d === 0 ? 0 : Math.sign(d) * 1.2 * Math.max(0, 1 -
 
 /**
  * A hand, sorted by color and overlapped in a row, 2.4em of each card under the next, up to 3.2em when 13 wouldn't fit, which
- * still shows a two-digit index. With `onClick`, a hovered card rises and the others move aside. `onClick` and the rest take
- * places in the hand as dealt, not as shown.
+ * still shows a two-digit index. On a phone only the cards' tops show. With `onClick`, a hovered card rises and the others move
+ * aside. `onClick` and the rest take places in the hand as dealt, not as shown.
  */
 export function Hand({
   cards,
@@ -328,7 +328,7 @@ export function Hand({
     onClick?.(i);
   };
   return (
-    <div className="@container flex justify-center pt-[1.4em] pb-[1.5em] text-[0.85rem] *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)]" onMouseLeave={() => hovered(undefined)}>
+    <div className="@container flex justify-center pt-[1.4em] pb-[1.5em] text-[0.85rem] max-sm:h-[4.6em] max-sm:overflow-y-clip max-sm:pb-0 *:not-first:-ml-[clamp(2.4em,calc(4.875em-8.33cqw),3.2em)]" onMouseLeave={() => hovered(undefined)}>
       {order.map((i, k) => (
         <div
           key={i}
