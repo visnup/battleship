@@ -198,13 +198,6 @@ without you, stay out of it. Letting the others go on playing a battle they've a
 into, and only holding off opening, plays exactly the same (tried with the next player denying):
 the deal's cost is in who opens.
 
-Most of what the rules say is about cards as a budget. The 1s, Furies and Baits are cheap ways to
-stay in a battle without spending anything that matters, and passing is final, so you play one
-rather than pass. That holds when you're ahead, too: a pass with others still in leaves them free
-to overtake you, so keep adding your weakest card until they give up. The 10s and Legends decide
-battles, so you spend them only when nobody can answer, and take them back with Bait when you
-can.
-
 ## Going first
 
 The Favor starts in seat 1, which acts last in the first battle. 100,000 default games
@@ -256,6 +249,62 @@ Crows whenever it led, a 10 or a Legend was worth 8 to 12 points and Crows −6.
 as the default plays now, which holds a lead by playing its weakest force card, force cards are
 worth about their value: a 10 and a Legend the most, a 1 near the bottom. Before that rule, a 1
 was worth more than a 6, as a free way to stay in, and Fury and Crows were worth the most.
+
+## Playing the fate cards
+
+Most of what the rules say is about cards as a budget. The 1s, Furies and Baits are cheap ways to
+stay in a battle without spending anything that matters, and passing is final, so you play one
+rather than pass. That holds when you're ahead, too: a pass with others still in leaves them free
+to overtake you, so keep adding your weakest card until they give up. The 10s and Legends decide
+battles, so you spend them only when nobody can answer, and take them back with Bait when you
+can.
+
+The table above says what a card is worth to be dealt. This one says what it's worth to play
+well: the default against the same player that plays as if the card weren't in its hand
+(`variants.ts`, "never play", 10,000 games), in points:
+
+| playing it as the default does | against the default, 3 / 4 / 5 / 6 players | against the league |
+| --- | --- | --- |
+| Fury | 13.1 / 7.5 / 5.9 / 5.4 | 13.4 / 7.6 / 6.7 / 6.1 |
+| Bait | 4.4 / 3.8 / 3.7 / 3.9 | 13.3 / 10.6 / 9.6 / 8.4 |
+| Legend | 7.7 / 4.4 / 4.1 / 3.4 | 7.7 / 4.2 / 3.6 / 2.6 |
+| Crows | 5.4 / 5.2 / 4.3 / 3.7 | 6.1 / 2.4 / 2.5 / 2.0 |
+| Winter | 2.5 / 0.8 / 1.1 / 1.3 | 2.8 / 1.4 / 1.6 / 1.3 |
+| Doves | 0.4 / −0.5 / −0.3 / −0.1 | 0.4 / 0.0 / −0.1 / −0.3 |
+
+**Fury** is the card to play first. It doubles every force card in your row, including the ones
+played after it: as the Favor holder with nothing down, lead with it before
+your strongest card (rule 3, 4 to 5 points over the strongest card alone), and when you open
+behind, a Fury is as cheap as a 1 (rule 6). Under Winter it still makes your force cards 2 each.
+Played well it's worth more than any other card, most of all at 3 players.
+
+**Bait** is a poor card to be dealt, worse than a random one, and an essential one to use. It
+can only take back a force card from your own row, so it's never a way into a battle, only a way
+to spend less in one. Three uses: once everyone else has passed, Bait back the biggest card that
+still leaves you ahead (rule 1, 2 to 4 points), so a 10 that won the battle comes home; while
+behind with others still in, Bait back a 1 to stay in without spending anything (rule 8, 4.5 to 7
+points); and before giving up a battle, Bait back your biggest card (rule 11). It's worth two to
+three times as much against the league as against today's default.
+
+**Legend** is a 10 that Winter can't touch and Fury doesn't double. Spend it like a 10: as the
+Favor holder's strong opener, to finish a battle nobody else is still in (rule 7), or when the chip
+decides the game. In a Winter battle it's the strongest card at the table by far.
+
+**Crows** wins the battle on the spot for whoever leads, so play it only when that's you, and
+only with a card of your own down, not on the Favor's 1 strength alone (rule 2, 2 to 5 points
+over Crows whenever ahead). It's worth more to be dealt the more players there are, from 0.7
+points at 3 players to 3.8 at 6.
+
+**Winter** turns every force card into a 1 for the rest of the battle, so it helps whoever has
+more cards down, or a Legend. The default plays it only when it takes the lead outright, counting
+it as cheap as a 3. That's worth a point or two, and a Winter in hand is worth a little less than a
+random card.
+
+**Doves** ends the battle with no winner, so the chip and the Favor stay put. The default plays
+it when someone else leads with a chip that wins them the game, and that's worth nothing
+measurable: the same chip is fought over again next battle. It's the worst
+card to be dealt, 3 points below a random one. A review of one game suggests it pays to stop a
+battle someone else is winning more often than that (`TODO.md`), not yet tested.
 
 ## A learned player
 

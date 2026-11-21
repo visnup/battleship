@@ -230,6 +230,21 @@ const VARIANTS: Record<string, (seed: number) => Policy> = {
     ]),
   ),
   "at 3 players, deny a winning chip with the cheapest card (previous)": without("deny"),
+  ...Object.fromEntries(
+    (["bait", "fury", "legend", "winter", "crows", "doves"] as const).map((kind) => [
+      `never play ${kind}`,
+      (): Policy => ({
+        ...defaultPolicy,
+        move(game, p) {
+          const hand = p.hand;
+          p.hand = hand.filter((c) => c.kind !== kind);
+          const m = p.hand.length ? defaultPolicy.move(game, p) : null;
+          p.hand = hand;
+          return m;
+        },
+      }),
+    ]),
+  ),
   "don't open with 1 other in at 5+ players": replace("open", (game, p) => (game.players.length >= 5 && oneIn(game, p) ? undefined : STEPS.open(game, p))),
 };
 
