@@ -428,6 +428,7 @@ function Seat({ p, name, level, current, mine, className, tall }: { p: Player; n
         <span className="flex min-w-[2.6em] flex-col items-center" title="This hand's total: the cards that won tricks">
           <span className={`text-lg leading-none font-extrabold ${t > TARGET ? "text-red-600" : t === TARGET ? "text-magenta" : ""}`}>{t}</span>
           <span className="label text-[0.55rem]">{t > TARGET ? "bust" : "of 25"}</span>
+          {t <= TARGET && <span className="label text-[0.55rem] opacity-60">{TARGET - t} to go</span>}
         </span>
         {tall ? (
           <div className="flex flex-col *:not-first:-mt-[calc(var(--small)*2.2)]">

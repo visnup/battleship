@@ -78,9 +78,8 @@ The tools, cheapest first:
 The steps:
 
 1. **Find a candidate rule**, from any source:
-   - Where the model's pick differs from the default's, grouped by the default's step. hilt's
-     `scripts/overrules.ts` does this and found its `hold` rule in about 20 minutes; fives
-     doesn't have one yet.
+   - Where the model's pick differs from the default's, grouped by the default's step
+     (`scripts/overrules.ts`). It found `leadDown` and `take`'s wait.
    - `scripts/decisions.ts`: where playouts clearly prefer another play.
    - A person's game: a review that shows a costly play (`TODO.md` has some).
 2. **Write it as a variant** in `scripts/variants.ts`, with a few alternatives (cheapest card or
